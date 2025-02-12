@@ -1,10 +1,10 @@
 <template>
   <div class="GlobalHeader" v-if="!isAuthPage">
     <a-row :wrap="false">
-      <a-col flex="140px">
+      <a-col flex="160px">
         <div class="title-bar">
           <img class="logo" src="../assets/XM_1024.png" alt="logo" />
-          <div class="title">千夜の詩</div>
+          <div class="title">GameHub</div>
         </div>
       </a-col>
       <a-col flex="auto">
@@ -25,7 +25,11 @@
               </a>
               <template #overlay>
                 <a-menu>
-                  <a-menu-item key="profile">个人资料</a-menu-item>
+                  <a-menu-item
+                    key="profile"
+                    @click="router.push('/user/profile')"
+                    >个人资料</a-menu-item
+                  >
                   <a-menu-item key="logout" @click="doLogout"
                     >退出登录
                   </a-menu-item>
@@ -129,8 +133,9 @@ const isAuthPage = computed(() => {
 }
 
 .title {
-  color: #2c3e50;
-  font-size: 16px;
+  color: #6cb4ff;
+  font-size: 24px;
+  font-weight: bolder;
   margin-left: 10px;
 }
 

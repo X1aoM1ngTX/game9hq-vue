@@ -27,20 +27,24 @@ import GlobalHeader from "@/components/GlobalHeader.vue";
 </script>
 
 <style scoped>
+#basic-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 #basic-layout .header {
   background-color: #fff;
 }
 
 #basic-layout .content {
+  flex: 1;
   padding: 0px;
   margin-bottom: 0px;
 }
 
 #basic-layout .footer {
-  background-color: #e4e4e4;
+  background-color: #ffffff;
   text-align: center;
-  bottom: 0;
-  left: 0;
-  right: 0;
 }
 </style>

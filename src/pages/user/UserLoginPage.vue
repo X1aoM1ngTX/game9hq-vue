@@ -43,7 +43,8 @@
             登录
           </a-button>
           <div class="register-link">
-            还没有账号？<a href="/user/register">立即注册</a>
+            还没有账号？<a href="/user/register">立即注册</a
+            ><a href="/user/forgot-password">忘记密码?</a>
           </div>
         </a-form-item>
       </a-form>

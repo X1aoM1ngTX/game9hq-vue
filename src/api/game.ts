@@ -5,15 +5,6 @@ interface GameCreateRequest {
   gamePrice: number;
   gameStock: number;
 }
-
-interface GameDiscountRequest {
-  gameId: string | number;
-  discount: number;
-  saleStartTime: string | null;
-  saleEndTime: string | null;
-  gameOnSale: boolean;
-}
-
 // 添加游戏
 export const createGame = async (params: GameCreateRequest) => {
   return await myAxios.post("/api/game/createGame", params);
@@ -77,14 +68,35 @@ export const searchGames = (params: any) => {
   );
 };
 
-/**
- * 设置游戏折扣
- * @param data 折扣信息
- */
-export const setGameDiscount = (data: GameDiscountRequest) => {
-  return myAxios.post("/api/game/discount", data, {
+// 添加文件上传接口
+export const uploadFile = (params: any) => {
+  return myAxios.post("/api/game/upload", params, {
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
+};
+
+// 游戏详情接口
+export interface GameDetailVO {
+  gameId: number;
+  gameName: string;
+  gamePrice: number;
+  gameCover: string;
+  gameStock: number;
+  gameDescription: string;
+  gameDiscount: number;
+  gameDiscountedPrices: number;
+  gameDev: string;
+  gamePub: string;
+  gameReleaseDate: string;
+  gameSaleEndTime: string;
+  gameIsRemoved: number;
+  gameOnSale: number;
+}
+
+// 获取游戏详情
+export const getGameDetail = (gameId: string | number) => {
+  return myAxios.get<GameDetailVO>(`/api/game/${gameId}`);
 };

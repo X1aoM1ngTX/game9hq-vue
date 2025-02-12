@@ -1,12 +1,22 @@
 <template>
   <div id="gamesManagePage">
-    <a-input-search
-      v-model:value="searchValue"
-      enter-button="搜索🔍"
-      placeholder="输入游戏名搜索🔍"
-      size="large"
-      @search="onSearch"
-    />
+    <div class="header-actions">
+      <a-button
+        type="primary"
+        size="large"
+        style="margin-right: 16px"
+        @click="showAddModal"
+      >
+        添加游戏
+      </a-button>
+      <a-input-search
+        v-model:value="searchValue"
+        enter-button="搜索🔍"
+        placeholder="输入游戏名搜索🔍"
+        size="large"
+        @search="onSearch"
+      />
+    </div>
     <a-table :columns="columns" :data-source="data">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'gameIsRemoved'">
@@ -24,6 +34,25 @@
             <a-tag :color="record.gameOnSale === 0 ? 'default' : 'green'">
               {{ record.gameDiscountedPrices + "￥" }}
             </a-tag>
+          </template>
+        </template>
+        <template v-else-if="column.key === 'gameOnSale'">
+          <template v-if="record.gamePrice == 0">
+            <a-tag :color="'blue'">
+              {{ "免费" }}
+            </a-tag>
+          </template>
+          <template v-else>
+            <template v-if="record.gameOnSale !== 0">
+              <a-tag :color="'green'">
+                {{ "-" + (record.gameDiscount * 100).toFixed(1) + "%" }}
+              </a-tag>
+            </template>
+            <template v-if="record.gameOnSale == 0">
+              <a-tag :color="'default'">
+                {{ "无折扣" }}
+              </a-tag>
+            </template>
           </template>
         </template>
         <template v-else-if="column.key === 'action'">
@@ -46,41 +75,41 @@
       @cancel="handleModalCancel"
       :destroyOnClose="true"
     >
-      <a-form :model="formState" layout="vertical">
+      <a-form
+        v-if="editFormState.gameId"
+        :model="editFormState"
+        layout="vertical"
+      >
         <a-form-item
           label="游戏名称"
           name="gameName"
           :rules="[{ required: true, message: '请输入游戏名称!' }]"
         >
-          <a-input v-model:value="formState.gameName" />
+          <a-input v-model:value="editFormState.gameName" />
         </a-form-item>
-        <a-form-item
-          label="游戏封面"
-          name="gameCover"
-          :rules="[{ required: true, message: '请输入游戏封面地址!' }]"
-        >
+        <a-form-item label="游戏封面" name="gameCover">
           <a-upload
-            name="gameCover"
+            v-model:file-list="fileList"
+            name="file"
             list-type="picture-card"
             class="avatar-uploader"
             :show-upload-list="false"
+            action="http://localhost:8080/api/game/upload"
             :before-upload="beforeUpload"
+            :headers="getHeaders()"
             @change="handleChange"
+            withCredentials="true"
           >
-            <img
-              v-if="formState.gameCover"
-              :src="formState.gameCover"
-              alt="avatar"
-              style="width: 100%"
-            />
+            <img v-if="imageUrl" :src="imageUrl" alt="gameCover" />
             <div v-else>
-              <plus-outlined />
-              <div class="ant-upload-text">Upload</div>
+              <loading-outlined v-if="loading"></loading-outlined>
+              <plus-outlined v-else></plus-outlined>
+              <div class="ant-upload-text">上传</div>
             </div>
           </a-upload>
         </a-form-item>
         <a-form-item label="游戏描述" name="gameDescription">
-          <a-textarea v-model:value="formState.gameDescription" />
+          <a-textarea v-model:value="editFormState.gameDescription" />
         </a-form-item>
         <a-form-item
           label="游戏价格"
@@ -88,7 +117,7 @@
           :rules="[{ required: true, message: '请输入游戏价格!' }]"
         >
           <a-input-number
-            v-model:value="formState.gamePrice"
+            v-model:value="editFormState.gamePrice"
             :min="0"
             :precision="2"
             style="width: 100%"
@@ -100,26 +129,26 @@
           :rules="[{ required: true, message: '请输入游戏库存!' }]"
         >
           <a-input-number
-            v-model:value="formState.gameStock"
+            v-model:value="editFormState.gameStock"
             :min="0"
             style="width: 100%"
           />
         </a-form-item>
         <a-form-item label="游戏发行商" name="gamePub">
-          <a-input v-model:value="formState.gamePub" />
+          <a-input v-model:value="editFormState.gamePub" />
         </a-form-item>
         <a-form-item label="发行日期" name="gameReleaseDate">
           <a-date-picker
-            v-model:value="formState.gameReleaseDate"
+            v-model:value="editFormState.gameReleaseDate"
             style="width: 100%"
           />
         </a-form-item>
         <a-form-item label="游戏开发商" name="gameDev">
-          <a-input v-model:value="formState.gameDev" />
+          <a-input v-model:value="editFormState.gameDev" />
         </a-form-item>
         <a-form-item label="是否打折" name="gameOnSale">
           <a-switch
-            v-model:checked="formState.gameOnSale"
+            v-model:checked="editFormState.gameOnSale"
             :checkedValue="true"
             :unCheckedValue="false"
             checked-children="是"
@@ -129,7 +158,7 @@
         </a-form-item>
         <a-form-item label="游戏折扣开始时间" name="gameSaleStartTime">
           <a-date-picker
-            v-model:value="formState.gameSaleStartTime"
+            v-model:value="editFormState.gameSaleStartTime"
             :show-time="true"
             format="YYYY-MM-DD HH:mm:ss"
             style="width: 100%"
@@ -144,7 +173,7 @@
           ]"
         >
           <a-date-picker
-            v-model:value="formState.gameSaleEndTime"
+            v-model:value="editFormState.gameSaleEndTime"
             :show-time="true"
             format="YYYY-MM-DD HH:mm:ss"
             style="width: 100%"
@@ -159,7 +188,7 @@
           ]"
         >
           <a-input-number
-            v-model:value="formState.gameDiscount"
+            v-model:value="editFormState.gameDiscount"
             :min="0"
             :max="1"
             :step="0.1"
@@ -170,15 +199,50 @@
           />
         </a-form-item>
       </a-form>
+      <a-form v-else :model="addFormState" layout="vertical">
+        <a-form-item
+          label="游戏名称"
+          name="gameName"
+          :rules="[{ required: true, message: '请输入游戏名称!' }]"
+        >
+          <a-input v-model:value="addFormState.gameName" />
+        </a-form-item>
+        <a-form-item
+          label="游戏价格"
+          name="gamePrice"
+          :rules="[{ required: true, message: '请输入游戏价格!' }]"
+        >
+          <a-input-number
+            v-model:value="addFormState.gamePrice"
+            :min="0"
+            :precision="2"
+            style="width: 100%"
+          />
+        </a-form-item>
+        <a-form-item
+          label="游戏库存"
+          name="gameStock"
+          :rules="[{ required: true, message: '请输入游戏库存!' }]"
+        >
+          <a-input-number
+            v-model:value="addFormState.gameStock"
+            :min="0"
+            style="width: 100%"
+          />
+        </a-form-item>
+      </a-form>
     </a-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
 // 导入所需的组件和函数
-import { reactive, ref } from "vue";
+import { h, reactive, ref } from "vue";
+import type { UploadChangeParam, UploadProps } from "ant-design-vue";
 import { message, Modal } from "ant-design-vue";
+import { LoadingOutlined, PlusOutlined } from "@ant-design/icons-vue";
 import {
+  createGame,
   deleteGame,
   searchGames,
   updateGame,
@@ -187,7 +251,6 @@ import {
 // 导入日期处理库
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
-import { PlusOutlined } from "@ant-design/icons-vue"; // 添加图标组件
 
 // 设置 dayjs 为中文
 dayjs.locale("zh-cn");
@@ -205,10 +268,10 @@ const doDelete = (gameId: string) => {
 
   // 确认框
   Modal.confirm({
-    title: "确认删除", // 对话框标题
-    content: "确定要删除这个游戏吗？此操作不可恢复。", // 对话框内容
-    okText: "确认", // 确认按钮的文本
-    cancelText: "取消", // 取消按钮的文本
+    title: "确认删除",
+    content: "确定要删除这个游戏吗？此操作不可恢复。",
+    okText: "确认",
+    cancelText: "取消",
     async onOk() {
       // 用户点击"确认"时的回调函数
       const res = await deleteGame(gameId); // 调用删除游戏的接口
@@ -277,7 +340,20 @@ const columns = [
     dataIndex: "gameCover",
     key: "gameCover",
     customRender: ({ record }: { record: GameTableRecord }) => {
-      return `<img src="${record.gameCover}" alt="Game Cover" style="width: 50px; height: 50px;"/>`;
+      return h(
+        record.gameCover ? "img" : "span",
+        record.gameCover
+          ? {
+              src: record.gameCover,
+              alt: "Game Cover",
+              style: {
+                width: "50px",
+                height: "50px",
+                objectFit: "cover",
+              },
+            }
+          : { innerHTML: "-" }
+      );
     },
   },
   {
@@ -343,13 +419,14 @@ const fetchData = async (keyword = "") => {
   }
 };
 
-interface GameRecord {
+// 游戏上下架状态
+interface GameStatusRecord {
   gameId: string | number;
   gameIsRemoved: boolean;
 }
 
 // 切换游戏上下架状态
-const toggleStatus = async (record: GameRecord) => {
+const toggleStatus = async (record: GameStatusRecord) => {
   try {
     // 根据当前状态决定新状态：如果已下架（true），则上架（0）；否则下架（1）
     const newStatus = record.gameIsRemoved ? 0 : 1;
@@ -377,8 +454,22 @@ const toggleStatus = async (record: GameRecord) => {
 const modalVisible = ref(false);
 const modalTitle = ref("");
 
-// 修改表单状态的类型定义
-interface FormState {
+// 新增表单状态的类型定义
+interface AddFormState {
+  gameName: string;
+  gamePrice: number;
+  gameStock: number;
+}
+
+// 新增表单状态初始化
+const addFormState = reactive<AddFormState>({
+  gameName: "",
+  gamePrice: 0,
+  gameStock: 0,
+});
+
+// 编辑表单状态的类型定义
+interface editFormState {
   gameId: string | number;
   gameName: string;
   gameDescription: string;
@@ -392,11 +483,11 @@ interface FormState {
   gameSaleStartTime: dayjs.Dayjs | null; // any 或者使用 dayjs.Dayjs | null 更严格
   gameSaleEndTime: dayjs.Dayjs | null; // any 或者使用 dayjs.Dayjs | null 更严格
   gameDiscount: number;
-  gameCover: string; // 新增游戏封面字段
+  gameCover: string;
 }
 
-// 修改表单状态初始化
-const formState = reactive<FormState>({
+// 编辑表单状态初始化
+const editFormState = reactive<editFormState>({
   gameId: "",
   gameName: "",
   gameDescription: "",
@@ -410,10 +501,23 @@ const formState = reactive<FormState>({
   gameSaleStartTime: null,
   gameSaleEndTime: null,
   gameDiscount: 0,
-  gameCover: "", // 新增游戏封面字段
+  gameCover: "",
 });
 
-// 显示编辑模态框
+// 新增模态框
+const showAddModal = () => {
+  modalTitle.value = "新增游戏";
+  // 重置表单状态
+  Object.assign(addFormState, {
+    gameName: "",
+    gamePrice: 0,
+    gameStock: 0,
+  });
+  // 显示模态框
+  modalVisible.value = true;
+};
+
+// 编辑方法
 const showEditModal = (record: any) => {
   modalTitle.value = "编辑游戏";
   const formData = {
@@ -421,46 +525,62 @@ const showEditModal = (record: any) => {
     gameReleaseDate: record.gameReleaseDate
       ? dayjs(record.gameReleaseDate)
       : null,
-    gameCover: record.gameCover, // 新增游戏封面字段
-    // 添加打折相关字段
+    gameCover: record.gameCover,
     gameSaleStartTime: record.gameSaleStartTime
       ? dayjs(record.gameSaleStartTime)
       : null,
     gameSaleEndTime: record.gameSaleEndTime
       ? dayjs(record.gameSaleEndTime)
       : null,
-    // 根据折扣值自动设置是否打折
     gameOnSale: record.gameDiscount > 0,
     gameDiscount: record.gameDiscount || 0,
   };
-  Object.assign(formState, formData);
+  Object.assign(editFormState, formData);
+  if (record.gameCover) {
+    imageUrl.value = record.gameCover;
+  }
   modalVisible.value = true;
 };
 
-// 处理模态框确认
-const handleModalOk = async () => {
-  if (!formState.gameId) {
-    message.error("游戏ID不能为空");
-    return;
-  }
-
+// 处理模态框确认（新增游戏）
+const handleAddGame = async () => {
   try {
-    const updateData = {
-      gameId: formState.gameId,
-      gameName: formState.gameName,
-      gameDescription: formState.gameDescription,
-      gamePrice: formState.gamePrice,
-      gameStock: formState.gameStock,
-      gamePub: formState.gamePub,
-      gameDev: formState.gameDev,
-      gameReleaseDate: formState.gameReleaseDate
-        ? formState.gameReleaseDate.format("YYYY-MM-DD")
-        : null,
-      gameCover: formState.gameCover, // 新增游戏封面字段
-      gameOnSale: formState.gameOnSale,
-      gameDiscount: formState.gameDiscount,
-      gameSaleStartTime: formState.gameSaleStartTime?.toDate() || null,
-      gameSaleEndTime: formState.gameSaleEndTime?.toDate() || null,
+    const addData: Partial<AddFormState> = {
+      gameName: addFormState.gameName,
+      gamePrice: addFormState.gamePrice,
+      gameStock: addFormState.gameStock,
+    };
+
+    const res = await createGame(addData);
+    if (res.data.code === 0) {
+      message.success("添加成功");
+      modalVisible.value = false;
+      await fetchData(searchValue.value);
+    } else {
+      message.error(res.data.message || "添加失败");
+    }
+  } catch (error) {
+    message.error("操作失败，请重试");
+  }
+};
+
+// 处理模态框确认（编辑游戏）
+const handleEditGame = async () => {
+  try {
+    const updateData: Partial<editFormState> = {
+      gameId: editFormState.gameId,
+      gameName: editFormState.gameName,
+      gamePrice: editFormState.gamePrice,
+      gameDescription: editFormState.gameDescription,
+      gameStock: editFormState.gameStock,
+      gamePub: editFormState.gamePub,
+      gameReleaseDate: editFormState.gameReleaseDate?.toISOString(),
+      gameDev: editFormState.gameDev,
+      gameOnSale: editFormState.gameOnSale,
+      gameSaleStartTime: editFormState.gameSaleStartTime?.toISOString(),
+      gameSaleEndTime: editFormState.gameSaleEndTime?.toISOString(),
+      gameDiscount: editFormState.gameDiscount,
+      gameCover: editFormState.gameCover,
     };
 
     const res = await updateGame(updateData);
@@ -476,10 +596,19 @@ const handleModalOk = async () => {
   }
 };
 
+// 处理模态框确认
+const handleModalOk = async () => {
+  if (editFormState.gameId) {
+    await handleEditGame();
+  } else {
+    await handleAddGame();
+  }
+};
+
 // 处理模态框取消，重置表单
 const handleModalCancel = () => {
   modalVisible.value = false;
-  Object.assign(formState, {
+  Object.assign(editFormState, {
     gameId: "",
     gameName: "",
     gameDescription: "",
@@ -492,13 +621,14 @@ const handleModalCancel = () => {
     gameSaleStartTime: null,
     gameSaleEndTime: null,
     gameDiscount: 0,
+    gameCover: "",
   });
 };
 
 // 在 script 部分添加验证函数
 const validateEndTime = (_rule: any, value: any) => {
-  if (formState.gameSaleStartTime && value) {
-    if (value.isBefore(formState.gameSaleStartTime)) {
+  if (editFormState.gameSaleStartTime && value) {
+    if (value.isBefore(editFormState.gameSaleStartTime)) {
       return Promise.reject("结束时间不能早于开始时间");
     }
   }
@@ -508,53 +638,83 @@ const validateEndTime = (_rule: any, value: any) => {
 // 处理是否打折开关变化
 const handleSaleStatusChange = async (checked: boolean) => {
   if (!checked) {
-    formState.gameDiscount = 0;
-    formState.gameSaleStartTime = null;
-    formState.gameSaleEndTime = null;
+    editFormState.gameDiscount = 0;
+    editFormState.gameSaleStartTime = null;
+    editFormState.gameSaleEndTime = null;
   }
 };
 
 // 修改折扣值变化的处理函数
 const handleDiscountChange = (value: number) => {
   // 当输入折扣值时，只更新开关状态
-  formState.gameOnSale = value > 0;
+  editFormState.gameOnSale = value > 0;
 
   // 只有当折扣值为0且是用户手动输入的情况下才清空时间
-  if (value === 0 && !formState.gameOnSale) {
-    formState.gameSaleStartTime = null;
-    formState.gameSaleEndTime = null;
+  if (value === 0 && !editFormState.gameOnSale) {
+    editFormState.gameSaleStartTime = null;
+    editFormState.gameSaleEndTime = null;
   }
 };
 
 // 监听开始时间变化，重置结束时间的验证
 const handleStartTimeChange = () => {
-  if (formState.gameSaleEndTime) {
-    validateEndTime(null, formState.gameSaleEndTime);
+  if (editFormState.gameSaleEndTime) {
+    validateEndTime(null, editFormState.gameSaleEndTime);
   }
 };
 
-// 文件上传前的处理
-const beforeUpload = (file: File) => {
+function getBase64(img: Blob, callback: (base64Url: string) => void) {
+  const reader = new FileReader();
+  reader.addEventListener("load", () => callback(reader.result as string));
+  reader.readAsDataURL(img);
+}
+
+const fileList = ref([]);
+const loading = ref<boolean>(false);
+const imageUrl = ref<string>("");
+
+const handleChange = (info: UploadChangeParam) => {
+  if (info.file.status === "uploading") {
+    loading.value = true;
+    return;
+  }
+  if (info.file.status === "done") {
+    if (info.file.response.code === 0) {
+      getBase64(info.file.originFileObj, (base64Url: string) => {
+        imageUrl.value = base64Url;
+        loading.value = false;
+        editFormState.gameCover = info.file.response.data;
+      });
+    } else {
+      message.error(info.file.response.message || "上传失败");
+      loading.value = false;
+    }
+  }
+  if (info.file.status === "error") {
+    loading.value = false;
+    message.error("上传失败");
+  }
+};
+
+const beforeUpload = (file: UploadProps["fileList"][number]) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
   if (!isJpgOrPng) {
-    message.error("You can only upload JPG or PNG file!");
+    message.error("你只能上传 JPG 文件!");
   }
-  const isLt2M = file.size / 1024 / 1024 < 2;
+  const isLt2M = file.size / 1024 / 1024 < 10;
   if (!isLt2M) {
-    message.error("Image must smaller than 2MB!");
+    message.error("文件必须小于 10MB!");
   }
   return isJpgOrPng && isLt2M;
 };
 
-// 文件上传后的处理
-const handleChange = (info: any) => {
-  if (info.file.status === "uploading") {
-    return;
-  }
-  if (info.file.status === "done") {
-    // Get this url from response in real world.
-    formState.gameCover = info.file.response.url;
-  }
+const getHeaders = () => {
+  return {
+    // 如果使用了token认证，添加token
+    // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    // 确保发送cookie
+    'withCredentials': 'true'
+  };
 };
 
 // 初始化加载数据
@@ -562,6 +722,17 @@ fetchData();
 </script>
 
 <style scoped>
+#gamesManagePage {
+  padding: 24px;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
 .avatar-uploader > .ant-upload {
   width: 128px;
   height: 128px;
@@ -575,5 +746,22 @@ fetchData();
 .ant-upload-select-picture-card .ant-upload-text {
   margin-top: 8px;
   color: #666;
+}
+
+.ant-upload-text {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+:deep(.ant-upload.ant-upload-select-picture-card) {
+  width: 128px;
+  height: 128px;
+  margin: 0;
+}
+
+.avatar-uploader img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 确保图片适应预览框 */
 }
 </style>

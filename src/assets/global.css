@@ -1,0 +1,14 @@
+/* 隐藏右边下拉条 */
+::-webkit-scrollbar {
+    display: none;
+}
+
+/* 可选：隐藏滚动条的轨道 */
+::-webkit-scrollbar-track {
+    display: none;
+}
+
+/* 可选：隐藏滚动条的滑块 */
+::-webkit-scrollbar-thumb {
+    display: none;
+}
