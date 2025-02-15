@@ -6,23 +6,23 @@ const myAxios = axios.create({
   withCredentials: true,
 });
 
-// Add a request interceptor
+// 添加请求拦截器
 myAxios.interceptors.request.use(
   function (config) {
-    // Do something before request is sent
+    // 在请求发送之前做一些事情
     return config;
   },
   function (error) {
-    // Do something with request error
+    // 处理请求错误
     return Promise.reject(error);
   }
 );
 
-// Add a response interceptor
+// 添加响应拦截器
 myAxios.interceptors.response.use(
   function (response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
+    // 任何状态码在2xx范围内的都会触发这个函数
+    // 处理响应数据
     console.log(response);
 
     const { data } = response;
@@ -40,8 +40,8 @@ myAxios.interceptors.response.use(
     return response;
   },
   function (error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
+    // 任何状态码超出2xx范围的都会触发这个函数
+    // 处理响应错误
     return Promise.reject(error);
   }
 );

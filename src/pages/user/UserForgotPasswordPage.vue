@@ -1,82 +1,117 @@
 <template>
-  <div class="forgot-password-container">
-    <div class="forgot-password-card">
-      <h2>找回密码</h2>
-      <a-form :model="formState" @finish="handleSubmit">
-        <!-- 邮箱地址 -->
+  <div class="forgot-password-page">
+    <div class="forgot-password-container">
+      <div class="forgot-password-header">
+        <div class="title-text">
+          <span class="primary">重置 </span>
+          <span class="highlight">密码</span>
+        </div>
+      </div>
+      <a-form
+        :model="formState"
+        name="forgot-password"
+        class="forgot-password-form"
+        @finish="handleSubmit"
+      >
         <a-form-item
-          label="邮箱地址"
           name="email"
-          :rules="[{ required: true, message: '请输入邮箱地址' }]"
+          :rules="[
+            { required: true, message: '请输入邮箱!' },
+            { type: 'email', message: '请输入有效的邮箱地址!' },
+          ]"
         >
           <a-input
             v-model:value="formState.email"
-            placeholder="请输入注册时的邮箱"
-          />
-        </a-form-item>
-
-        <!-- 验证码 -->
-        <a-form-item
-          label="验证码"
-          name="verifyCode"
-          :rules="[{ required: true, message: '请输入验证码' }]"
-        >
-          <a-input
-            v-model:value="formState.verifyCode"
-            placeholder="请输入邮箱收到的验证码"
-          />
-          <a-button
-            type="link"
-            @click="handleSendCode"
-            :disabled="loading || codeSent"
+            size="large"
+            placeholder="邮箱"
           >
-            {{ codeSent ? "已发送" : "获取验证码" }}
-          </a-button>
+            <template #prefix>
+              <MailOutlined class="form-icon" />
+            </template>
+          </a-input>
         </a-form-item>
 
-        <!-- 新密码 -->
         <a-form-item
-          label="新密码"
+          name="verifyCode"
+          :rules="[{ required: true, message: '请输入验证码!' }]"
+        >
+          <div style="display: flex; gap: 8px">
+            <a-input
+              v-model:value="formState.verifyCode"
+              size="large"
+              placeholder="验证码"
+              style="flex: 1"
+            >
+              <template #prefix>
+                <SafetyOutlined class="form-icon" />
+              </template>
+            </a-input>
+            <a-button
+              size="large"
+              type="primary"
+              @click="handleSendCode"
+              :disabled="loading || codeSent"
+            >
+              {{ codeSent ? "已发送" : "获取验证码" }}
+            </a-button>
+          </div>
+        </a-form-item>
+
+        <a-form-item
           name="newPassword"
           :rules="[
-            { required: true, message: '请输入新密码' },
-            { min: 8, message: '密码长度不能小于8位' },
+            { required: true, message: '请输入新密码!' },
+            { min: 8, message: '密码长度不能小于8位!' },
           ]"
         >
           <a-input-password
             v-model:value="formState.newPassword"
-            placeholder="请输入新密码"
-          />
+            size="large"
+            placeholder="新密码"
+          >
+            <template #prefix>
+              <LockOutlined class="form-icon" />
+            </template>
+          </a-input-password>
         </a-form-item>
 
-        <!-- 确认密码 -->
         <a-form-item
-          label="确认密码"
           name="confirmPassword"
           :rules="[
-            { required: true, message: '请确认新密码' },
+            { required: true, message: '请确认新密码!' },
             { validator: validateConfirmPassword },
           ]"
         >
           <a-input-password
             v-model:value="formState.confirmPassword"
-            placeholder="请再次输入新密码"
-          />
+            size="large"
+            placeholder="确认新密码"
+          >
+            <template #prefix>
+              <LockOutlined class="form-icon" />
+            </template>
+          </a-input-password>
         </a-form-item>
 
-        <!-- 提交按钮 -->
-        <a-form-item>
-          <a-button type="primary" html-type="submit" :loading="loading" block>
+        <div class="form-actions">
+          <a-button
+            type="primary"
+            html-type="submit"
+            class="submit-button"
+            size="large"
+            :loading="loading"
+          >
             重置密码
           </a-button>
-        </a-form-item>
-      </a-form>
+        </div>
 
-      <div class="form-footer">
-        <a-button type="link" @click="$router.push('/login')"
-          >返回登录
-        </a-button>
-      </div>
+        <div class="form-links">
+          <span>记起密码了？</span>
+          <router-link to="/user/login" class="login-link">
+            立即登录
+          </router-link>
+        </div>
+      </a-form>
     </div>
   </div>
 </template>
@@ -86,6 +121,11 @@ import { reactive, ref } from "vue";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { resetPassword, sendVerifyCode, verifyCode } from "@/api/user";
+import {
+  LockOutlined,
+  MailOutlined,
+  SafetyOutlined,
+} from "@ant-design/icons-vue";
 
 const router = useRouter();
 const loading = ref(false);
@@ -109,10 +149,7 @@ const handleSendCode = async () => {
   try {
     loading.value = true;
     const res = await sendVerifyCode({
-      organization: "GameHub",
-      email: formState.email,
-      title: "GameHub 密码重置验证码",
-      content: "",
+      userEmail: formState.email, // 修改这里，使用 userEmail
     });
     if (res.data.code === 0) {
       message.success("验证码已发送到您的邮箱");
@@ -121,7 +158,6 @@ const handleSendCode = async () => {
       message.error(res.data.message || "发送失败");
     }
   } catch (error: any) {
-    console.error("发送验证码失败:", error);
     message.error(error.message || "发送失败，请稍后重试");
   } finally {
     loading.value = false;
@@ -132,7 +168,6 @@ const handleSendCode = async () => {
 const handleSubmit = async () => {
   try {
     loading.value = true;
-    // 验证验证码
     const verifyRes = await verifyCode({
       email: formState.email,
       code: formState.verifyCode,
@@ -142,7 +177,6 @@ const handleSubmit = async () => {
       return;
     }
 
-    // 重置密码
     const resetRes = await resetPassword({
       email: formState.email,
       verifyCode: formState.verifyCode,
@@ -150,12 +184,12 @@ const handleSubmit = async () => {
     });
     if (resetRes.data.code === 0) {
       message.success("密码重置成功");
-      router.push("/login");
+      router.push("/user/login");
     } else {
       message.error(resetRes.data.message || "重置失败");
     }
-  } catch (error) {
-    message.error("操作失败，请稍后重试");
+  } catch (error: any) {
+    message.error(error.response?.data?.message || "操作失败，请稍后重试");
   } finally {
     loading.value = false;
   }
@@ -163,36 +197,93 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.forgot-password-container {
-  min-height: 100vh;
+.forgot-password-page {
+  height: 100vh;
+  width: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-  padding: 20px;
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
 }
 
-.forgot-password-card {
+.forgot-password-container {
   width: 100%;
-  max-width: 400px;
-  background: white;
-  padding: 24px;
+  height: 100%;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.forgot-password-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title-text {
+  font-size: 28px;
+  color: #000000;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.primary {
+  color: #303030;
+  font-weight: bold;
+  font-size: 26px;
+  font-family: "MiSans", sans-serif;
+}
+
+.highlight {
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.forgot-password-form {
+  max-width: 100%;
+}
+
+.form-icon {
+  color: #bfbfbf;
+}
+
+:deep(.ant-input-affix-wrapper) {
+  padding: 8px 11px;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
-h2 {
+:deep(.ant-input) {
+  font-size: 16px;
+}
+
+.form-actions {
+  margin-top: 24px;
+}
+
+.submit-button {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.form-links {
+  margin-top: 24px;
   text-align: center;
-  margin-bottom: 24px;
-  color: #1a1a1a;
+  color: #666;
 }
 
-.form-section {
-  margin-bottom: 24px;
+.login-link {
+  color: #1890ff;
+  margin-left: 8px;
+  transition: color 0.3s;
 }
 
-.form-footer {
-  text-align: center;
-  margin-top: 16px;
+.login-link:hover {
+  color: #40a9ff;
+}
+
+@media (max-width: 576px) {
+  .forgot-password-container {
+    padding: 30px 20px;
+  }
 }
 </style>

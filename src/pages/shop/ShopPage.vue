@@ -13,7 +13,7 @@
       <div class="game-cards">
         <div
           v-for="game in data"
-          :key="game.id"
+          :key="game.gameId"
           class="game-card"
           @click="goToGameDetail(game.gameId)"
         >

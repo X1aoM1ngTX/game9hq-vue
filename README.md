@@ -1,24 +1,37 @@
 # xmgame-vue
 
-## Project setup
+## 项目设置
+
+使用以下命令安装项目依赖：
+
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### 开发环境编译和热重载
+
+使用以下命令启动开发服务器：
+
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### 生产环境编译和压缩
+
+使用以下命令进行生产环境构建：
+
 ```
 npm run build
 ```
 
-### Lints and fixes files
+### 代码检查和修复
+
+使用以下命令进行代码检查和自动修复：
+
 ```
 npm run lint
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+### 自定义配置
+
+请参阅 [配置参考](https://cli.vuejs.org/config/) 了解更多信息。

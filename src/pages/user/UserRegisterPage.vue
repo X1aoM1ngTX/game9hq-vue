@@ -1,7 +1,12 @@
 <template>
-  <div id="userRegisterPage">
+  <div class="register-page">
     <div class="register-container">
-      <h2 class="title">新用户注册</h2>
+      <div class="register-header">
+        <div class="title-text">
+          <span class="primary">加入 </span>
+          <span class="highlight">GameHub</span>
+        </div>
+      </div>
       <a-form
         :model="formState"
         name="register"
@@ -10,135 +15,207 @@
         @finishFailed="onFinishFailed"
       >
         <a-form-item
-          label="账号"
           name="userName"
-          :rules="[{ required: true, message: '请输入账号!' }]"
+          :rules="[{ required: true, message: '请输入用户名!' }]"
         >
-          <a-input v-model:value="formState.userName" size="large">
+          <a-input
+            v-model:value="formState.userName"
+            size="large"
+            placeholder="用户名"
+          >
             <template #prefix>
-              <UserOutlined class="site-form-item-icon" />
+              <UserOutlined class="form-icon" />
             </template>
           </a-input>
         </a-form-item>
 
         <a-form-item
-          label="密码"
-          name="userPassword"
-          :rules="[{ required: true, message: '请输入密码!' }]"
-        >
-          <a-input-password v-model:value="formState.userPassword" size="large">
-            <template #prefix>
-              <LockOutlined class="site-form-item-icon" />
-            </template>
-          </a-input-password>
-        </a-form-item>
-
-        <a-form-item
-          label="邮箱"
           name="userEmail"
           :rules="[
             { required: true, message: '请输入邮箱!' },
             { type: 'email', message: '请输入有效的邮箱地址!' },
           ]"
         >
-          <a-input v-model:value="formState.userEmail" size="large">
+          <a-input
+            v-model:value="formState.userEmail"
+            size="large"
+            placeholder="邮箱"
+          >
             <template #prefix>
-              <MailOutlined class="site-form-item-icon" />
+              <MailOutlined class="form-icon" />
             </template>
           </a-input>
         </a-form-item>
 
         <a-form-item
-          label="手机号"
           name="userPhone"
           :rules="[{ required: true, message: '请输入手机号!' }]"
         >
-          <a-input v-model:value="formState.userPhone" size="large">
+          <a-input
+            v-model:value="formState.userPhone"
+            size="large"
+            placeholder="手机号"
+          >
             <template #prefix>
-              <PhoneOutlined class="site-form-item-icon" />
+              <PhoneOutlined class="form-icon" />
             </template>
           </a-input>
         </a-form-item>
 
-        <a-form-item>
+        <a-form-item
+          name="userPassword"
+          :rules="[{ required: true, message: '请输入密码!' }]"
+        >
+          <a-input-password
+            v-model:value="formState.userPassword"
+            size="large"
+            placeholder="密码"
+          >
+            <template #prefix>
+              <LockOutlined class="form-icon" />
+            </template>
+          </a-input-password>
+        </a-form-item>
+
+        <a-form-item
+          name="confirmPassword"
+          :rules="[
+            { required: true, message: '请确认密码!' },
+            { validator: validatePassword },
+          ]"
+        >
+          <a-input-password
+            v-model:value="formState.confirmPassword"
+            size="large"
+            placeholder="确认密码"
+          >
+            <template #prefix>
+              <LockOutlined class="form-icon" />
+            </template>
+          </a-input-password>
+        </a-form-item>
+
+        <div class="form-actions">
           <a-button
             type="primary"
             html-type="submit"
-            class="register-form-button"
+            class="register-button"
             size="large"
+            :loading="loading"
           >
             注册
           </a-button>
-          <div class="login-link">
-            已有账号？<a href="/user/login">立即登录</a>
-          </div>
-        </a-form-item>
+        </div>
+
+        <div class="form-links">
+          <span>已有账号？</span>
+          <router-link to="/user/login" class="login-link">
+            立即登录
+          </router-link>
+        </div>
       </a-form>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { reactive } from "vue";
-import { userRegister } from "@/api/user";
-import { message } from "ant-design-vue";
+import { reactive, ref } from "vue";
 import {
-  UserOutlined,
   LockOutlined,
   MailOutlined,
   PhoneOutlined,
+  UserOutlined,
 } from "@ant-design/icons-vue";
-import router from "@/router";
+import { userRegister } from "@/api/user";
+import { message } from "ant-design-vue";
+import { useRouter } from "vue-router";
 
 interface FormState {
-  userEmail: string;
   userName: string;
+  userEmail: string;
+  userPhone: string;
   userPassword: string;
+  confirmPassword: string;
 }
 
 const formState = reactive<FormState>({
-  userEmail: "",
   userName: "",
+  userEmail: "",
+  userPhone: "",
   userPassword: "",
+  confirmPassword: "",
 });
 
-const handleSubmit = async (value: any) => {
-  const res = await userRegister(value);
-  if (res.data.code === 0 && res.data.data) {
-    message.success("注册成功");
-    router.push("/user/login");
-  } else {
-    message.error(res.data.message || "注册失败");
+const router = useRouter();
+const loading = ref(false);
+
+const validatePassword = async (_rule: any, value: string) => {
+  if (value && value !== formState.userPassword) {
+    throw new Error("两次输入的密码不一致!");
+  }
+};
+
+const handleSubmit = async (values: FormState) => {
+  try {
+    loading.value = true;
+    const { confirmPassword, ...registerData } = values;
+    const res = await userRegister(registerData);
+    if (res.data.code === 0) {
+      message.success("注册成功");
+      router.push("/user/login");
+    } else {
+      message.error(res.data.message || "注册失败");
+    }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || "注册失败");
+  } finally {
+    loading.value = false;
   }
 };
 
 const onFinishFailed = (errorInfo: any) => {
-  console.log("Failed:", errorInfo);
+  console.log("表单验证失败:", errorInfo);
 };
 </script>
 
 <style scoped>
-#userRegisterPage {
+.register-page {
   height: 100vh;
+  width: 500px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  justify-content: center;
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
 }
 
 .register-container {
-  background: white;
+  width: 100%;
+  height: 100%;
   padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  width: 400px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 
-.title {
+.register-header {
   text-align: center;
   margin-bottom: 40px;
-  color: #1890ff;
+}
+
+.title-text {
   font-size: 28px;
+  color: #000000;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.primary {
+  color: #303030;
+  font-weight: bold;
+  font-size: 26px;
+  font-family: "MiSans", sans-serif;
+}
+
+.highlight {
+  color: #1890ff;
   font-weight: bold;
 }
 
@@ -146,37 +223,49 @@ const onFinishFailed = (errorInfo: any) => {
   max-width: 100%;
 }
 
-.register-form-button {
-  width: 100%;
-  height: 40px;
-  font-size: 16px;
-}
-
-.login-link {
-  text-align: center;
-  margin-top: 16px;
-  color: #666;
-}
-
-.login-link a {
-  color: #1890ff;
-  margin-left: 8px;
-}
-
-.login-link a:hover {
-  color: #40a9ff;
-}
-
-:deep(.ant-form-item-label > label) {
-  font-size: 16px;
-  color: #333;
+.form-icon {
+  color: #bfbfbf;
 }
 
 :deep(.ant-input-affix-wrapper) {
-  height: 40px;
+  padding: 8px 11px;
+  border-radius: 8px;
 }
 
-:deep(.ant-form-item-explain-error) {
-  font-size: 14px;
+:deep(.ant-input) {
+  font-size: 16px;
+}
+
+.form-actions {
+  margin-top: 24px;
+}
+
+.register-button {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.form-links {
+  margin-top: 24px;
+  text-align: center;
+  color: #666;
+}
+
+.login-link {
+  color: #1890ff;
+  margin-left: 8px;
+  transition: color 0.3s;
+}
+
+.login-link:hover {
+  color: #40a9ff;
+}
+
+@media (max-width: 576px) {
+  .register-container {
+    padding: 30px 20px;
+  }
 }
 </style>

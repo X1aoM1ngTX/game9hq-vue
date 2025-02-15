@@ -7,22 +7,41 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/HomePage.vue"),
   },
   {
-    path: "/user/login",
-    name: "userLogin",
-    component: () => import("@/pages/user/UserLoginPage.vue"),
-  },
-  {
-    path: "/user/register",
-    name: "userRegister",
-    component: () => import("@/pages/user/UserRegisterPage.vue"),
-  },
-  {
-    path: "/user/forgot-password",
-    name: "UserForgotPassword",
-    component: () => import("@/pages/user/UserForgotPasswordPage.vue"),
+    path: "/user",
+    name: "userLayout",
+    component: () => import("@/layouts/UserLayout.vue"),
     meta: {
-      title: "找回密码",
+      layout: "blank",
     },
+    children: [
+      {
+        path: "login",
+        name: "userLogin",
+        component: () => import("@/pages/user/UserLoginPage.vue"),
+        meta: {
+          layout: "blank",
+          title: "登录",
+        },
+      },
+      {
+        path: "register",
+        name: "userRegister",
+        component: () => import("@/pages/user/UserRegisterPage.vue"),
+        meta: {
+          layout: "blank",
+          title: "注册",
+        },
+      },
+      {
+        path: "forgot-password",
+        name: "userForgotPassword",
+        component: () => import("@/pages/user/UserForgotPasswordPage.vue"),
+        meta: {
+          layout: "blank",
+          title: "找回密码",
+        },
+      },
+    ],
   },
   {
     path: "/admin/userManage",

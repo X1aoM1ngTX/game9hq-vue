@@ -137,14 +137,14 @@
         <a-form-item label="游戏发行商" name="gamePub">
           <a-input v-model:value="editFormState.gamePub" />
         </a-form-item>
+        <a-form-item label="游戏开发商" name="gameDev">
+          <a-input v-model:value="editFormState.gameDev" />
+        </a-form-item>
         <a-form-item label="发行日期" name="gameReleaseDate">
           <a-date-picker
             v-model:value="editFormState.gameReleaseDate"
             style="width: 100%"
           />
-        </a-form-item>
-        <a-form-item label="游戏开发商" name="gameDev">
-          <a-input v-model:value="editFormState.gameDev" />
         </a-form-item>
         <a-form-item label="是否打折" name="gameOnSale">
           <a-switch
@@ -469,7 +469,7 @@ const addFormState = reactive<AddFormState>({
 });
 
 // 编辑表单状态的类型定义
-interface editFormState {
+interface EditFormState {
   gameId: string | number;
   gameName: string;
   gameDescription: string;
@@ -487,7 +487,7 @@ interface editFormState {
 }
 
 // 编辑表单状态初始化
-const editFormState = reactive<editFormState>({
+const editFormState = reactive<EditFormState>({
   gameId: "",
   gameName: "",
   gameDescription: "",
@@ -567,7 +567,7 @@ const handleAddGame = async () => {
 // 处理模态框确认（编辑游戏）
 const handleEditGame = async () => {
   try {
-    const updateData: Partial<editFormState> = {
+    const updateData: Partial<EditFormState> = {
       gameId: editFormState.gameId,
       gameName: editFormState.gameName,
       gamePrice: editFormState.gamePrice,
@@ -713,7 +713,7 @@ const getHeaders = () => {
     // 如果使用了token认证，添加token
     // 'Authorization': `Bearer ${localStorage.getItem('token')}`,
     // 确保发送cookie
-    'withCredentials': 'true'
+    withCredentials: "true",
   };
 };
 

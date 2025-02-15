@@ -3,7 +3,7 @@
     <a-row :wrap="false">
       <a-col flex="160px">
         <div class="title-bar">
-          <img class="logo" src="../assets/XM_1024.png" alt="logo" />
+          <img class="logo" src="../assets/GameHub_500px.png" alt="logo" />
           <div class="title">GameHub</div>
         </div>
       </a-col>
@@ -17,28 +17,48 @@
       </a-col>
       <a-col flex="200px">
         <div class="user-area">
-          <template v-if="loginUserStore.loginUser?.userId">
+          <template v-if="loginUserStore.hasLogin">
             <a-dropdown>
               <a class="user-link">
-                {{ loginUserStore.loginUser.userName }}
+                <a-avatar
+                  :size="32"
+                  :src="loginUserStore.loginUser?.userAvatar"
+                  class="user-avatar"
+                >
+                  {{ loginUserStore.loginUser?.userName?.charAt(0) }}
+                </a-avatar>
+                <span class="username">{{
+                  loginUserStore.loginUser?.userName
+                }}</span>
                 <down-outlined />
               </a>
               <template #overlay>
                 <a-menu>
-                  <a-menu-item
-                    key="profile"
-                    @click="router.push('/user/profile')"
-                    >个人资料</a-menu-item
-                  >
-                  <a-menu-item key="logout" @click="doLogout"
-                    >退出登录
+                  <a-menu-item key="profile" @click="toUserProfile">
+                    <template #icon>
+                      <UserOutlined />
+                    </template>
+                    个人资料
+                  </a-menu-item>
+                  <a-menu-item key="logout" @click="handleLogout">
+                    <template #icon>
+                      <LogoutOutlined />
+                    </template>
+                    退出登录
                   </a-menu-item>
                 </a-menu>
               </template>
             </a-dropdown>
           </template>
           <template v-else>
-            <a-button type="primary" @click="goToLogin">登录</a-button>
+            <a-button
+              type="primary"
+              style="margin-right: 10px"
+              @click="toLogin"
+            >
+              登录</a-button
+            >
+            <a-button @click="toRegister">注册</a-button>
           </template>
         </div>
       </a-col>
@@ -47,30 +67,51 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, h, ref } from "vue";
+import { computed, h, ref, VNodeChild } from "vue";
 import {
   AppstoreOutlined,
   DownOutlined,
   MailOutlined,
   SettingOutlined,
+  UserOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useRoute, useRouter } from "vue-router";
 import { useLoginUserStore } from "@/store/useLoginUserStore";
+import { userLogout } from "@/api/user";
 
 const loginUserStore = useLoginUserStore();
 
 const router = useRouter();
 const route = useRoute();
 
-const goToLogin = () => {
+const toLogin = () => {
   router.push("/user/login");
 };
 
-const doLogout = () => {
-  loginUserStore.logout();
-  message.success("退出成功");
-  router.push("/user/login");
+const toRegister = () => {
+  router.push("/user/register");
+};
+
+const toUserProfile = () => {
+  router.push("/user/profile");
+};
+
+const handleLogout = async () => {
+  try {
+    const res = await userLogout();
+    if (res.data.code === 0) {
+      message.success("退出成功");
+      // 清除用户状态
+      loginUserStore.loginUser = null;
+      loginUserStore.hasLogin = false;
+      // 跳转到首页
+      router.push("/");
+    }
+  } catch (error) {
+    message.error("退出失败");
+  }
 };
 
 const doMenuClick = ({ key }: { key: string }) => {
@@ -84,8 +125,15 @@ router.afterEach((to) => {
   current.value = [to.path];
 });
 
-const menuItems = computed(() => {
-  const items = [
+interface MenuItem {
+  key: string;
+  icon?: () => VNodeChild;
+  label: string;
+  children?: MenuItem[];
+}
+
+const menuItems = computed<MenuItem[]>(() => {
+  const items: MenuItem[] = [
     {
       key: "/",
       icon: () => h(MailOutlined),
@@ -120,7 +168,7 @@ const menuItems = computed(() => {
 });
 
 const isAuthPage = computed(() => {
-  return route.path === "/user/login" || route.path === "/user/register";
+  return route.meta.layout === "blank";
 });
 </script>
 
@@ -152,12 +200,38 @@ const isAuthPage = computed(() => {
 }
 
 .user-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: rgba(0, 0, 0, 0.85);
   padding: 0 12px;
   cursor: pointer;
+  transition: all 0.3s;
 }
 
 .user-link:hover {
   color: #1890ff;
+}
+
+.user-avatar {
+  background: #1890ff;
+  color: white;
+}
+
+.username {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:deep(.ant-dropdown-menu-item) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+:deep(.ant-dropdown-menu-item .anticon) {
+  font-size: 16px;
 }
 </style>

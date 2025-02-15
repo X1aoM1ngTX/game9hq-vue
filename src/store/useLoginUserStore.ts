@@ -2,38 +2,43 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { getCurrentUser } from "@/api/user";
 
-export const useLoginUserStore = defineStore("loginUser", () => {
-  const loginUser = ref<any>({
-    userId: null,
-    userName: "",
-    userEmail: "",
-    userPhone: "",
-    userIsAdmin: 0,
-  });
+interface UserState {
+  loginUser: any;
+  hasLogin: boolean;
+}
 
-  // 远程获取登录用户信息
-  async function fetchLoginUser() {
-    const res = await getCurrentUser();
-    if (res.data.code === 0 && res.data.data) {
-      loginUser.value = res.data.data;
-    }
-  }
+export const useLoginUserStore = defineStore(
+  "loginUser",
+  () => {
+    const loginUser = ref<any>(null);
+    const hasLogin = ref<boolean>(false);
 
-  // 设置用户信息
-  function setLoginUser(newUser: any) {
-    loginUser.value = newUser;
-  }
-
-  // 添加 logout 方法
-  function logout() {
-    loginUser.value = {
-      userId: null,
-      userName: "",
-      userEmail: "",
-      userPhone: "",
-      userIsAdmin: 0,
+    /**
+     * 获取当前登录用户信息
+     */
+    const getLoginUser = async () => {
+      try {
+        const res = await getCurrentUser();
+        if (res.data.code === 0) {
+          loginUser.value = res.data.data;
+          hasLogin.value = true;
+        } else {
+          loginUser.value = null;
+          hasLogin.value = false;
+        }
+      } catch (error) {
+        loginUser.value = null;
+        hasLogin.value = false;
+      }
     };
-  }
 
-  return { loginUser, fetchLoginUser, setLoginUser, logout };
-});
+    return {
+      loginUser,
+      hasLogin,
+      getLoginUser,
+    };
+  },
+  {
+    persist: true,
+  }
+);

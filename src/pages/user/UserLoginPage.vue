@@ -1,63 +1,81 @@
 <template>
-  <div id="userLoginPage">
+  <div class="login-page">
     <div class="login-container">
-      <h2 class="title">Welcome To XMGame</h2>
+      <div class="login-header">
+        <div class="title-text">
+          <span class="primary">欢迎来到 </span>
+          <span class="highlight">GameHub</span>
+        </div>
+      </div>
       <a-form
         :model="formState"
-        name="normal_login"
+        name="login"
         class="login-form"
         @finish="handleSubmit"
         @finishFailed="onFinishFailed"
       >
         <a-form-item
-          label="账号"
           name="userName"
           :rules="[{ required: true, message: '请输入账号!' }]"
         >
-          <a-input v-model:value="formState.userName" size="large">
+          <a-input
+            v-model:value="formState.userName"
+            size="large"
+            placeholder="用户名"
+          >
             <template #prefix>
-              <UserOutlined class="site-form-item-icon" />
+              <UserOutlined class="form-icon" />
             </template>
           </a-input>
         </a-form-item>
 
         <a-form-item
-          label="密码"
           name="userPassword"
           :rules="[{ required: true, message: '请输入密码!' }]"
         >
-          <a-input-password v-model:value="formState.userPassword" size="large">
+          <a-input-password
+            v-model:value="formState.userPassword"
+            size="large"
+            placeholder="密码"
+          >
             <template #prefix>
-              <LockOutlined class="site-form-item-icon" />
+              <LockOutlined class="form-icon" />
             </template>
           </a-input-password>
         </a-form-item>
 
-        <a-form-item>
+        <div class="form-actions">
           <a-button
             type="primary"
             html-type="submit"
-            class="login-form-button"
+            class="submit-button"
             size="large"
+            :loading="loading"
           >
             登录
           </a-button>
-          <div class="register-link">
-            还没有账号？<a href="/user/register">立即注册</a
-            ><a href="/user/forgot-password">忘记密码?</a>
-          </div>
-        </a-form-item>
+        </div>
+
+        <div class="form-links">
+          <router-link to="/user/register" class="register-link">
+            创建新账号
+          </router-link>
+          <router-link to="/user/forgot-password" class="forgot-link">
+            忘记密码？
+          </router-link>
+        </div>
       </a-form>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
+import { LockOutlined, UserOutlined } from "@ant-design/icons-vue";
 import { userLogin } from "@/api/user";
 import { useLoginUserStore } from "@/store/useLoginUserStore";
 import { message } from "ant-design-vue";
-import router from "@/router";
+import { useRouter } from "vue-router";
 
 interface FormState {
   userName: string;
@@ -69,48 +87,71 @@ const formState = reactive<FormState>({
   userPassword: "",
 });
 
+const router = useRouter();
 const loginUserStore = useLoginUserStore();
+const loading = ref(false);
 
-const handleSubmit = async (value: any) => {
-  const res = await userLogin(value);
-  if (res.data.code === 0 && res.data.data) {
-    await loginUserStore.fetchLoginUser();
-    message.success("登录成功");
-    router.push({
-      path: "/",
-      replace: true,
-    });
+const handleSubmit = async (values: FormState) => {
+  try {
+    loading.value = true;
+    const res = await userLogin(values);
+    if (res.data.code === 0) {
+      await loginUserStore.getLoginUser();
+      message.success("登录成功");
+      router.push("/");
+    } else {
+      message.error(res.data.message || "登录失败");
+    }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || "登录失败");
+  } finally {
+    loading.value = false;
   }
-  console.log(value);
 };
 
 const onFinishFailed = (errorInfo: any) => {
-  console.log("Failed:", errorInfo);
+  console.log("表单验证失败:", errorInfo);
 };
 </script>
 
 <style scoped>
-#userLoginPage {
+.login-page {
   height: 100vh;
+  width: 500px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1890ff 0%, #722ed1 100%);
+  justify-content: center;
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
 }
 
 .login-container {
-  background: white;
+  width: 100%;
+  height: 100%;
   padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  width: 400px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
 }
 
-.title {
+.login-header {
   text-align: center;
   margin-bottom: 40px;
-  color: #1890ff;
+}
+
+.title-text {
   font-size: 28px;
+  color: #000000;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.primary {
+  color: #303030;
+  font-weight: bold;
+  font-size: 26px;
+  font-family: "MiSans", sans-serif;
+}
+
+.highlight {
+  color: #1890ff;
   font-weight: bold;
 }
 
@@ -118,37 +159,53 @@ const onFinishFailed = (errorInfo: any) => {
   max-width: 100%;
 }
 
-.login-form-button {
-  width: 100%;
-  height: 40px;
-  font-size: 16px;
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 16px;
-  color: #666;
-}
-
-.register-link a {
-  color: #1890ff;
-  margin-left: 8px;
-}
-
-.register-link a:hover {
-  color: #40a9ff;
-}
-
-:deep(.ant-form-item-label > label) {
-  font-size: 16px;
-  color: #333;
+.form-icon {
+  color: #bfbfbf;
 }
 
 :deep(.ant-input-affix-wrapper) {
-  height: 40px;
+  padding: 8px 11px;
+  border-radius: 8px;
 }
 
-:deep(.ant-form-item-explain-error) {
+:deep(.ant-input) {
+  font-size: 16px;
+}
+
+.form-actions {
+  margin-top: 24px;
+}
+
+.submit-button {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.form-links {
+  margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.register-link,
+.forgot-link {
+  color: #1890ff;
   font-size: 14px;
+  transition: color 0.3s;
+  text-decoration: none;
+}
+
+.register-link:hover,
+.forgot-link:hover {
+  color: #40a9ff;
+}
+
+@media (max-width: 576px) {
+  .login-container {
+    padding: 30px 20px;
+  }
 }
 </style>

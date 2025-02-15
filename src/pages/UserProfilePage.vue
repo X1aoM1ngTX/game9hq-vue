@@ -24,11 +24,14 @@
       <div class="profile-content">
         <div class="info-section">
           <h3>自我介绍</h3>
-          <p v-if="user.userProfile">{{ user.userProfile }}</p>
-          <p v-else class="empty-text">
-            {{ user.userProfile || "这个人很懒，什么都没写" }}
-          </p>
-          <a-button type="link" @click="handleEditProfile"> 编辑介绍</a-button>
+          <div class="profile-text">
+            <p v-if="user.userProfile">{{ user.userProfile }}</p>
+            <p v-else class="empty-text">这个人很懒，什么都没写</p>
+          </div>
+          <a-button type="link" @click="handleEditProfile">
+            <template #icon><EditOutlined /></template>
+            编辑介绍
+          </a-button>
         </div>
 
         <div class="info-section">
@@ -50,14 +53,60 @@
         </div>
       </div>
     </div>
+
+    <!-- 添加修改资料的对话框 -->
+    <a-modal
+      v-model:visible="modalVisible"
+      title="修改个人资料"
+      @ok="handleModalOk"
+      @cancel="handleModalCancel"
+    >
+      <a-form :model="formState" layout="vertical">
+        <a-form-item
+          label="用户名"
+          name="userName"
+          :rules="[{ required: true, message: '请输入用户名!' }]"
+        >
+          <a-input v-model:value="formState.userName" />
+        </a-form-item>
+
+        <a-form-item
+          label="邮箱"
+          name="userEmail"
+          :rules="[
+            { required: true, message: '请输入邮箱!' },
+            { type: 'email', message: '请输入有效的邮箱地址!' },
+          ]"
+        >
+          <a-input v-model:value="formState.userEmail" />
+        </a-form-item>
+
+        <a-form-item
+          label="手机号"
+          name="userPhone"
+          :rules="[{ required: true, message: '请输入手机号!' }]"
+        >
+          <a-input v-model:value="formState.userPhone" />
+        </a-form-item>
+
+        <a-form-item label="个人介绍" name="userProfile">
+          <a-textarea
+            v-model:value="formState.userProfile"
+            :rows="4"
+            placeholder="介绍一下你自己吧"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { getCurrentUser } from "@/api/user";
+import { onMounted, ref, reactive } from "vue";
+import { getCurrentUser, userModify } from "@/api/user";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
+import { EditOutlined } from "@ant-design/icons-vue";
 
 interface UserInfo {
   userId: string | number;
@@ -81,6 +130,17 @@ const user = ref<UserInfo>({
   userAvatar: "",
 });
 
+// 表单状态
+const formState = reactive({
+  userName: "",
+  userEmail: "",
+  userPhone: "",
+  userProfile: "",
+});
+
+// 对话框可见性
+const modalVisible = ref(false);
+
 const formatDate = (date: string) => {
   return dayjs(date).format("YYYY-MM-DD");
 };
@@ -98,13 +158,46 @@ const fetchData = async () => {
   }
 };
 
+// 处理编辑按钮点击
 const handleEdit = () => {
-  // TODO: 弹出修改资料的对话框
-  console.log("修改资料");
+  // 填充表单数据
+  formState.userName = user.value.userName;
+  formState.userEmail = user.value.userEmail;
+  formState.userPhone = user.value.userPhone;
+  formState.userProfile = user.value.userProfile;
+  modalVisible.value = true;
 };
 
+// 处理对话框确认
+const handleModalOk = async () => {
+  try {
+    const res = await userModify({
+      userName: formState.userName,
+      userEmail: formState.userEmail,
+      userPhone: formState.userPhone,
+      userProfile: formState.userProfile,
+    });
+
+    if (res.data.code === 0) {
+      message.success("修改成功");
+      modalVisible.value = false;
+      await fetchData(); // 刷新数据
+    } else {
+      message.error(res.data.message || "修改失败");
+    }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || "修改失败");
+  }
+};
+
+// 处理对话框取消
+const handleModalCancel = () => {
+  modalVisible.value = false;
+};
+
+// 处理修改个人介绍
 const handleEditProfile = () => {
-  // TODO: 实现修改介绍的逻辑
+  handleEdit(); // 直接打开修改资料的对话框
 };
 
 onMounted(() => {
@@ -208,7 +301,7 @@ onMounted(() => {
 }
 
 .empty-text {
-  color: #999;
+  color: #999 !important;
   font-style: italic;
 }
 
@@ -245,5 +338,37 @@ onMounted(() => {
   .info-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 添加新样式 */
+:deep(.ant-modal-content) {
+  border-radius: 8px;
+}
+
+:deep(.ant-form-item-label > label) {
+  font-weight: 500;
+}
+
+:deep(.ant-input) {
+  border-radius: 4px;
+}
+
+:deep(.ant-input:focus) {
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.profile-text {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  min-height: 80px;
+}
+
+.profile-text p {
+  margin: 0;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-wrap;
 }
 </style>
