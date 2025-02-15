@@ -17,6 +17,7 @@ interface LoginParams {
 // 用户信息修改参数接口
 interface UserModifyParams {
   userName: string;
+  userNickname: string; // 添加昵称字段
   userEmail: string;
   userPhone: string;
   userProfile?: string; // 添加个人介绍字段
@@ -26,6 +27,7 @@ interface UserModifyParams {
 interface AdminUpdateUserParams {
   userId: string;
   userName: string;
+  userNickname: string; // 添加昵称字段
   userEmail: string;
   userPhone: string;
   userIsAdmin: number;
@@ -111,9 +113,9 @@ export const deleteUser = async (id: string) => {
 
 /**
  * 发送邮箱验证码
- * @param params 包含用户邮箱的参数
+ * @param params 包含目标邮箱的参数
  */
-export const sendVerifyCode = (params: { userEmail: string }) => {
+export const sendVerifyCode = (params: { toEmail: string }) => {
   return myAxios.post("/api/user/sendEmail", params);
 };
 
@@ -135,4 +137,12 @@ export const resetPassword = (params: {
   newPassword: string;
 }) => {
   return myAxios.post("/api/user/resetPassword", params);
+};
+
+/**
+ * 上传用户头像
+ * @param formData 包含文件的 FormData 对象
+ */
+export const updateAvatar = (formData: FormData) => {
+  return myAxios.post("/api/user/updateAvatar", formData);
 };

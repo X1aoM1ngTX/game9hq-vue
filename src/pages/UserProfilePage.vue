@@ -3,14 +3,27 @@
     <div class="profile-card">
       <div class="profile-header">
         <div class="avatar-section">
-          <a-avatar :size="64" :src="user.userAvatar">
-            {{ user.userName?.charAt(0) }}
-          </a-avatar>
+          <a-upload
+            name="file"
+            :show-upload-list="false"
+            :before-upload="beforeUpload"
+            :customRequest="customUpload"
+          >
+            <div class="avatar-wrapper">
+              <a-avatar :size="64" :src="user.userAvatar">
+                {{ user.userName?.charAt(0) }}
+              </a-avatar>
+              <div class="avatar-mask">
+                <camera-outlined />
+                <span>更换头像</span>
+              </div>
+            </div>
+          </a-upload>
           <div class="online-status"></div>
         </div>
         <div class="user-info">
           <h2>
-            {{ user.userName }}
+            {{ user.userNickname || user.userName }}
             <a-tag v-if="user.userIsAdmin === 1" color="blue">管理员</a-tag>
             <a-tag v-else color="green">用户</a-tag>
           </h2>
@@ -23,15 +36,11 @@
 
       <div class="profile-content">
         <div class="info-section">
-          <h3>自我介绍</h3>
+          <h3>简介</h3>
           <div class="profile-text">
             <p v-if="user.userProfile">{{ user.userProfile }}</p>
             <p v-else class="empty-text">这个人很懒，什么都没写</p>
           </div>
-          <a-button type="link" @click="handleEditProfile">
-            <template #icon><EditOutlined /></template>
-            编辑介绍
-          </a-button>
         </div>
 
         <div class="info-section">
@@ -63,11 +72,19 @@
     >
       <a-form :model="formState" layout="vertical">
         <a-form-item
+          label="昵称"
+          name="userNickname"
+          :rules="[{ required: true, message: '请输入昵称!' }]"
+        >
+          <a-input v-model:value="formState.userNickname" />
+        </a-form-item>
+
+        <a-form-item
           label="用户名"
           name="userName"
           :rules="[{ required: true, message: '请输入用户名!' }]"
         >
-          <a-input v-model:value="formState.userName" />
+          <a-input v-model:value="formState.userName" disabled />
         </a-form-item>
 
         <a-form-item
@@ -89,7 +106,7 @@
           <a-input v-model:value="formState.userPhone" />
         </a-form-item>
 
-        <a-form-item label="个人介绍" name="userProfile">
+        <a-form-item label="简介" name="userProfile">
           <a-textarea
             v-model:value="formState.userProfile"
             :rows="4"
@@ -102,11 +119,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, reactive } from "vue";
-import { getCurrentUser, userModify } from "@/api/user";
+import { onMounted, reactive, ref } from "vue";
+import { getCurrentUser, userModify, updateAvatar } from "@/api/user";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
-import { EditOutlined } from "@ant-design/icons-vue";
+import { CameraOutlined } from "@ant-design/icons-vue";
+import { useLoginUserStore } from "@/store/useLoginUserStore";
 
 interface UserInfo {
   userId: string | number;
@@ -117,6 +135,7 @@ interface UserInfo {
   userIsAdmin: number;
   userProfile: string;
   userAvatar: string;
+  userNickname?: string;
 }
 
 const user = ref<UserInfo>({
@@ -133,6 +152,7 @@ const user = ref<UserInfo>({
 // 表单状态
 const formState = reactive({
   userName: "",
+  userNickname: "",
   userEmail: "",
   userPhone: "",
   userProfile: "",
@@ -140,6 +160,9 @@ const formState = reactive({
 
 // 对话框可见性
 const modalVisible = ref(false);
+
+// 获取用户状态store
+const loginUserStore = useLoginUserStore();
 
 const formatDate = (date: string) => {
   return dayjs(date).format("YYYY-MM-DD");
@@ -153,15 +176,16 @@ const fetchData = async () => {
     } else {
       message.error("用户数据获取失败");
     }
-  } catch (error) {
-    message.error(`操作失败: ${error.message || "未知错误"}`);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    message.error(`操作失败: ${err.message || "未知错误"}`);
   }
 };
 
 // 处理编辑按钮点击
 const handleEdit = () => {
-  // 填充表单数据
   formState.userName = user.value.userName;
+  formState.userNickname = user.value.userNickname || user.value.userName;
   formState.userEmail = user.value.userEmail;
   formState.userPhone = user.value.userPhone;
   formState.userProfile = user.value.userProfile;
@@ -173,6 +197,7 @@ const handleModalOk = async () => {
   try {
     const res = await userModify({
       userName: formState.userName,
+      userNickname: formState.userNickname,
       userEmail: formState.userEmail,
       userPhone: formState.userPhone,
       userProfile: formState.userProfile,
@@ -195,9 +220,46 @@ const handleModalCancel = () => {
   modalVisible.value = false;
 };
 
-// 处理修改个人介绍
-const handleEditProfile = () => {
-  handleEdit(); // 直接打开修改资料的对话框
+// 上传前校验
+const beforeUpload = (file: File) => {
+  const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
+  if (!isJpgOrPng) {
+    message.error("只能上传 JPG/PNG 格式的图片！");
+    return false;
+  }
+  const isLt2M = file.size / 1024 / 1024 < 2;
+  if (!isLt2M) {
+    message.error("图片大小不能超过 2MB！");
+    return false;
+  }
+  return true;
+};
+
+// 自定义上传方法
+const customUpload = async (options: any) => {
+  const { file, onSuccess, onError } = options;
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await updateAvatar(formData);
+    if (res.data.code === 0) {
+      message.success("头像上传成功");
+      await fetchData(); // 刷新用户数据
+      // 更新全局用户状态
+      const userRes = await getCurrentUser();
+      if (userRes.data.code === 0) {
+        loginUserStore.loginUser = userRes.data.data;
+      }
+      onSuccess(res, file);
+    } else {
+      message.error(res.data.message || "上传失败");
+      onError(new Error(res.data.message));
+    }
+  } catch (error: any) {
+    message.error(error.response?.data?.message || "上传失败");
+    onError(error);
+  }
 };
 
 onMounted(() => {
@@ -370,5 +432,42 @@ onMounted(() => {
   line-height: 1.6;
   color: #333;
   white-space: pre-wrap;
+}
+
+.avatar-wrapper {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+  border-radius: 50%;
+}
+
+.avatar-wrapper:hover .avatar-mask {
+  opacity: 1;
+}
+
+.avatar-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.avatar-mask span {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+:deep(.ant-upload) {
+  display: block;
 }
 </style>

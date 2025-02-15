@@ -149,7 +149,7 @@ const handleSendCode = async () => {
   try {
     loading.value = true;
     const res = await sendVerifyCode({
-      userEmail: formState.email, // 修改这里，使用 userEmail
+      toEmail: formState.email,
     });
     if (res.data.code === 0) {
       message.success("验证码已发送到您的邮箱");

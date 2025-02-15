@@ -11,7 +11,12 @@
     </div>
     <a-table :columns="columns" :data-source="data">
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'userCreatedTime'">
+        <template v-if="column.key === 'userAvatar'">
+          <a-avatar :size="40" :src="record.userAvatar">
+            {{ record.userNickname?.charAt(0) || record.userName?.charAt(0) }}
+          </a-avatar>
+        </template>
+        <template v-else-if="column.key === 'userCreatedTime'">
           {{ dayjs(record.userCreatedTime).format("YYYY-MM-DD HH:mm:ss") }}
         </template>
         <template v-else-if="column.key === 'userIsAdmin'">
@@ -42,6 +47,13 @@
         :model="editFormState"
         layout="vertical"
       >
+        <a-form-item
+          label="昵称"
+          name="userNickname"
+          :rules="[{ required: true, message: '请输入昵称!' }]"
+        >
+          <a-input v-model:value="editFormState.userNickname" />
+        </a-form-item>
         <a-form-item
           label="用户名"
           name="userName"
@@ -115,6 +127,11 @@ const doDelete = (userId: string) => {
 
 const columns = [
   {
+    title: "头像",
+    key: "userAvatar",
+    width: 80,
+  },
+  {
     title: "用户ID📃",
     dataIndex: "userId",
     key: "userId",
@@ -123,6 +140,11 @@ const columns = [
     title: "用户名🙂",
     dataIndex: "userName",
     key: "userName",
+  },
+  {
+    title: "昵称👤",
+    dataIndex: "userNickname",
+    key: "userNickname",
   },
   {
     title: "电子邮箱📧",
@@ -152,6 +174,7 @@ const columns = [
 interface EditFormState {
   userId: string | number;
   userName: string;
+  userNickname: string;
   userEmail: string;
   userPhone: string;
   userIsAdmin: number;
@@ -161,6 +184,7 @@ interface EditFormState {
 const editFormState = reactive<EditFormState>({
   userId: "",
   userName: "",
+  userNickname: "",
   userEmail: "",
   userPhone: "",
   userIsAdmin: 0,
@@ -183,9 +207,10 @@ const showEditModal = (record: any) => {
 // 处理模态框确认（编辑游戏）
 const handleEditUser = async () => {
   try {
-    const updateData: Partial<EditFormState> = {
+    const updateData = {
       userId: editFormState.userId,
       userName: editFormState.userName,
+      userNickname: editFormState.userNickname,
       userEmail: editFormState.userEmail,
       userPhone: editFormState.userPhone,
       userIsAdmin: editFormState.userIsAdmin,
@@ -199,8 +224,9 @@ const handleEditUser = async () => {
     } else {
       message.error(res.data.message || "更新失败");
     }
-  } catch (error) {
-    message.error(`操作失败: ${error.message || "未知错误"}`);
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    message.error(`操作失败: ${err.message || "未知错误"}`);
   }
 };
 
@@ -217,21 +243,27 @@ const handleModalCancel = () => {
   Object.assign(editFormState, {
     userId: "",
     userName: "",
+    userNickname: "",
     userEmail: "",
     userPhone: "",
-    userIsAdmin: "",
+    userIsAdmin: 0,
   });
 };
 
 const data = ref([]);
 
 const fetchData = async (username = "") => {
-  const res = await searchUsers(username);
+  const res = await searchUsers({ userName: username });
   if (res.data.data) {
     data.value = res.data.data;
   } else {
     message.error("用户数据获取失败");
   }
+};
+
+// 1. 添加 handleSaleStatusChange 函数定义
+const handleSaleStatusChange = (checked: boolean) => {
+  editFormState.userIsAdmin = checked ? 1 : 0;
 };
 
 fetchData();
@@ -247,5 +279,11 @@ fetchData();
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+/* 添加头像列样式 */
+:deep(.ant-table-cell .ant-avatar) {
+  margin: 0 auto;
+  display: block;
 }
 </style>

@@ -1,21 +1,22 @@
 <template>
   <div class="GlobalHeader" v-if="!isAuthPage">
     <a-row :wrap="false">
-      <a-col flex="160px">
+      <a-col flex="200px" class="logo-col">
         <div class="title-bar">
           <img class="logo" src="../assets/GameHub_500px.png" alt="logo" />
           <div class="title">GameHub</div>
         </div>
       </a-col>
-      <a-col flex="auto">
+      <a-col flex="auto" class="menu-col">
         <a-menu
+          style="height: 55px; display: flex"
           v-model:selectedKeys="current"
           mode="horizontal"
           :items="menuItems"
           @click="doMenuClick"
         />
       </a-col>
-      <a-col flex="200px">
+      <a-col flex="200px" class="user-area-col">
         <div class="user-area">
           <template v-if="loginUserStore.hasLogin">
             <a-dropdown>
@@ -25,11 +26,17 @@
                   :src="loginUserStore.loginUser?.userAvatar"
                   class="user-avatar"
                 >
-                  {{ loginUserStore.loginUser?.userName?.charAt(0) }}
+                  {{
+                    loginUserStore.loginUser?.userNickname?.charAt(0) ||
+                    loginUserStore.loginUser?.userName?.charAt(0)
+                  }}
                 </a-avatar>
-                <span class="username">{{
-                  loginUserStore.loginUser?.userName
-                }}</span>
+                <span class="username">
+                  {{
+                    loginUserStore.loginUser?.userNickname ||
+                    loginUserStore.loginUser?.userName
+                  }}
+                </span>
                 <down-outlined />
               </a>
               <template #overlay>
@@ -173,11 +180,36 @@ const isAuthPage = computed(() => {
 </script>
 
 <style scoped>
+.GlobalHeader {
+  height: 60px;
+  width: 100%;
+  background: white;
+}
+
 .title-bar {
+  width: 200px;
   display: flex;
   text-align: center;
   align-items: center;
   height: 100%;
+}
+
+.logo-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-col {
+  height: 60px;
+  display: flex;
+  align-items: flex-end;
+}
+
+.user-area-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .title {
@@ -188,7 +220,8 @@ const isAuthPage = computed(() => {
 }
 
 .logo {
-  height: 30px;
+  width: 60px;
+  padding: 10px;
 }
 
 .user-area {
