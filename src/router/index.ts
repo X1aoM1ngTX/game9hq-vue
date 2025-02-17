@@ -68,6 +68,14 @@ const routes: Array<RouteRecordRaw> = [
     name: "UserProfilePage",
     component: () => import("@/pages/UserProfilePage.vue"),
   },
+  {
+    path: "/about",
+    name: "AboutPage",
+    component: () => import("@/pages/AboutPage.vue"),
+    meta: {
+      title: "关于",
+    },
+  },
 ];
 
 const router = createRouter({

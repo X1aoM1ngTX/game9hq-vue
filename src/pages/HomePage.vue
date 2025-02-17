@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { useLoginUserStore } from "@/store/useLoginUserStore";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 
 const router = useRouter();
 const loginUserStore = useLoginUserStore();

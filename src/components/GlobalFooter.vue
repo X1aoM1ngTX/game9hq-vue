@@ -17,6 +17,7 @@
         <router-link to="/">首页</router-link>
         <router-link to="/shop">商城</router-link>
         <router-link to="/user/profile">个人中心</router-link>
+        <router-link to="/about">关于我们</router-link>
       </div>
     </div>
     <div class="footer-bottom">

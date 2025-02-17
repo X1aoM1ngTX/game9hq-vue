@@ -85,7 +85,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useRoute, useRouter } from "vue-router";
-import { useLoginUserStore } from "@/store/useLoginUserStore";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { userLogout } from "@/api/user";
 
 const loginUserStore = useLoginUserStore();
@@ -150,6 +150,11 @@ const menuItems = computed<MenuItem[]>(() => {
       key: "/shop",
       icon: () => h(AppstoreOutlined),
       label: "商城",
+    },
+    {
+      key: "/about",
+      icon: () => h(SettingOutlined),
+      label: "关于",
     },
   ];
 

@@ -20,7 +20,7 @@
           <div class="game-cover">
             <img
               v-if="game.gameCover"
-              :src="game.gameCover"
+              v-lazy="game.gameCover"
               :alt="game.gameName"
             />
             <a-empty v-else description="暂无封面" />

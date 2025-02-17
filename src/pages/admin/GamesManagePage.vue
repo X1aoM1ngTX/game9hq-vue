@@ -29,6 +29,13 @@
             {{ record.gamePrice === 0 ? "免费" : record.gamePrice + "￥" }}
           </a-tag>
         </template>
+        <template v-else-if="column.key === 'gameCover'">
+          <img
+            v-lazy="record.gameCover"
+            style="width: 50px; height: 50px; object-fit: cover"
+            alt="gameCover"
+          />
+        </template>
         <template v-else-if="column.key === 'gameDiscountedPrices'">
           <template v-if="record.gameOnSale !== 0">
             <a-tag :color="record.gameOnSale === 0 ? 'default' : 'green'">
@@ -701,9 +708,9 @@ const beforeUpload = (file: UploadProps["fileList"][number]) => {
   if (!isJpgOrPng) {
     message.error("你只能上传 JPG 文件!");
   }
-  const isLt2M = file.size / 1024 / 1024 < 10;
+  const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
-    message.error("文件必须小于 10MB!");
+    message.error("文件必须小于 2MB!");
   }
   return isJpgOrPng && isLt2M;
 };

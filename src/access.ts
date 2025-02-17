@@ -1,5 +1,5 @@
 import router from "./router";
-import { useLoginUserStore } from "@/store/useLoginUserStore";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { message } from "ant-design-vue";
 
 // 在每次路由跳转前执行

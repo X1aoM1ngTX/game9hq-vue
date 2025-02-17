@@ -73,7 +73,7 @@
 import { reactive, ref } from "vue";
 import { LockOutlined, UserOutlined } from "@ant-design/icons-vue";
 import { userLogin } from "@/api/user";
-import { useLoginUserStore } from "@/store/useLoginUserStore";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 

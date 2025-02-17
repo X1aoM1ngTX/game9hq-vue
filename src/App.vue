@@ -9,7 +9,7 @@ import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import BasicLayout from "@/layouts/BasicLayout.vue";
 import BlankLayout from "@/layouts/BlankLayout.vue";
-import { useLoginUserStore } from "@/store/useLoginUserStore";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 
 const route = useRoute();
 const layout = computed(() => {

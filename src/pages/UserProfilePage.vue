@@ -1,69 +1,92 @@
 <template>
   <div class="profile-container">
-    <div class="profile-card">
-      <div class="profile-header">
-        <div class="avatar-section">
-          <a-upload
-            name="file"
-            :show-upload-list="false"
-            :before-upload="beforeUpload"
-            :customRequest="customUpload"
-          >
-            <div class="avatar-wrapper">
-              <a-avatar :size="64" :src="user.userAvatar">
-                {{ user.userName?.charAt(0) }}
-              </a-avatar>
-              <div class="avatar-mask">
-                <camera-outlined />
-                <span>更换头像</span>
+    <a-row gutter="16">
+      <a-col :xs="24" :sm="24" :md="16" :lg="17">
+        <!-- 游戏库 -->
+        <div class="profile-library">
+          <h3>我的游戏库</h3>
+          <div v-if="userGames.length > 0" class="games-list">
+            <div v-for="game in userGames" :key="game.gameId" class="game-item">
+              <img
+                v-lazy="game.gameCover"
+                :alt="game.gameName"
+                class="game-cover"
+              />
+              <div class="game-info">
+                <h4>{{ game.gameName }}</h4>
               </div>
             </div>
-          </a-upload>
-          <div class="online-status"></div>
+          </div>
+          <p v-else class="empty-text">您还没有添加任何游戏</p>
         </div>
-        <div class="user-info">
-          <h2>
-            {{ user.userNickname || user.userName }}
-            <a-tag v-if="user.userIsAdmin === 1" color="blue">管理员</a-tag>
-            <a-tag v-else color="green">用户</a-tag>
-          </h2>
-          <span class="user-id">ID：{{ user.userId }}</span>
-        </div>
-        <a-button class="edit-btn" type="link" @click="handleEdit">
-          修改资料
-        </a-button>
-      </div>
+      </a-col>
+      <a-col :xs="24" :sm="24" :md="8" :lg="7">
+        <!-- 个人卡片 -->
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="avatar-section">
+              <a-upload
+                name="file"
+                :show-upload-list="false"
+                :before-upload="beforeUpload"
+                :customRequest="customUpload"
+              >
+                <div class="avatar-wrapper">
+                  <a-avatar :size="64" :src="user.userAvatar">
+                    {{ user.userName?.charAt(0) }}
+                  </a-avatar>
+                  <div class="avatar-mask">
+                    <camera-outlined />
+                    <span>更换头像</span>
+                  </div>
+                </div>
+              </a-upload>
+              <div class="online-status"></div>
+            </div>
+            <div class="user-info">
+              <h2>
+                {{ user.userNickname || user.userName }}
+                <a-tag v-if="user.userIsAdmin === 1" color="blue">管理员</a-tag>
+                <a-tag v-else color="green">用户</a-tag>
+              </h2>
+              <span class="user-id">ID：{{ user.userId }}</span>
+            </div>
+            <a-button class="edit-btn" type="link" @click="handleEdit">
+              修改资料
+            </a-button>
+          </div>
 
-      <div class="profile-content">
-        <div class="info-section">
-          <h3>简介</h3>
-          <div class="profile-text">
-            <p v-if="user.userProfile">{{ user.userProfile }}</p>
-            <p v-else class="empty-text">这个人很懒，什么都没写</p>
+          <div class="profile-content">
+            <div class="info-section">
+              <h3>简介</h3>
+              <div class="profile-text">
+                <p v-if="user.userProfile">{{ user.userProfile }}</p>
+                <p v-else class="empty-text">这个人很懒，什么都没写</p>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <h3>基本信息</h3>
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="label">邮箱：</span>
+                  <span>{{ user.userEmail || "未设置" }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">手机：</span>
+                  <span>{{ user.userPhone || "未设置" }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">注册时间：</span>
+                  <span>{{ formatDate(user.userCreatedTime) }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div class="info-section">
-          <h3>基本信息</h3>
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="label">邮箱：</span>
-              <span>{{ user.userEmail || "未设置" }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">手机：</span>
-              <span>{{ user.userPhone || "未设置" }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">注册时间：</span>
-              <span>{{ formatDate(user.userCreatedTime) }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 添加修改资料的对话框 -->
+      </a-col>
+    </a-row>
+    <!-- 修改资料的对话框 -->
     <a-modal
       v-model:visible="modalVisible"
       title="修改个人资料"
@@ -120,11 +143,12 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue";
-import { getCurrentUser, userModify, updateAvatar } from "@/api/user";
+import { getCurrentUser, updateAvatar, userModify } from "@/api/user";
+import { getUserLibrary } from "@/api/userLibrary";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { CameraOutlined } from "@ant-design/icons-vue";
-import { useLoginUserStore } from "@/store/useLoginUserStore";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 
 interface UserInfo {
   userId: string | number;
@@ -138,6 +162,13 @@ interface UserInfo {
   userNickname?: string;
 }
 
+interface Game {
+  gameId: number;
+  gameName: string;
+  gameDescription: string;
+  gameCover: string;
+}
+
 const user = ref<UserInfo>({
   userId: "",
   userName: "",
@@ -148,6 +179,9 @@ const user = ref<UserInfo>({
   userProfile: "",
   userAvatar: "",
 });
+
+// 新增的用户游戏库数据
+const userGames = ref<Game[]>([]);
 
 // 表单状态
 const formState = reactive({
@@ -182,6 +216,21 @@ const fetchData = async () => {
   }
 };
 
+// 新增的获取用户游戏库数据的方法
+const fetchUserGames = async () => {
+  try {
+    const res = await getUserLibrary();
+    if (res.data.code === 0) {
+      userGames.value = res.data.data;
+    } else {
+      message.error("游戏库数据获取失败");
+    }
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    message.error(`操作失败: ${err.message || "未知错误"}`);
+  }
+};
+
 // 处理编辑按钮点击
 const handleEdit = () => {
   formState.userName = user.value.userName;
@@ -202,16 +251,16 @@ const handleModalOk = async () => {
       userPhone: formState.userPhone,
       userProfile: formState.userProfile,
     });
-
     if (res.data.code === 0) {
-      message.success("修改成功");
+      message.success("更新成功");
       modalVisible.value = false;
-      await fetchData(); // 刷新数据
+      await fetchData();
     } else {
-      message.error(res.data.message || "修改失败");
+      message.error(res.data.message || "更新失败");
     }
-  } catch (error: any) {
-    message.error(error.response?.data?.message || "修改失败");
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    message.error(`操作失败: ${err.message || "未知错误"}`);
   }
 };
 
@@ -220,7 +269,7 @@ const handleModalCancel = () => {
   modalVisible.value = false;
 };
 
-// 上传前校验
+// 上传头像前的处理
 const beforeUpload = (file: File) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
   if (!isJpgOrPng) {
@@ -235,7 +284,7 @@ const beforeUpload = (file: File) => {
   return true;
 };
 
-// 自定义上传方法
+// 自定义上传头像
 const customUpload = async (options: any) => {
   const { file, onSuccess, onError } = options;
   try {
@@ -264,19 +313,18 @@ const customUpload = async (options: any) => {
 
 onMounted(() => {
   fetchData();
+  fetchUserGames(); // 获取用户游戏库数据
 });
 </script>
 
 <style scoped>
 .profile-container {
-  padding: 24px;
+  padding: 48px 36px 0 36px;
   background: linear-gradient(to bottom, #ffffff, #7bb1ff);
   min-height: calc(100vh - 64px);
 }
 
 .profile-card {
-  max-width: 800px;
-  margin: 0 auto;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
@@ -335,14 +383,18 @@ onMounted(() => {
   padding: 24px;
 }
 
-.info-section {
-  margin-bottom: 32px;
+.profile-library {
+  background: white;
+  height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 
-.info-section h3 {
+.profile-library h3 {
   font-size: 18px;
   color: #1a1a1a;
-  margin-bottom: 16px;
+  margin: 16px;
 }
 
 .info-grid {
@@ -469,5 +521,39 @@ onMounted(() => {
 
 :deep(.ant-upload) {
   display: block;
+}
+
+.games-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+.game-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+  text-align: center;
+}
+
+.game-cover {
+  width: 100%;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.game-info h4 {
+  margin: 8px 0 4px;
+  font-size: 16px;
+  color: #333;
+}
+
+.game-info p {
+  font-size: 14px;
+  color: #666;
 }
 </style>

@@ -18,44 +18,27 @@
 
       <!-- 游戏详情容器 -->
       <div class="game-detail-container">
-        <!-- 加载中状态 -->
         <div v-if="loading" class="loading">加载中...</div>
-        <!-- 错误状态 -->
         <div v-else-if="error" class="error">
           {{ error }}
         </div>
-        <!-- 游戏信息展示 -->
         <div v-else-if="game" class="game-info">
-          <!-- 游戏主要内容，包括封面和描述 -->
           <div class="game-main-content">
-            <!-- 游戏封面 -->
             <div class="game-cover">
-              <img
-                v-if="game.gameCover"
-                :src="game.gameCover"
-                :alt="game.gameName"
-              />
-              <!-- 如果没有封面图，则显示空状态 -->
-              <a-empty v-else description="暂无游戏封面" />
+              <img v-lazy="game.gameCover" :alt="game.gameName" />
             </div>
-
-            <!-- 游戏描述 -->
             <div class="game-description">
               <h3>游戏描述</h3>
               <p>{{ game.gameDescription }}</p>
             </div>
           </div>
 
-          <!-- 游戏侧边栏，包含价格、购买按钮和游戏信息 -->
           <div class="game-sidebar">
-            <!-- 游戏基本信息，包括价格和购买按钮 -->
             <div class="game-basic-info">
               <div class="price-section">
-                <!-- 原价 -->
                 <span v-if="game.gameOnSale === 1" class="original-price"
                   >￥{{ game.gamePrice }}</span
                 >
-                <!-- 现价 -->
                 <span class="current-price"
                   >￥{{
                     game.gameOnSale === 1
@@ -64,44 +47,50 @@
                   }}</span
                 >
               </div>
-              <!-- 购买按钮 -->
               <button
                 class="buy-button"
                 @click="handleBuy"
-                :disabled="game.gameStock <= 0 || game.gameIsRemoved === 1"
+                :disabled="
+                  isGameInLibrary(game.gameId) ||
+                  game.gameStock <= 0 ||
+                  game.gameIsRemoved === 1
+                "
               >
                 {{ getBuyButtonText }}
               </button>
             </div>
-
-            <!-- 游戏详细信息 -->
             <div class="game-details">
-              <h3>游戏信息</h3>
-              <ul>
-                <li>
-                  <span class="label">发行日期：</span>
-                  <span>{{ game.gameReleaseDate }}</span>
-                </li>
-                <li>
-                  <span class="label">开发商：</span>
-                  <span>{{ game.gameDev }}</span>
-                </li>
-                <li>
-                  <span class="label">发行商：</span>
-                  <span>{{ game.gamePub }}</span>
-                </li>
-                <li>
-                  <span class="label">库存：</span>
-                  <span>{{ game.gameStock }}</span>
-                </li>
-                <li v-if="game.gameOnSale === 1">
-                  <span class="label">促销折扣：</span>
-                  <span>{{ game.gameDiscount }}折</span>
+              <a-list>
+                <a-list-item>
+                  <a-tag color="blue"
+                    ><strong>发行日期：</strong
+                    >{{ game.gameReleaseDate }}</a-tag
+                  >
+                </a-list-item>
+                <a-list-item>
+                  <a-tag color="green"
+                    ><strong>开发商：</strong>{{ game.gameDev }}</a-tag
+                  >
+                </a-list-item>
+                <a-list-item>
+                  <a-tag color="purple"
+                    ><strong>发行商：</strong>{{ game.gamePub }}</a-tag
+                  >
+                </a-list-item>
+                <a-list-item>
+                  <a-tag color="orange"
+                    ><strong>库存：</strong>{{ game.gameStock }}</a-tag
+                  >
+                </a-list-item>
+                <a-list-item v-if="game.gameOnSale === 1">
+                  <a-tag color="magenta"
+                    ><strong>促销折扣：</strong>{{ game.gameDiscount }}折</a-tag
+                  >
                   <span class="sale-end-time">
                     (截止至: {{ game.gameSaleEndTime }})
                   </span>
-                </li>
-              </ul>
+                </a-list-item>
+              </a-list>
             </div>
           </div>
         </div>
@@ -114,8 +103,10 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { type GameDetailVO, getGameDetail } from "@/api/game";
+import { addGameToUserLibrary } from "@/api/userLibrary";
 import { message } from "ant-design-vue";
 import { RightOutlined } from "@ant-design/icons-vue";
+import { useUserLibraryStore } from "@/stores/userLibraryStore";
 
 // 路由对象
 const route = useRoute();
@@ -125,13 +116,16 @@ const game = ref<GameDetailVO | null>(null);
 const loading = ref(true);
 // 错误信息
 const error = ref<string | null>(null);
+// 用户游戏库
+const userLibraryStore = useUserLibraryStore();
 
-// 计算购买按钮的文本
+// 计算添加到游戏库中按钮的文本
 const getBuyButtonText = computed(() => {
-  if (!game.value) return "购买";
+  if (!game.value) return "添加到游戏库中";
   if (game.value.gameIsRemoved === 1) return "已下架";
   if (game.value.gameStock <= 0) return "缺货";
-  return "购买";
+  if (isGameInLibrary(game.value.gameId)) return "已在库中";
+  return "添加到游戏库中";
 });
 
 // 获取游戏详情
@@ -153,8 +147,13 @@ const fetchGameDetail = async (gameId: string) => {
   }
 };
 
-// 处理购买逻辑
-const handleBuy = () => {
+// 检查游戏是否在用户游戏库中
+const isGameInLibrary = (gameId: number) => {
+  return userLibraryStore.games.some((game) => game.gameId === gameId);
+};
+
+// 处理添加到游戏库中逻辑
+const handleBuy = async () => {
   if (!game.value) return;
   if (game.value.gameStock <= 0) {
     message.warning("该游戏已售罄");
@@ -164,12 +163,24 @@ const handleBuy = () => {
     message.warning("该游戏已下架");
     return;
   }
-  // TODO: 实现购买逻辑
-  console.log("购买游戏:", game.value.gameName);
+
+  try {
+    const res = await addGameToUserLibrary(game.value.gameId);
+    if (res.data.code === 0) {
+      message.success("游戏已成功添加到您的游戏库");
+      userLibraryStore.games.push(game.value); // 更新全局状态
+    } else {
+      message.error(res.data.message || "添加游戏失败");
+    }
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    message.error(`操作失败: ${err.message || "未知错误"}`);
+  }
 };
 
 // 页面挂载时获取游戏详情
 onMounted(() => {
+  userLibraryStore.fetchUserLibrary();
   const gameId = route.params.gameId as string;
   fetchGameDetail(gameId);
 });
