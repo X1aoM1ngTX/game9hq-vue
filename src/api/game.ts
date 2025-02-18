@@ -133,3 +133,11 @@ export const uploadFile = (params: FormData) => {
 export const getGameDetail = (gameId: string | number) => {
   return myAxios.get<GameDetailVO>(`/api/game/${gameId}`);
 };
+
+/**
+ * 用户购买游戏
+ * @param gameId 游戏ID
+ */
+export const userBuyGame = (gameId: string | number) => {
+  return myAxios.post("/api/game/purchase", { gameId });
+};

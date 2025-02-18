@@ -102,8 +102,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { type GameDetailVO, getGameDetail } from "@/api/game";
-import { addGameToUserLibrary } from "@/api/userLibrary";
+import { type GameDetailVO, getGameDetail, userBuyGame } from "@/api/game";
 import { message } from "ant-design-vue";
 import { RightOutlined } from "@ant-design/icons-vue";
 import { useUserLibraryStore } from "@/stores/userLibraryStore";
@@ -165,7 +164,7 @@ const handleBuy = async () => {
   }
 
   try {
-    const res = await addGameToUserLibrary(game.value.gameId);
+    const res = await userBuyGame(game.value.gameId);
     if (res.data.code === 0) {
       message.success("游戏已成功添加到您的游戏库");
       userLibraryStore.games.push(game.value); // 更新全局状态
