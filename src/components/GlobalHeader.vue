@@ -3,13 +3,13 @@
     <a-row :wrap="false">
       <a-col flex="200px" class="logo-col">
         <div class="title-bar">
-          <img class="logo" src="../assets/GameHub_500px.png" alt="logo" />
+          <img class="logo" src="../assets/dice-d20-solid.svg" alt="logo" />
           <div class="title">GameHub</div>
         </div>
       </a-col>
       <a-col flex="auto" class="menu-col">
         <a-menu
-          style="height: 55px; display: flex"
+          style="height: 55px; display: flex; color: #000000"
           v-model:selectedKeys="current"
           mode="horizontal"
           :items="menuItems"
@@ -218,7 +218,7 @@ const isAuthPage = computed(() => {
 }
 
 .title {
-  color: #6cb4ff;
+  color: #000000;
   font-size: 24px;
   font-weight: bolder;
   margin-left: 10px;
@@ -248,11 +248,11 @@ const isAuthPage = computed(() => {
 }
 
 .user-link:hover {
-  color: #1890ff;
+  color: #000000;
 }
 
 .user-avatar {
-  background: #1890ff;
+  background: #2d2d2d;
   color: white;
 }
 

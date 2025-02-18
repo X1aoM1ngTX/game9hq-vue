@@ -8,6 +8,7 @@ import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import "@/access";
 import "@/assets/global.css";
 import VueLazyload from "vue-lazyload";
+import { ConfigProvider } from "ant-design-vue";
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
@@ -16,6 +17,7 @@ const app = createApp(App);
 app.use(pinia);
 app.use(router);
 app.use(Antd);
+app.use(ConfigProvider);
 app.use(VueLazyload, {
   preLoad: 1, // 预加载高度比例
   error: require("@/assets/error.png"), // 加载失败时的占位图

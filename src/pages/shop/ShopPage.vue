@@ -145,7 +145,6 @@ const handleAfterLeave = (el: Element) => {
 
 <style scoped>
 #shopPage {
-  background: linear-gradient(to bottom, #ffffff, #7bb1ff);
   min-height: calc(100vh - 64px);
   padding: 24px;
 }

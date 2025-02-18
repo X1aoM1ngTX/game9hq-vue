@@ -30,8 +30,8 @@
 
 <style scoped>
 .global-footer {
-  background-color: #001529;
-  color: #fff;
+  background-color: #000000;
+  color: #ffffff;
   padding: 40px 0 20px;
 }
 
@@ -51,19 +51,19 @@
 }
 
 .footer-section h3 {
-  color: #1890ff;
+  color: #ffffff;
   font-size: 18px;
   margin-bottom: 16px;
 }
 
 .footer-section p {
-  color: #8c8c8c;
+  color: #ffffff;
   margin: 0;
   line-height: 1.5;
 }
 
 .footer-section a {
-  color: #8c8c8c;
+  color: #ffffff;
   text-decoration: none;
   display: block;
   margin-bottom: 8px;
@@ -71,7 +71,9 @@
 }
 
 .footer-section a:hover {
-  color: #1890ff;
+  color: #ffffff;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 .footer-bottom {
@@ -82,7 +84,7 @@
 }
 
 .footer-bottom p {
-  color: #8c8c8c;
+  color: #ffffff;
   margin: 0;
   font-size: 14px;
 }

@@ -2,7 +2,7 @@
   <div class="home-page">
     <div class="content">
       <div class="logo-area">
-        <img class="logo" src="../assets/GameHub_500px.png" alt="logo" />
+        <img class="logo" src="../assets/dice-d20-solid.svg" alt="logo" />
         <h1>GameHub</h1>
       </div>
       <p class="slogan">
@@ -83,7 +83,7 @@ const handleButtonClick = () => {
 
 .logo-area h1 {
   font-size: 48px;
-  color: #1890ff;
+  color: #000000;
   margin: 0;
   font-weight: bold;
 }
@@ -104,6 +104,7 @@ const handleButtonClick = () => {
 
 .main-button {
   height: 50px;
+  background-color: #000000;
   padding: 0 40px;
   font-size: 18px;
   border-radius: 25px;
@@ -135,12 +136,11 @@ const handleButtonClick = () => {
 
 .feature-card h3 {
   font-size: 20px;
-  color: #1890ff;
   margin-bottom: 15px;
 }
 
 .feature-card p {
-  color: #666;
+  color: #2c2c2c;
   line-height: 1.6;
 }
 

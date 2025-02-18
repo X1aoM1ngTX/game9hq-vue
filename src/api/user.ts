@@ -4,8 +4,9 @@ import myAxios from "@/request";
 interface RegisterParams {
   userName: string;
   userPassword: string;
+  userCheckPassword: string;
   userEmail: string;
-  userPhone: string;
+  verifyCode: string;
 }
 
 // 用户登录请求参数接口
@@ -116,7 +117,7 @@ export const deleteUser = async (id: string) => {
  * @param params 包含目标邮箱的参数
  */
 export const sendVerifyCode = (params: { toEmail: string }) => {
-  return myAxios.post("/api/user/sendEmail", params);
+  return myAxios.post("/api/user/sendEmailCode", params);
 };
 
 /**

@@ -8,7 +8,7 @@
           <!-- 返回按钮，点击返回上一页 -->
           <a-button class="back-btn" type="text" @click="$router.back()">
             <template #icon>
-              <right-outlined />
+              <RightOutlined style="font-size: 20px; color: #000000" />
             </template>
           </a-button>
           <!-- 游戏名称 -->
@@ -36,8 +36,8 @@
           <div class="game-sidebar">
             <div class="game-basic-info">
               <div class="price-section">
-                <span v-if="game.gameOnSale === 1" class="original-price"
-                  >￥{{ game.gamePrice }}</span
+                <span v-if="game.gameOnSale !== 1" class="original-price"
+                  >￥{{ game.gameDiscountedPrices }}</span
                 >
                 <span class="current-price"
                   >￥{{
@@ -86,9 +86,12 @@
                   <a-tag color="magenta"
                     ><strong>促销折扣：</strong>{{ game.gameDiscount }}折</a-tag
                   >
-                  <span class="sale-end-time">
-                    (截止至: {{ game.gameSaleEndTime }})
-                  </span>
+                </a-list-item>
+                <a-list-item>
+                  <a-tag color="red"
+                    ><strong>促销截止：</strong
+                    >{{ game.gameSaleEndTime }}</a-tag
+                  >
                 </a-list-item>
               </a-list>
             </div>
@@ -201,9 +204,9 @@ onMounted(() => {
 .game-detail-sidebar {
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, #ffffff, #7bb1ff);
+  background-color: #f8f8f8;
   overflow-y: auto;
-  animation: slideIn 0.3s ease-out;
+  animation: slideIn 0.4s ease-out;
 }
 
 @keyframes slideIn {
@@ -311,7 +314,7 @@ onMounted(() => {
 
 .current-price {
   font-size: 24px;
-  color: #1890ff;
+  color: #000000;
   font-weight: bold;
 }
 
