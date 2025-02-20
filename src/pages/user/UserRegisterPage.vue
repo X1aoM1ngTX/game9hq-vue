@@ -164,7 +164,7 @@ const router = useRouter();
 const loading = ref(false);
 const codeSent = ref(false);
 const countdown = ref(60);
-let timer: NodeJS.Timer | null = null;
+let timer: ReturnType<typeof setInterval> | null = null;
 
 // 验证密码
 const validatePassword = async (_rule: any, value: string) => {

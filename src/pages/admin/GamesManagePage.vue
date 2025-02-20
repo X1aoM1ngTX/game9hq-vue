@@ -244,10 +244,11 @@
 
 <script lang="ts" setup>
 // 导入所需的组件和函数
-import { h, reactive, ref } from "vue";
-import type { UploadChangeParam, UploadProps } from "ant-design-vue";
+import { h, reactive, ref, onMounted } from "vue";
 import { message, Modal } from "ant-design-vue";
+import type { UploadChangeParam, UploadProps } from "ant-design-vue";
 import { LoadingOutlined, PlusOutlined } from "@ant-design/icons-vue";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import {
   createGame,
   deleteGame,
@@ -255,9 +256,19 @@ import {
   updateGame,
   updateGameStatus,
 } from "@/api/game";
-// 导入日期处理库
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const loginUserStore = useLoginUserStore();
+
+onMounted(() => {
+  // 检查权限
+  if (!loginUserStore.loginUser?.userIsAdmin) {
+    router.push("/403");
+  }
+});
 
 // 设置 dayjs 为中文
 dayjs.locale("zh-cn");

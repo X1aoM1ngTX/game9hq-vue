@@ -88,10 +88,22 @@
 </template>
 
 <script lang="ts" setup>
-import { adminUpdateUser, deleteUser, searchUsers } from "@/api/user";
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import { message, Modal } from "ant-design-vue";
+import { adminUpdateUser, deleteUser, searchUsers } from "@/api/user";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
+import { useRouter } from "vue-router";
 import dayjs from "dayjs";
+
+const router = useRouter();
+const loginUserStore = useLoginUserStore();
+
+onMounted(() => {
+  // 检查权限
+  if (!loginUserStore.loginUser?.userIsAdmin) {
+    router.push("/403");
+  }
+});
 
 const searchValue = ref("");
 const onSearch = () => {

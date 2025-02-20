@@ -5,10 +5,12 @@ export const addGameToUserLibrary = (gameId: number) => {
   return myAxios.post("/api/userLibrary/addGameToLibrary", { gameId });
 };
 
+// 移除用户游戏库中的游戏
 export const removeGameFromUserLibrary = (gameId: number) => {
   return myAxios.post("/api/userLibrary/removeGameFromLibrary", { gameId });
 };
 
+// 获取用户游戏库
 export const getUserLibrary = () => {
   return myAxios.get("/api/userLibrary/listUserGames");
 };

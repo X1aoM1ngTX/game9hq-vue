@@ -6,7 +6,12 @@
         <div class="profile-library">
           <h3>我的游戏库</h3>
           <div v-if="userGames.length > 0" class="games-list">
-            <div v-for="game in userGames" :key="game.gameId" class="game-item">
+            <div
+              v-for="game in userGames"
+              :key="game.gameId"
+              class="game-item"
+              :data-game-id="game.gameId"
+            >
               <img
                 v-lazy="game.gameCover"
                 :alt="game.gameName"
@@ -142,9 +147,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref, onUnmounted } from "vue";
 import { getCurrentUser, updateAvatar, userModify } from "@/api/user";
-import { getUserLibrary } from "@/api/userLibrary";
+import { getUserLibrary, removeGameFromUserLibrary } from "@/api/userLibrary";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { CameraOutlined } from "@ant-design/icons-vue";
@@ -311,9 +316,43 @@ const customUpload = async (options: any) => {
   }
 };
 
+// 处理移除游戏
+const handleRemove = async (gameId: number) => {
+  try {
+    const res = await removeGameFromUserLibrary(gameId);
+    if (res.data.code === 0) {
+      message.success("游戏已成功移除");
+      userGames.value = userGames.value.filter(
+        (game) => game.gameId !== gameId
+      );
+    } else {
+      message.error(res.data.message || "游戏移除失败");
+    }
+  } catch (error) {
+    message.error("操作失败，请稍后重试");
+  }
+};
+
+// 监听自定义事件
+const handleRemoveGameEvent = (event: CustomEvent) => {
+  const { gameId } = event.detail;
+  handleRemove(gameId);
+};
+
 onMounted(() => {
   fetchData();
   fetchUserGames(); // 获取用户游戏库数据
+  document.addEventListener(
+    "removeGame",
+    handleRemoveGameEvent as EventListener
+  );
+});
+
+onUnmounted(() => {
+  document.removeEventListener(
+    "removeGame",
+    handleRemoveGameEvent as EventListener
+  );
 });
 </script>
 

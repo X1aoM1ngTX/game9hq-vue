@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -49,8 +50,8 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/admin/UserManagePage.vue"),
   },
   {
-    path: "/admin/games",
-    name: "adminGamesManage",
+    path: "/admin/gameManage",
+    name: "adminGameManage",
     component: () => import("@/pages/admin/GamesManagePage.vue"),
   },
   {
@@ -76,11 +77,59 @@ const routes: Array<RouteRecordRaw> = [
       title: "关于",
     },
   },
+  {
+    path: "/test",
+    name: "TestPage",
+    component: () => import("@/pages/TestPage.vue"),
+  },
+  {
+    path: "/403",
+    name: "Exception403",
+    component: () => import("@/pages/exception/403.vue"),
+    meta: {
+      title: "403",
+    },
+  },
+  {
+    path: "/404",
+    name: "Exception404",
+    component: () => import("@/pages/exception/404.vue"),
+    meta: {
+      title: "404",
+    },
+  },
+  {
+    path: "/500",
+    name: "Exception500",
+    component: () => import("@/pages/exception/500.vue"),
+    meta: {
+      title: "500",
+    },
+  },
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/404",
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const loginUserStore = useLoginUserStore();
+
+  // 检查是否需要管理员权限
+  if (to.path.startsWith("/admin")) {
+    // 如果用户不是管理员，重定向到403页面
+    if (!loginUserStore.loginUser?.userIsAdmin) {
+      next("/403");
+      return;
+    }
+  }
+
+  next();
 });
 
 export default router;

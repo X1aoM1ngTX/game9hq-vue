@@ -100,10 +100,10 @@ export const searchUsers = async (params: { userName: string }) => {
  * 删除用户
  * @param id 用户ID
  */
-export const deleteUser = async (id: string) => {
+export const deleteUser = async (userId: string | number) => {
   return await myAxios.post(
     "/api/user/delete",
-    { id },
+    { userId },
     {
       headers: {
         "Content-Type": "application/json",

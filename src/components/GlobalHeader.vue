@@ -169,7 +169,7 @@ const menuItems = computed<MenuItem[]>(() => {
           label: "用户管理",
         },
         {
-          key: "/admin/games",
+          key: "/admin/gameManage",
           label: "游戏管理",
         },
       ],

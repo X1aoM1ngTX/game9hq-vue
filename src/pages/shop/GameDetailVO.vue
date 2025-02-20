@@ -36,25 +36,30 @@
           <div class="game-sidebar">
             <div class="game-basic-info">
               <div class="price-section">
-                <span v-if="game.gameOnSale !== 1" class="original-price"
-                  >￥{{ game.gameDiscountedPrices }}</span
-                >
-                <span class="current-price"
-                  >￥{{
-                    game.gameOnSale === 1
-                      ? game.gameDiscountedPrices
-                      : game.gamePrice
-                  }}</span
-                >
+                <div v-if="game.gamePrice !== 0">
+                  <span v-if="game.gameOnSale === 1" class="original-price"
+                    >￥{{ game.gamePrice }}</span
+                  >
+                  <span
+                    class="current-price"
+                    :class="{
+                      'price-on-sale': game.gameOnSale === 1,
+                    }"
+                    >￥{{
+                      game.gameOnSale === 1
+                        ? game.gameDiscountedPrices
+                        : game.gamePrice
+                    }}</span
+                  >
+                </div>
+                <div v-else>
+                  <span class="current-price">免费</span>
+                </div>
               </div>
               <button
                 class="buy-button"
-                @click="handleBuy"
-                :disabled="
-                  isGameInLibrary(game.gameId) ||
-                  game.gameStock <= 0 ||
-                  game.gameIsRemoved === 1
-                "
+                @click="handleButtonClick"
+                :disabled="game.gameStock <= 0 || game.gameIsRemoved === 1"
               >
                 {{ getBuyButtonText }}
               </button>
@@ -87,11 +92,16 @@
                     ><strong>促销折扣：</strong>{{ game.gameDiscount }}折</a-tag
                   >
                 </a-list-item>
-                <a-list-item>
-                  <a-tag color="red"
-                    ><strong>促销截止：</strong
-                    >{{ game.gameSaleEndTime }}</a-tag
-                  >
+                <a-list-item v-if="game.gameOnSale === 1">
+                  <a-tag color="red">
+                    <strong>促销截止：</strong>
+                    {{ formatDateTime(game.gameSaleEndTime) }}
+                  </a-tag>
+                </a-list-item>
+                <a-list-item v-if="game.gameOnSale === 1">
+                  <a-tag color="blue"
+                    ><strong>促销剩余：</strong>{{ countdown }}
+                  </a-tag>
                 </a-list-item>
               </a-list>
             </div>
@@ -103,15 +113,17 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, ref, onUnmounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { type GameDetailVO, getGameDetail, userBuyGame } from "@/api/game";
 import { message } from "ant-design-vue";
 import { RightOutlined } from "@ant-design/icons-vue";
 import { useUserLibraryStore } from "@/stores/userLibraryStore";
+import dayjs from "dayjs";
 
 // 路由对象
 const route = useRoute();
+const router = useRouter();
 // 游戏详情数据
 const game = ref<GameDetailVO | null>(null);
 // 加载状态
@@ -121,13 +133,54 @@ const error = ref<string | null>(null);
 // 用户游戏库
 const userLibraryStore = useUserLibraryStore();
 
-// 计算添加到游戏库中按钮的文本
+// 倒计时相关
+const countdown = ref("");
+let timer: ReturnType<typeof setInterval> | null = null;
+
+// 格式化日期时间
+const formatDateTime = (date: string) => {
+  return dayjs(date).format("YYYY-MM-DD HH:mm");
+};
+
+// 更新倒计时
+const updateCountdown = () => {
+  if (!game.value?.gameSaleEndTime) return;
+
+  const now = dayjs();
+  const end = dayjs(game.value.gameSaleEndTime);
+  const diff = end.diff(now);
+
+  if (diff <= 0) {
+    countdown.value = "已结束";
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+    return;
+  }
+
+  // 计算天、小时、分钟和秒
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+  // 格式化倒计时显示
+  const parts = [];
+  if (days > 0) parts.push(`${days}天`);
+  if (hours > 0 || days > 0) parts.push(`${hours}小时`);
+  if (minutes > 0 || hours > 0 || days > 0) parts.push(`${minutes}分`);
+  parts.push(`${seconds}秒`);
+
+  countdown.value = parts.join("");
+};
+
+// 计算按钮文本
 const getBuyButtonText = computed(() => {
-  if (!game.value) return "添加到游戏库中";
+  if (!game.value) return "加载中...";
+  if (game.value.gameStock <= 0) return "已售罄";
   if (game.value.gameIsRemoved === 1) return "已下架";
-  if (game.value.gameStock <= 0) return "缺货";
-  if (isGameInLibrary(game.value.gameId)) return "已在库中";
-  return "添加到游戏库中";
+  return isGameInLibrary(game.value.gameId) ? "前往游戏库" : "添加到游戏库";
 });
 
 // 获取游戏详情
@@ -154,37 +207,56 @@ const isGameInLibrary = (gameId: number) => {
   return userLibraryStore.games.some((game) => game.gameId === gameId);
 };
 
-// 处理添加到游戏库中逻辑
-const handleBuy = async () => {
+// 处理按钮点击
+const handleButtonClick = async () => {
   if (!game.value) return;
-  if (game.value.gameStock <= 0) {
-    message.warning("该游戏已售罄");
-    return;
-  }
-  if (game.value.gameIsRemoved === 1) {
-    message.warning("该游戏已下架");
-    return;
-  }
 
-  try {
-    const res = await userBuyGame(game.value.gameId);
-    if (res.data.code === 0) {
-      message.success("游戏已成功添加到您的游戏库");
-      userLibraryStore.games.push(game.value); // 更新全局状态
-    } else {
-      message.error(res.data.message || "添加游戏失败");
+  if (isGameInLibrary(game.value.gameId)) {
+    router.push({
+      path: "/user/profile",
+    });
+  } else {
+    // 如果游戏不在库中，添加到游戏库
+    if (game.value.gameStock <= 0) {
+      message.warning("该游戏已售罄");
+      return;
     }
-  } catch (error: unknown) {
-    const err = error as { message?: string };
-    message.error(`操作失败: ${err.message || "未知错误"}`);
+    if (game.value.gameIsRemoved === 1) {
+      message.warning("该游戏已下架");
+      return;
+    }
+
+    try {
+      const res = await userBuyGame(game.value.gameId);
+      if (res.data.code === 0) {
+        message.success("游戏已成功添加到您的游戏库");
+        userLibraryStore.games.push(game.value); // 更新全局状态
+      } else {
+        message.error(res.data.message || "添加游戏失败");
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      message.error(`操作失败: ${err.message || "未知错误"}`);
+    }
   }
 };
 
-// 页面挂载时获取游戏详情
+// 页面挂载时获取游戏详情和启动倒计时
 onMounted(() => {
   userLibraryStore.fetchUserLibrary();
   const gameId = route.params.gameId as string;
   fetchGameDetail(gameId);
+  updateCountdown();
+  // 每秒更新一次倒计时
+  timer = setInterval(updateCountdown, 1000);
+});
+
+// 组件卸载时清除定时器
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
 });
 </script>
 
@@ -318,6 +390,10 @@ onMounted(() => {
   font-weight: bold;
 }
 
+.price-on-sale {
+  color: #67c23a;
+}
+
 .original-price {
   text-decoration: line-through;
   color: #999;
@@ -339,14 +415,19 @@ onMounted(() => {
   transition: all 0.3s;
 }
 
-.buy-button:hover {
-  background-color: #40a9ff;
-}
-
 .buy-button:disabled {
   background-color: #d9d9d9;
   cursor: not-allowed;
   color: rgba(0, 0, 0, 0.25);
+}
+
+/* 添加新的样式用于区分不同状态 */
+.buy-button:not(:disabled) {
+  background-color: #1890ff;
+}
+
+.buy-button:not(:disabled):hover {
+  background-color: #40a9ff;
 }
 
 /* Details styles */
@@ -399,5 +480,12 @@ onMounted(() => {
   .game-cover {
     height: 300px;
   }
+}
+
+.countdown {
+  margin-left: 8px;
+  font-size: 14px;
+  color: #ff4d4f;
+  font-family: monospace; /* 使用等宽字体，让数字对齐 */
 }
 </style>
