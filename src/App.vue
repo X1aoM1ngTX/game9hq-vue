@@ -53,7 +53,7 @@
     >
       <ul class="context-menu-list">
         <li @click="handleRemoveGame"><delete-outlined /> 移除游戏</li>
-        <li @click="handleSaveImage"><eye-outlined /> 查看图片</li>
+        <li @click="handleSaveImage"><download-outlined /> 下载图片</li>
       </ul>
     </div>
   </div>
