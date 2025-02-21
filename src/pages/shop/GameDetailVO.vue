@@ -68,29 +68,28 @@
               <a-list>
                 <a-list-item>
                   <a-tag color="blue"
-                    ><strong>发行日期：</strong
-                    >{{ game.gameReleaseDate }}</a-tag
-                  >
+                    ><strong>发行日期：</strong>{{ game.gameReleaseDate }}
+                  </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="green"
-                    ><strong>开发商：</strong>{{ game.gameDev }}</a-tag
-                  >
+                    ><strong>开发商：</strong>{{ game.gameDev }}
+                  </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="purple"
-                    ><strong>发行商：</strong>{{ game.gamePub }}</a-tag
-                  >
+                    ><strong>发行商：</strong>{{ game.gamePub }}
+                  </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="orange"
-                    ><strong>库存：</strong>{{ game.gameStock }}</a-tag
-                  >
+                    ><strong>库存：</strong>{{ game.gameStock }}
+                  </a-tag>
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
                   <a-tag color="magenta"
-                    ><strong>促销折扣：</strong>{{ game.gameDiscount }}折</a-tag
-                  >
+                    ><strong>促销折扣：</strong>{{ game.gameDiscount }}折
+                  </a-tag>
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
                   <a-tag color="red">
@@ -113,7 +112,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { type GameDetailVO, getGameDetail, userBuyGame } from "@/api/game";
 import { message } from "ant-design-vue";

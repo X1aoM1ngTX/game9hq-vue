@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, onUnmounted } from "vue";
+import { onMounted, onUnmounted, reactive, ref } from "vue";
 import { getCurrentUser, updateAvatar, userModify } from "@/api/user";
 import { getUserLibrary, removeGameFromUserLibrary } from "@/api/userLibrary";
 import { message } from "ant-design-vue";

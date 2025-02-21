@@ -1,6 +1,20 @@
 <template>
   <div id="userManagePage">
     <div class="header-actions">
+      <a-space>
+        <a-upload
+          accept=".json"
+          :show-upload-list="false"
+          :before-upload="handleJsonUpload"
+        >
+          <a-button size="large" type="primary">
+            <upload-outlined /> 批量导入用户
+          </a-button>
+        </a-upload>
+        <a-button size="large" type="primary" @click="downloadTemplate">
+          <download-outlined /> 下载模板
+        </a-button>
+      </a-space>
       <a-input-search
         v-model:value="searchValue"
         enter-button="搜索🔍"
@@ -84,16 +98,45 @@
         </a-form-item>
       </a-form>
     </a-modal>
+    <!-- 批量导入预览模态框 -->
+    <a-modal
+      v-model:visible="importModalVisible"
+      title="批量导入用户"
+      @ok="handleImportOk"
+      @cancel="handleImportCancel"
+      :confirmLoading="importLoading"
+    >
+      <a-alert
+        v-if="importErrors.length > 0"
+        type="error"
+        show-icon
+        :message="'导入出现以下错误：'"
+        :description="importErrors.join('\n')"
+        style="margin-bottom: 16px"
+      />
+      <a-table
+        :columns="previewColumns"
+        :data-source="previewData"
+        size="small"
+        :scroll="{ y: 300 }"
+      />
+    </a-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from "vue";
 import { message, Modal } from "ant-design-vue";
-import { adminUpdateUser, deleteUser, searchUsers } from "@/api/user";
+import {
+  adminUpdateUser,
+  deleteUser,
+  searchUsers,
+  batchImportUsers,
+} from "@/api/user";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { useRouter } from "vue-router";
 import dayjs from "dayjs";
+import { UploadOutlined, DownloadOutlined } from "@ant-design/icons-vue";
 
 const router = useRouter();
 const loginUserStore = useLoginUserStore();
@@ -278,6 +321,131 @@ const handleSaleStatusChange = (checked: boolean) => {
   editFormState.userIsAdmin = checked ? 1 : 0;
 };
 
+// 批量导入相关
+const importModalVisible = ref(false);
+const importLoading = ref(false);
+const previewData = ref<any[]>([]);
+const importErrors = ref<string[]>([]);
+
+// 预览表格的列定义
+const previewColumns = [
+  {
+    title: "用户名",
+    dataIndex: "userName",
+    key: "userName",
+  },
+  {
+    title: "邮箱",
+    dataIndex: "userEmail",
+    key: "userEmail",
+  },
+  {
+    title: "密码",
+    dataIndex: "userPassword",
+    key: "userPassword",
+    customRender: () => "********", // 密码不显示明文
+  },
+];
+
+// 处理 JSON 文件上传
+const handleJsonUpload = (file: File) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const content = JSON.parse(e.target?.result as string);
+      // 验证数据格式
+      if (!Array.isArray(content.users)) {
+        message.error("文件格式错误，请使用正确的模板");
+        return;
+      }
+
+      // 基本验证
+      const errors: string[] = [];
+      content.users.forEach((user: any, index: number) => {
+        if (!user.userName) {
+          errors.push(`第 ${index + 1} 条数据缺少用户名`);
+        }
+        if (!user.userEmail) {
+          errors.push(`第 ${index + 1} 条数据缺少邮箱`);
+        }
+        if (!user.userPassword) {
+          errors.push(`第 ${index + 1} 条数据缺少密码`);
+        }
+        // 验证邮箱格式
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(user.userEmail)) {
+          errors.push(`第 ${index + 1} 条数据邮箱格式不正确`);
+        }
+        // 验证密码长度
+        if (user.userPassword.length < 6) {
+          errors.push(`第 ${index + 1} 条数据密码长度不能小于6位`);
+        }
+      });
+
+      importErrors.value = errors;
+      if (errors.length === 0) {
+        previewData.value = content.users;
+        importModalVisible.value = true;
+      }
+    } catch (err) {
+      message.error("文件解析失败，请确保是有效的 JSON 文件");
+    }
+  };
+  reader.readAsText(file);
+  return false; // 阻止自动上传
+};
+
+// 处理批量导入
+const handleImportOk = async () => {
+  try {
+    importLoading.value = true;
+    const res = await batchImportUsers(previewData.value);
+    if (res.data.code === 0) {
+      message.success("导入成功");
+      importModalVisible.value = false;
+      fetchData(); // 刷新数据
+    } else {
+      message.error(res.data.message || "导入失败");
+    }
+  } catch (error) {
+    message.error("导入失败，请重试");
+  } finally {
+    importLoading.value = false;
+  }
+};
+
+// 处理取消导入
+const handleImportCancel = () => {
+  importModalVisible.value = false;
+  previewData.value = [];
+  importErrors.value = [];
+};
+
+// 下载模板
+const downloadTemplate = () => {
+  const template = {
+    users: [
+      {
+        userName: "示例用户1",
+        userEmail: "user1@example.com",
+        userPassword: "password123",
+      },
+    ],
+  };
+
+  const blob = new Blob([JSON.stringify(template, null, 2)], {
+    type: "application/json",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "users-import-template.json";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
 fetchData();
 </script>
 
@@ -291,11 +459,16 @@ fetchData();
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  gap: 16px;
 }
 
 /* 添加头像列样式 */
 :deep(.ant-table-cell .ant-avatar) {
   margin: 0 auto;
   display: block;
+}
+
+.ant-upload {
+  display: inline-block;
 }
 </style>

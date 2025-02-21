@@ -1,14 +1,23 @@
 <template>
   <div id="gamesManagePage">
     <div class="header-actions">
-      <a-button
-        type="primary"
-        size="large"
-        style="margin-right: 16px"
-        @click="showAddModal"
-      >
-        添加游戏
-      </a-button>
+      <a-space>
+        <a-button type="primary" size="large" @click="showAddModal">
+          添加游戏
+        </a-button>
+        <a-upload
+          accept=".json"
+          :show-upload-list="false"
+          :before-upload="handleJsonUpload"
+        >
+          <a-button size="large" type="primary">
+            <upload-outlined /> 批量导入
+          </a-button>
+        </a-upload>
+        <a-button size="large" type="primary" @click="downloadTemplate">
+          <download-outlined /> 下载模板
+        </a-button>
+      </a-space>
       <a-input-search
         v-model:value="searchValue"
         enter-button="搜索🔍"
@@ -239,6 +248,28 @@
         </a-form-item>
       </a-form>
     </a-modal>
+    <a-modal
+      v-model:visible="importModalVisible"
+      title="批量导入"
+      @ok="handleImportOk"
+      @cancel="handleImportCancel"
+      :confirmLoading="importLoading"
+    >
+      <a-alert
+        v-if="importErrors.length > 0"
+        type="error"
+        show-icon
+        :message="'导入出现以下错误：'"
+        :description="importErrors.join('\n')"
+        style="margin-bottom: 16px"
+      />
+      <a-table
+        :columns="previewColumns"
+        :data-source="previewData"
+        size="small"
+        :scroll="{ y: 300 }"
+      />
+    </a-modal>
   </div>
 </template>
 
@@ -247,7 +278,12 @@
 import { h, reactive, ref, onMounted } from "vue";
 import { message, Modal } from "ant-design-vue";
 import type { UploadChangeParam, UploadProps } from "ant-design-vue";
-import { LoadingOutlined, PlusOutlined } from "@ant-design/icons-vue";
+import {
+  LoadingOutlined,
+  PlusOutlined,
+  UploadOutlined,
+  DownloadOutlined,
+} from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import {
   createGame,
@@ -259,6 +295,7 @@ import {
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import { useRouter } from "vue-router";
+import { batchImportGames } from "@/api/user";
 
 const router = useRouter();
 const loginUserStore = useLoginUserStore();
@@ -735,6 +772,125 @@ const getHeaders = () => {
   };
 };
 
+// 批量导入相关
+const importModalVisible = ref(false);
+const importLoading = ref(false);
+const previewData = ref<any[]>([]);
+const importErrors = ref<string[]>([]);
+
+// 预览表格的列定义
+const previewColumns = [
+  {
+    title: "游戏名称",
+    dataIndex: "gameName",
+    key: "gameName",
+  },
+  {
+    title: "价格",
+    dataIndex: "gamePrice",
+    key: "gamePrice",
+  },
+  {
+    title: "库存",
+    dataIndex: "gameStock",
+    key: "gameStock",
+  },
+  // 可以根据需要添加更多列
+];
+
+// 处理 JSON 文件上传
+const handleJsonUpload = (file: File) => {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const content = JSON.parse(e.target?.result as string);
+      // 验证数据格式
+      if (!Array.isArray(content.games)) {
+        message.error("文件格式错误，请使用正确的模板");
+        return;
+      }
+
+      // 基本验证
+      const errors: string[] = [];
+      content.games.forEach((game: any, index: number) => {
+        if (!game.gameName) {
+          errors.push(`第 ${index + 1} 条数据缺少游戏名称`);
+        }
+        if (typeof game.gamePrice !== "number") {
+          errors.push(`第 ${index + 1} 条数据价格格式错误`);
+        }
+        if (typeof game.gameStock !== "number") {
+          errors.push(`第 ${index + 1} 条数据库存格式错误`);
+        }
+      });
+
+      importErrors.value = errors;
+      if (errors.length === 0) {
+        previewData.value = content.games;
+        importModalVisible.value = true;
+      }
+    } catch (err) {
+      message.error("文件解析失败，请确保是有效的 JSON 文件");
+    }
+  };
+  reader.readAsText(file);
+  return false; // 阻止自动上传
+};
+
+// 处理批量导入
+const handleImportOk = async () => {
+  try {
+    importLoading.value = true;
+    const res = await batchImportGames(previewData.value);
+    if (res.data.code === 0) {
+      message.success("导入成功");
+      importModalVisible.value = false;
+      fetchData(); // 刷新数据
+    } else {
+      message.error(res.data.message || "导入失败");
+    }
+  } catch (error) {
+    message.error("导入失败，请重试");
+  } finally {
+    importLoading.value = false;
+  }
+};
+
+// 处理取消导入
+const handleImportCancel = () => {
+  importModalVisible.value = false;
+  previewData.value = [];
+  importErrors.value = [];
+};
+
+// 下载模板
+const downloadTemplate = () => {
+  const template = {
+    games: [
+      {
+        gameName: "示例游戏1",
+        gamePrice: 99.99,
+        gameStock: 100,
+        gameDescription: "游戏描述",
+        gamePub: "发行商",
+        gameDev: "开发商",
+      },
+    ],
+  };
+
+  const blob = new Blob([JSON.stringify(template, null, 2)], {
+    type: "application/json",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "games-import-template.json";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
 // 初始化加载数据
 fetchData();
 </script>
@@ -749,6 +905,11 @@ fetchData();
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  gap: 16px;
+}
+
+.ant-upload {
+  display: inline-block;
 }
 
 .avatar-uploader > .ant-upload {

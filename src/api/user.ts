@@ -147,3 +147,19 @@ export const resetPassword = (params: {
 export const updateAvatar = (formData: FormData) => {
   return myAxios.post("/api/user/updateAvatar", formData);
 };
+
+/**
+ * 批量导入用户
+ * @param users 用户列表
+ */
+export const batchImportUsers = (users: any[]) => {
+  return myAxios.post("/api/user/batchImportUsers", { users });
+};
+
+/**
+ * 批量导入游戏
+ * @param games 游戏列表
+ */
+export const batchImportGames = (games: any[]) => {
+  return myAxios.post("/api/user/batchImportGames", { games });
+};
