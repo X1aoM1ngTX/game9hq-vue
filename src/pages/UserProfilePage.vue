@@ -1,28 +1,48 @@
 <template>
   <div class="profile-container">
-    <a-row gutter="16">
+    <a-row :gutter="[16, 16]">
+      <!-- 左侧内容区域 -->
       <a-col :xs="24" :sm="24" :md="16" :lg="17">
-        <!-- 游戏库 -->
-        <div class="profile-library">
-          <h3>我的游戏库</h3>
-          <div v-if="userGames.length > 0" class="games-list">
-            <div
-              v-for="game in userGames"
-              :key="game.gameId"
-              class="game-item"
-              :data-game-id="game.gameId"
-            >
-              <img
-                v-lazy="game.gameCover"
-                :alt="game.gameName"
-                class="game-cover"
-              />
-              <div class="game-info">
-                <h4>{{ game.gameName }}</h4>
+        <div class="left-content">
+          <!-- 签到区域 -->
+          <div class="profile-section">
+            <div class="section-header">
+              <h3>签到记录</h3>
+              <a-button
+                type="primary"
+                size="large"
+                :loading="signInLoading"
+                :disabled="isTodaySigned"
+                @click="handleSignIn"
+              >
+                {{ isTodaySigned ? "今日已签到" : "立即签到" }}
+              </a-button>
+            </div>
+            <sign-in-calendar ref="calendarRef" />
+          </div>
+
+          <!-- 游戏库 -->
+          <div class="profile-library">
+            <h3>我的游戏库</h3>
+            <div v-if="userGames.length > 0" class="games-list">
+              <div
+                v-for="game in userGames"
+                :key="game.gameId"
+                class="game-item"
+                :data-game-id="game.gameId"
+              >
+                <img
+                  v-lazy="game.gameCover"
+                  :alt="game.gameName"
+                  class="game-cover"
+                />
+                <div class="game-info">
+                  <h4>{{ game.gameName }}</h4>
+                </div>
               </div>
             </div>
+            <p v-else class="empty-text">您还没有添加任何游戏</p>
           </div>
-          <p v-else class="empty-text">您还没有添加任何游戏</p>
         </div>
       </a-col>
       <a-col :xs="24" :sm="24" :md="8" :lg="7">
@@ -148,12 +168,19 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, ref } from "vue";
-import { getCurrentUser, updateAvatar, userModify } from "@/api/user";
+import {
+  getCurrentUser,
+  updateAvatar,
+  userModify,
+  userSignIn,
+  checkTodaySignIn,
+} from "@/api/user";
 import { getUserLibrary, removeGameFromUserLibrary } from "@/api/userLibrary";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { CameraOutlined } from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
+import SignInCalendar from "@/components/SignInCalendar.vue";
 
 interface UserInfo {
   userId: string | number;
@@ -203,6 +230,10 @@ const modalVisible = ref(false);
 // 获取用户状态store
 const loginUserStore = useLoginUserStore();
 
+const signInLoading = ref(false);
+const isTodaySigned = ref(false);
+const calendarRef = ref();
+
 const formatDate = (date: string) => {
   return dayjs(date).format("YYYY-MM-DD");
 };
@@ -233,6 +264,44 @@ const fetchUserGames = async () => {
   } catch (error: unknown) {
     const err = error as { message?: string };
     message.error(`操作失败: ${err.message || "未知错误"}`);
+  }
+};
+
+// 检查今日是否已签到
+const checkSignInStatus = async () => {
+  try {
+    const res = await checkTodaySignIn();
+    if (res.data.code === 0) {
+      isTodaySigned.value = res.data.data;
+    }
+  } catch (error) {
+    console.error("检查签到状态失败:", error);
+  }
+};
+
+// 处理签到
+const handleSignIn = async () => {
+  if (isTodaySigned.value) {
+    message.warning("今日已签到");
+    return;
+  }
+
+  try {
+    signInLoading.value = true;
+    const res = await userSignIn();
+    if (res.data.code === 0) {
+      message.success("签到成功");
+      isTodaySigned.value = true;
+      // 刷新日历组件
+      await calendarRef.value?.refreshCalendar?.();
+    } else {
+      message.error(res.data.message || "签到失败");
+    }
+  } catch (error) {
+    console.error("签到失败:", error);
+    message.error("签到失败，请稍后重试");
+  } finally {
+    signInLoading.value = false;
   }
 };
 
@@ -339,9 +408,8 @@ const handleRemoveGameEvent = (event: CustomEvent) => {
   handleRemove(gameId);
 };
 
-onMounted(() => {
-  fetchData();
-  fetchUserGames(); // 获取用户游戏库数据
+onMounted(async () => {
+  await Promise.all([fetchData(), fetchUserGames(), checkSignInStatus()]);
   document.addEventListener(
     "removeGame",
     handleRemoveGameEvent as EventListener
@@ -358,9 +426,22 @@ onUnmounted(() => {
 
 <style scoped>
 .profile-container {
-  padding: 48px 36px 0 36px;
-  background: linear-gradient(to bottom, #ffffff, #7bb1ff);
-  min-height: calc(100vh - 64px);
+  padding: 24px;
+  min-height: calc(100vh - 64px - 200px); /* 减去header和footer的高度 */
+}
+
+.left-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-section,
+.profile-library {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
 }
 
 .profile-card {
@@ -422,20 +503,6 @@ onUnmounted(() => {
   padding: 24px;
 }
 
-.profile-library {
-  background: white;
-  height: 100%;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.profile-library h3 {
-  font-size: 18px;
-  color: #1a1a1a;
-  margin: 16px;
-}
-
 .info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -473,9 +540,15 @@ onUnmounted(() => {
   font-size: 12px;
 }
 
+/* 移动端适配 */
 @media (max-width: 768px) {
   .profile-container {
     padding: 12px;
+    min-height: calc(100vh - 64px - 150px);
+  }
+
+  .left-content {
+    gap: 12px;
   }
 
   .profile-header {
@@ -594,5 +667,36 @@ onUnmounted(() => {
 .game-info p {
   font-size: 14px;
   color: #666;
+}
+
+.profile-section h3 {
+  font-size: 18px;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+:deep(.ant-btn-primary) {
+  height: 40px;
+  padding: 0 24px;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+:deep(.ant-btn-primary:disabled) {
+  background: #d9d9d9;
+  border-color: #d9d9d9;
 }
 </style>

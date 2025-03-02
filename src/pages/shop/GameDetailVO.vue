@@ -1,12 +1,16 @@
 <template>
   <!-- 游戏详情覆盖层，点击空白区域返回上一页 -->
-  <div class="game-detail-overlay" @click.self="$router.back()">
+  <div
+    class="game-detail-overlay"
+    :class="{ 'slide-out': isLeaving }"
+    @click.self="handleBack"
+  >
     <div class="game-detail-sidebar">
       <!-- 游戏详情头部，包含返回按钮和游戏名称 -->
       <div class="game-detail-header">
         <div class="header-content">
           <!-- 返回按钮，点击返回上一页 -->
-          <a-button class="back-btn" type="text" @click="$router.back()">
+          <a-button class="back-btn" type="text" @click="handleBack">
             <template #icon>
               <RightOutlined style="font-size: 20px; color: #000000" />
             </template>
@@ -257,19 +261,67 @@ onUnmounted(() => {
     timer = null;
   }
 });
+
+const isLeaving = ref(false);
+
+// 处理返回按钮点击
+const handleBack = () => {
+  isLeaving.value = true;
+  // 等待动画完成后再返回
+  setTimeout(() => {
+    router.back();
+  }, 300); // 动画时长为300ms
+};
 </script>
 
 <style scoped>
 .game-detail-overlay {
   position: fixed;
   top: 0;
-  right: 0;
-  bottom: 0;
   left: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
   z-index: 1000;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  align-items: center;
+  /* 添加进入动画 */
+  animation: slide-in 0.3s ease-out;
+}
+
+/* 添加离开动画类 */
+.game-detail-overlay.slide-out {
+  animation: slide-out 0.3s ease-in;
+}
+
+.game-detail {
+  /* ... 其他样式保持不变 ... */
+  /* 确保内容跟随overlay一起移动 */
+  transform-origin: right center;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
 }
 
 .game-detail-sidebar {

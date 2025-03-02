@@ -255,87 +255,205 @@ const onFinishFailed = (errorInfo: any) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #e6f7ff 0%, #f0f5ff 100%);
 }
 
 .register-container {
   width: 100%;
   height: 100%;
   padding: 40px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
+  background: #1f1f1f;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .register-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
+  padding-top: 60px;
 }
 
 .title-text {
-  font-size: 28px;
-  color: #000000;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  font-size: 32px;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
 .primary {
-  color: #303030;
-  font-weight: bold;
-  font-size: 26px;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 32px;
   font-family: "MiSans", sans-serif;
 }
 
 .highlight {
   color: #1890ff;
   font-weight: bold;
+  text-shadow: 0 0 20px rgba(24, 144, 255, 0.5);
 }
 
 .register-form {
   max-width: 100%;
+  padding: 0 20px;
 }
 
 .form-icon {
-  color: #bfbfbf;
+  color: #8c8c8c;
 }
 
 :deep(.ant-input-affix-wrapper) {
-  padding: 8px 11px;
+  padding: 12px 16px;
   border-radius: 8px;
+  border: 1px solid #434343;
+  background: #141414;
+  transition: all 0.3s;
+}
+
+:deep(.ant-input-affix-wrapper:hover) {
+  border-color: #1890ff;
+  background: #141414;
+}
+
+:deep(.ant-input-affix-wrapper-focused),
+:deep(.ant-input-affix-wrapper:focus) {
+  border-color: #1890ff;
+  background: #141414;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
 :deep(.ant-input) {
+  background: transparent !important;
+  color: #ffffff !important;
   font-size: 16px;
 }
 
+:deep(.ant-input-password) {
+  background: transparent !important;
+}
+
+:deep(.ant-input-affix-wrapper .ant-input) {
+  background: transparent !important;
+}
+
+:deep(.ant-input-password-icon) {
+  color: #8c8c8c;
+}
+
+:deep(.ant-form-item) {
+  margin-bottom: 24px;
+}
+
+:deep(.ant-form-item-explain-error) {
+  color: #ff4d4f;
+  margin-top: 4px;
+}
+
 .form-actions {
-  margin-top: 24px;
+  margin-top: 32px;
 }
 
 .register-button {
   width: 100%;
-  height: 44px;
+  height: 48px;
   font-size: 16px;
   border-radius: 8px;
+  background: #1890ff;
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.register-button:hover {
+  background: #40a9ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
 }
 
 .form-links {
   margin-top: 24px;
   text-align: center;
-  color: #666;
+  color: #8c8c8c;
 }
 
 .login-link {
-  color: #1890ff;
+  color: #8c8c8c;
   margin-left: 8px;
-  transition: color 0.3s;
+  transition: all 0.3s;
+  text-decoration: none;
+  position: relative;
 }
 
 .login-link:hover {
-  color: #40a9ff;
+  color: #1890ff;
+}
+
+.login-link::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #1890ff;
+  transition: width 0.3s;
+}
+
+.login-link:hover::after {
+  width: 100%;
+}
+
+/* 验证码按钮样式 */
+:deep(.ant-btn:not(.register-button)) {
+  background: #141414;
+  border-color: #434343;
+  color: #8c8c8c;
+}
+
+:deep(.ant-btn:not(.register-button):hover) {
+  background: #1890ff;
+  border-color: #1890ff;
+  color: #ffffff;
 }
 
 @media (max-width: 576px) {
   .register-container {
     padding: 30px 20px;
   }
+
+  .register-header {
+    margin-bottom: 40px;
+    padding-top: 40px;
+  }
+
+  .title-text {
+    font-size: 28px;
+  }
+}
+
+/* 表单项文字颜色 */
+:deep(.ant-form-item-label > label) {
+  color: #ffffff !important;
+}
+
+:deep(.ant-form-item-explain) {
+  color: #ffffff;
+}
+
+:deep(.ant-form-item-required) {
+  color: #ffffff !important;
+}
+
+/* 输入框文字颜色 */
+:deep(.ant-input),
+:deep(.ant-input-password input) {
+  color: #ffffff !important;
+}
+
+:deep(.ant-input::placeholder),
+:deep(.ant-input-password input::placeholder) {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+/* 底部文字 */
+.form-links span {
+  color: #ffffff;
 }
 </style>

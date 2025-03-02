@@ -78,11 +78,6 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/test",
-    name: "TestPage",
-    component: () => import("@/pages/TestPage.vue"),
-  },
-  {
     path: "/403",
     name: "Exception403",
     component: () => import("@/pages/exception/403.vue"),
@@ -109,6 +104,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/:pathMatch(.*)*",
     redirect: "/404",
+  },
+  {
+    path: "/test",
+    name: "TestPage",
+    component: () => import("@/pages/TestPage.vue"),
   },
 ];
 

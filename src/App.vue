@@ -29,7 +29,6 @@
     >
       <ul class="context-menu-list">
         <li @click="handleSaveImage"><download-outlined /> 保存图片</li>
-        <li @click="handleCopyImage"><copy-outlined /> 复制图片地址</li>
       </ul>
     </div>
 
@@ -72,10 +71,9 @@ import {
   BulbOutlined,
   HomeOutlined,
   DownloadOutlined,
-  CopyOutlined,
-  EyeOutlined,
   SearchOutlined,
   DeleteOutlined,
+  CopyOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 
@@ -115,6 +113,7 @@ const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 const menuType = ref<"default" | "image" | "text" | "userGameImage">("default");
 const selectedElement = ref<HTMLElement | null>(null);
+const selectedText = ref("");
 
 // 处理右键点击事件
 const handleContextMenu = (e: MouseEvent) => {
@@ -125,6 +124,9 @@ const handleContextMenu = (e: MouseEvent) => {
   contextMenuX.value = e.clientX;
   contextMenuY.value = e.clientY;
 
+  // 获取选中的文本
+  const currentSelectedText = window.getSelection()?.toString().trim();
+
   // 检查是否是用户游戏库中的图片
   if (target.tagName === "IMG" && target.closest(".games-list")) {
     menuType.value = "userGameImage";
@@ -132,12 +134,14 @@ const handleContextMenu = (e: MouseEvent) => {
   } else if (target.tagName === "IMG") {
     menuType.value = "image";
     selectedElement.value = target as HTMLElement;
-  } else if (window.getSelection()?.toString().trim()) {
+  } else if (currentSelectedText) {
     menuType.value = "text";
     selectedElement.value = target;
+    selectedText.value = currentSelectedText;
   } else {
     menuType.value = "default";
     selectedElement.value = null;
+    selectedText.value = "";
   }
 
   showContextMenu.value = true;
@@ -175,17 +179,6 @@ const handleGoHome = () => {
 };
 
 // 图片相关操作
-const handleCopyImage = () => {
-  if (selectedElement.value?.tagName === "IMG") {
-    const img = selectedElement.value as HTMLImageElement;
-    navigator.clipboard
-      .writeText(img.src)
-      .then(() => message.success("图片链接已复制"))
-      .catch(() => message.error("复制失败"));
-  }
-  showContextMenu.value = false;
-};
-
 const handleSaveImage = () => {
   if (selectedElement.value?.tagName === "IMG") {
     const img = selectedElement.value as HTMLImageElement;
@@ -196,10 +189,9 @@ const handleSaveImage = () => {
 
 // 文本相关操作
 const handleCopyText = () => {
-  const selectedText = window.getSelection()?.toString();
-  if (selectedText) {
+  if (selectedText.value) {
     navigator.clipboard
-      .writeText(selectedText)
+      .writeText(selectedText.value)
       .then(() => message.success("文本已复制"))
       .catch(() => message.error("复制失败"));
   }
@@ -207,14 +199,16 @@ const handleCopyText = () => {
 };
 
 const handleSearchText = () => {
-  const selectedText = window.getSelection()?.toString();
-  if (selectedText) {
+  showContextMenu.value = false;
+
+  if (selectedText.value) {
     window.open(
-      `https://www.bing.com/search?q=${encodeURIComponent(selectedText)}`,
+      `https://www.bing.com/search?q=${encodeURIComponent(selectedText.value)}`,
       "_blank"
     );
+  } else {
+    message.warning("请先选择要搜索的文本");
   }
-  showContextMenu.value = false;
 };
 
 // 添加移除游戏的处理函数

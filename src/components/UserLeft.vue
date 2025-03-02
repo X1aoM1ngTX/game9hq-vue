@@ -12,7 +12,7 @@
 .user-left {
   width: calc(100% - 500px);
   height: 100vh;
-  background: rgba(177, 243, 255, 0.8);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,8 +24,8 @@
 }
 
 .highlight {
-  color: #474747;
+  color: #141414;
   font-weight: bold;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 15px rgba(0, 0, 0, 0.65);
 }
 </style>
