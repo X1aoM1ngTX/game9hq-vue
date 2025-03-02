@@ -112,20 +112,6 @@ export const searchGames = (params: Partial<GameSearchRequest>) => {
     }
   );
 };
-
-/**
- * 上传游戏封面
- * @param params FormData 包含文件数据
- */
-export const uploadFile = (params: FormData) => {
-  return myAxios.post("/api/game/upload", params, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  });
-};
-
 /**
  * 获取游戏详情
  * @param gameId 游戏ID

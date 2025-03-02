@@ -98,7 +98,7 @@ export const searchUsers = async (params: { userName: string }) => {
 
 /**
  * 删除用户
- * @param id 用户ID
+ * @param userId
  */
 export const deleteUser = async (userId: string | number) => {
   return await myAxios.post(
@@ -148,18 +148,70 @@ export const updateAvatar = (formData: FormData) => {
   return myAxios.post("/api/user/updateAvatar", formData);
 };
 
+interface UserDTO {
+  userName: string;
+  userEmail: string;
+  userPassword: string;
+}
+
 /**
  * 批量导入用户
  * @param users 用户列表
  */
-export const batchImportUsers = (users: any[]) => {
+export const batchImportUsers = (users: UserDTO[]) => {
   return myAxios.post("/api/user/batchImportUsers", { users });
 };
+
+interface GameDTO {
+  gameName: string;
+  gamePrice: number;
+  gameStock: number;
+  gameDescription: string;
+  gamePub: string;
+  gameDev: string;
+}
 
 /**
  * 批量导入游戏
  * @param games 游戏列表
  */
-export const batchImportGames = (games: any[]) => {
+export const batchImportGames = (games: GameDTO[]) => {
   return myAxios.post("/api/user/batchImportGames", { games });
+};
+
+/**
+ * 用户签到
+ */
+export const userSignIn = () => {
+  return myAxios.post("/api/user/signIn");
+};
+
+/**
+ * 检查今日是否已签到
+ * @returns 是否签到成功
+ */
+export const checkTodaySignIn = () => {
+  return myAxios.get("/api/user/sign/check");
+};
+
+/**
+ * 获取用户签到历史
+ * @param year 年份，默认为当前年份
+ * @returns 某年签到的历史
+ */
+export const getSignInHistory = (year?: number) => {
+  return myAxios.get("/api/user/sign/history", {
+    params: { year },
+  });
+};
+
+/**
+ * 获取用户签到统计
+ * @param year 年份，默认为当前年份
+ * @returns 某年签到的总天数
+ */
+export const getSignInCount = (year?: number) => {
+  return myAxios.get("/api/user/sign/count", {
+    params: { year },
+  });
 };

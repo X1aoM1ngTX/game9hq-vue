@@ -1,7 +1,8 @@
 .DS_Store
 node_modules
+.cursor
+.idea
 /dist
-
 
 # 本地环境文件
 .env.local

@@ -575,6 +575,11 @@ const showAddModal = () => {
 // 编辑方法
 const showEditModal = (record: any) => {
   modalTitle.value = "编辑游戏";
+  // 先重置图片相关状态
+  imageUrl.value = "";
+  loading.value = false;
+  fileList.value = [];
+
   const formData = {
     ...record,
     gameReleaseDate: record.gameReleaseDate
@@ -663,6 +668,7 @@ const handleModalOk = async () => {
 // 处理模态框取消，重置表单
 const handleModalCancel = () => {
   modalVisible.value = false;
+  // 重置表单数据
   Object.assign(editFormState, {
     gameId: "",
     gameName: "",
@@ -678,6 +684,10 @@ const handleModalCancel = () => {
     gameDiscount: 0,
     gameCover: "",
   });
+  // 重置图片相关状态
+  imageUrl.value = "";
+  loading.value = false;
+  fileList.value = [];
 };
 
 // 在 script 部分添加验证函数
