@@ -11,13 +11,13 @@
     </div>
 
     <!-- 星期标签：显示周日到周六(0-6) -->
+    <span class="week">6</span>
     <span class="week">0</span>
     <span class="week">1</span>
     <span class="week">2</span>
     <span class="week">3</span>
     <span class="week">4</span>
     <span class="week">5</span>
-    <span class="week">6</span>
 
     <!-- 签到格子区域：显示一年的签到记录 -->
     <div class="tiles">
