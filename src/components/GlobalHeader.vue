@@ -82,6 +82,7 @@ import {
   SettingOutlined,
   UserOutlined,
   LogoutOutlined,
+  BellOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useRoute, useRouter } from "vue-router";
@@ -152,6 +153,11 @@ const menuItems = computed<MenuItem[]>(() => {
       label: "商城",
     },
     {
+      key: "/notice",
+      icon: () => h(BellOutlined),
+      label: "公告",
+    },
+    {
       key: "/about",
       icon: () => h(SettingOutlined),
       label: "关于",
@@ -171,6 +177,10 @@ const menuItems = computed<MenuItem[]>(() => {
         {
           key: "/admin/gameManage",
           label: "游戏管理",
+        },
+        {
+          key: "/admin/noticeManage",
+          label: "公告管理",
         },
       ],
     });

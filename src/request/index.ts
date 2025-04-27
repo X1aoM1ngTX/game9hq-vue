@@ -1,22 +1,15 @@
 import axios from "axios";
 import { message } from "ant-design-vue";
 
-console.log("当前环境:", process.env.VUE_APP_ENV);
-console.log("API地址:", process.env.VUE_APP_BASE_API);
-
 const myAxios = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API,
-  timeout: process.env.VUE_APP_ENV === "production" ? 15000 : 10000,
+  baseURL: "http://localhost:8080", // 确保这里的端口号正确
+  timeout: 10000,
   withCredentials: true,
 });
 
 // 请求拦截器
 myAxios.interceptors.request.use(
   (config) => {
-    // 生产环境可能需要添加额外的安全头
-    if (process.env.VUE_APP_ENV === "production") {
-      config.headers["X-Environment"] = "production";
-    }
     return config;
   },
   (error) => {

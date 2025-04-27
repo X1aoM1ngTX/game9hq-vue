@@ -55,9 +55,19 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/admin/GamesManagePage.vue"),
   },
   {
+    path: "/admin/noticeManage",
+    name: "adminNoticeManage",
+    component: () => import("@/pages/admin/NoticeManagePage.vue"),
+  },
+  {
     path: "/shop",
     name: "shop",
     component: () => import("@/pages/shop/ShopPage.vue"),
+  },
+  {
+    path: "/notice",
+    name: "notice",
+    component: () => import("@/pages/Notice.vue"),
   },
   {
     path: "/game/:gameId",

@@ -10,15 +10,6 @@
       {{ month }}
     </div>
 
-    <!-- 星期标签：显示周日到周六(0-6) -->
-    <span class="week">6</span>
-    <span class="week">0</span>
-    <span class="week">1</span>
-    <span class="week">2</span>
-    <span class="week">3</span>
-    <span class="week">4</span>
-    <span class="week">5</span>
-
     <!-- 签到格子区域：显示一年的签到记录 -->
     <div class="tiles">
       <i
@@ -44,7 +35,7 @@
 
 <script setup>
 import { ref, onMounted, defineExpose } from "vue";
-import { getSignInHistory, getSignInCount } from "@/api/user";
+import { getSignInHistory } from "@/api/user";
 
 // 月份标签数据
 const months = [
@@ -67,22 +58,12 @@ const days = ref([]); // 存储所有日期的签到状态
 const startRow = ref(0); // 第一天的起始行位置
 const totalSigns = ref(0); // 总签到天数
 
-// 组件挂载时获取签到数据
+// 组件挂载时获取签到历史
 onMounted(async () => {
-  await Promise.all([
-    // 获取签到历史
-    getSignInHistory(2025).then((res) => {
-      if (res.data.code === 0) {
-        generateCalendar(res.data.data || []);
-      }
-    }),
-    // 获取签到统计
-    getSignInCount(2025).then((res) => {
-      if (res.data.code === 0) {
-        totalSigns.value = res.data.data || 0;
-      }
-    }),
-  ]);
+  const res = await getSignInHistory(2025);
+  if (res.data.code === 0) {
+    generateCalendar(res.data.data || []);
+  }
 });
 
 /**
@@ -103,6 +84,7 @@ function generateCalendar(signInDates) {
   ) {
     const dateStr = date.toISOString().split("T")[0];
     const signed = signInDates.includes(dateStr);
+    if (signed) totalSigns.value++;
     allDays.push({ date: dateStr, signed });
   }
   days.value = allDays;
@@ -122,20 +104,10 @@ function getMonthPosition(monthIndex) {
  * 供父组件调用的方法
  */
 const refreshCalendar = async () => {
-  await Promise.all([
-    // 刷新签到历史
-    getSignInHistory(2025).then((res) => {
-      if (res.data.code === 0) {
-        generateCalendar(res.data.data || []);
-      }
-    }),
-    // 刷新签到统计
-    getSignInCount(2025).then((res) => {
-      if (res.data.code === 0) {
-        totalSigns.value = res.data.data || 0;
-      }
-    }),
-  ]);
+  const res = await getSignInHistory(2025);
+  if (res.data.code === 0) {
+    generateCalendar(res.data.data || []);
+  }
 };
 
 // 暴露方法给父组件
