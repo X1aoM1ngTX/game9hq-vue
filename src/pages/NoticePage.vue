@@ -7,10 +7,10 @@
 
     <a-alert
       v-if="error"
-      type="error"
       :message="error"
       class="mb-4"
       closable
+      type="error"
       @close="error = ''"
     />
 
@@ -21,8 +21,16 @@
             v-for="(item, index) in notices"
             :key="index"
             :class="['notice-item', getNoticeSize(item)]"
+            :style="{
+              'z-index': notices.length - index,
+              'animation-delay': `${index * 0.1}s`,
+            }"
           >
-            <a-card :title="item.noticeTitle" hoverable class="notice-card">
+            <a-card
+              :class="['notice-card', `notice-type-${item.noticeType}`]"
+              :title="item.noticeTitle"
+              hoverable
+            >
               <template #extra>
                 <a-tag
                   :color="getNoticeTypeColor(item.noticeType)"
@@ -47,9 +55,9 @@
           <a-empty description="暂无公告">
             <template #image>
               <img
-                src="@/assets/images/empty-notice.svg"
                 alt="暂无公告"
                 class="empty-notice-image"
+                src="@/assets/images/empty-notice.svg"
               />
             </template>
           </a-empty>
@@ -59,7 +67,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
+// 为每个公告项设置延迟动画
+const getItemDelay = (index: number): string => {
+  return `animation-delay: ${index * 0.1}s;`;
+};
 import { onMounted, ref } from "vue";
 import { getActiveNotices, type INotice, NoticeType } from "@/api/notice";
 import { ClockCircleOutlined } from "@ant-design/icons-vue";
@@ -111,8 +123,14 @@ const getNoticeSize = (notice: INotice): string => {
   if (notice.noticeType === NoticeType.IMPORTANT) {
     return "notice-item-large";
   }
-  if (notice.noticeContent.length > 200) {
+  // 使用内容长度和索引位置来随机分配尺寸，使布局更加不规则
+  const contentLength = notice.noticeContent.length;
+  if (contentLength > 200) {
     return "notice-item-medium";
+  }
+  if (contentLength > 100) {
+    // 随机决定是小卡片还是中等卡片
+    return Math.random() > 0.5 ? "notice-item-small" : "notice-item-medium";
   }
   return "notice-item-small";
 };
@@ -139,10 +157,10 @@ const formatDate = (dateString?: string): string => {
 // 获取公告类型颜色
 const getNoticeTypeColor = (type: number): string => {
   const typeColors: Record<number, string> = {
-    1: "blue", // 普通公告
-    2: "green", // 活动公告
-    3: "red", // 重要公告
-    4: "orange", // 系统公告
+    1: "#1677ff", // 普通公告 - 蓝色
+    2: "#52c41a", // 活动公告 - 绿色
+    3: "#f5222d", // 重要公告 - 红色
+    4: "#fa8c16", // 系统公告 - 橙色
   };
   return typeColors[type] || "default";
 };
@@ -196,41 +214,117 @@ onMounted(() => {
 }
 
 .notice-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
   padding: 0 12px;
+  justify-content: center;
 }
 
 .notice-item {
   transition: all 0.3s ease;
+  margin-bottom: 15px;
+  position: relative;
+  animation: fadeIn 0.6s ease-out;
+  animation-fill-mode: backwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .notice-item-small {
-  grid-column: span 3;
+  width: 280px;
 }
 
 .notice-item-medium {
-  grid-column: span 4;
+  width: 320px;
 }
 
 .notice-item-large {
-  grid-column: span 6;
+  width: 360px;
 }
 
 .notice-card {
   height: 100%;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  position: relative;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  background-color: #fff;
+}
+
+/* 为不同类型的卡片添加微妙的背景色 */
+.notice-type-1 {
+  background-color: rgba(22, 119, 255, 0.02);
+}
+
+.notice-type-2 {
+  background-color: rgba(82, 196, 26, 0.02);
+}
+
+.notice-type-3 {
+  background-color: rgba(245, 34, 45, 0.02);
+}
+
+.notice-type-4 {
+  background-color: rgba(250, 140, 22, 0.02);
+}
+
+/* 添加装饰元素 */
+.notice-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  background-color: rgba(0, 0, 0, 0.03);
+  clip-path: polygon(100% 0, 0% 100%, 100% 100%);
+}
+
+.notice-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--ant-primary-color);
+  opacity: 0.8;
+}
+
+.notice-type-1::before {
+  background: #1677ff;
+}
+
+.notice-type-2::before {
+  background: #52c41a;
+}
+
+.notice-type-3::before {
+  background: #f5222d;
+}
+
+.notice-type-4::before {
+  background: #fa8c16;
 }
 
 .notice-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  z-index: 10;
 }
 
 .notice-card :deep(.ant-card-body) {
@@ -252,6 +346,11 @@ onMounted(() => {
   margin: 0 0 16px;
   font-size: 1rem;
   flex: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
 }
 
 .notice-footer {
@@ -272,6 +371,8 @@ onMounted(() => {
   font-weight: 500;
   padding: 0 12px;
   border-radius: 4px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .empty-state {
@@ -303,15 +404,15 @@ onMounted(() => {
 
 @media (max-width: 1200px) {
   .notice-item-small {
-    grid-column: span 4;
+    width: 260px;
   }
 
   .notice-item-medium {
-    grid-column: span 6;
+    width: 300px;
   }
 
   .notice-item-large {
-    grid-column: span 8;
+    width: 340px;
   }
 }
 
@@ -325,14 +426,17 @@ onMounted(() => {
   }
 
   .notice-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: center;
     gap: 16px;
   }
 
   .notice-item-small,
   .notice-item-medium,
   .notice-item-large {
-    grid-column: span 12;
+    width: 100%;
+    max-width: 400px;
+    --rotate: 0deg;
   }
 }
 </style>
