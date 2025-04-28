@@ -1,8 +1,8 @@
 <template>
   <!-- 游戏详情覆盖层，点击空白区域返回上一页 -->
   <div
-    class="game-detail-overlay"
     :class="{ 'slide-out': isLeaving }"
+    class="game-detail-overlay"
     @click.self="handleBack"
   >
     <div class="game-detail-sidebar">
@@ -45,10 +45,10 @@
                     >￥{{ game.gamePrice }}</span
                   >
                   <span
-                    class="current-price"
                     :class="{
                       'price-on-sale': game.gameOnSale === 1,
                     }"
+                    class="current-price"
                     >￥{{
                       game.gameOnSale === 1
                         ? game.gameDiscountedPrices
@@ -61,9 +61,9 @@
                 </div>
               </div>
               <button
+                :disabled="game.gameStock <= 0 || game.gameIsRemoved === 1"
                 class="buy-button"
                 @click="handleButtonClick"
-                :disabled="game.gameStock <= 0 || game.gameIsRemoved === 1"
               >
                 {{ getBuyButtonText }}
               </button>

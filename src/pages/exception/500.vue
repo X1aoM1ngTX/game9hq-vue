@@ -6,14 +6,14 @@
       <p class="exception-desc">
         服务器遇到了一些问题，请稍后再试或联系管理员。
       </p>
-      <a-button type="primary" size="large" @click="$router.push('/')">
+      <a-button size="large" type="primary" @click="$router.push('/')">
         返回首页
       </a-button>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 // 组件逻辑
 </script>
 

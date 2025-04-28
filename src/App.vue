@@ -9,71 +9,101 @@
     <!-- 通用右键菜单 -->
     <div
       v-show="showContextMenu && menuType === 'default'"
-      class="custom-context-menu"
       :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
+      class="custom-context-menu"
     >
       <ul class="context-menu-list">
-        <li @click="handleRefresh"><reload-outlined /> 刷新页面</li>
-        <li @click="handleGoBack"><left-outlined /> 返回上一页</li>
-        <li @click="handleGoForward"><right-outlined /> 前进下一页</li>
-        <li @click="handleToggleTheme"><bulb-outlined /> 切换主题</li>
-        <li @click="handleGoHome"><home-outlined /> 返回首页</li>
+        <li @click="handleRefresh">
+          <reload-outlined />
+          刷新页面
+        </li>
+        <li @click="handleGoBack">
+          <left-outlined />
+          返回上一页
+        </li>
+        <li @click="handleGoForward">
+          <right-outlined />
+          前进下一页
+        </li>
+        <li @click="handleToggleTheme">
+          <bulb-outlined />
+          切换主题
+        </li>
+        <li @click="handleGoHome">
+          <home-outlined />
+          返回首页
+        </li>
       </ul>
     </div>
 
     <!-- 图片右键菜单 -->
     <div
       v-show="showContextMenu && menuType === 'image'"
-      class="custom-context-menu"
       :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
+      class="custom-context-menu"
     >
       <ul class="context-menu-list">
-        <li @click="handleSaveImage"><download-outlined /> 保存图片</li>
+        <li @click="handleSaveImage">
+          <download-outlined />
+          保存图片
+        </li>
       </ul>
     </div>
 
     <!-- 文本右键菜单 -->
     <div
       v-show="showContextMenu && menuType === 'text'"
-      class="custom-context-menu"
       :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
+      class="custom-context-menu"
     >
       <ul class="context-menu-list">
-        <li @click="handleCopyText"><copy-outlined /> 复制文本</li>
-        <li @click="handleSearchText"><search-outlined /> 搜索文本</li>
+        <li @click="handleCopyText">
+          <copy-outlined />
+          复制文本
+        </li>
+        <li @click="handleSearchText">
+          <search-outlined />
+          搜索文本
+        </li>
       </ul>
     </div>
 
     <!-- 用户游戏库图片右键菜单 -->
     <div
       v-show="showContextMenu && menuType === 'userGameImage'"
-      class="custom-context-menu"
       :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
+      class="custom-context-menu"
     >
       <ul class="context-menu-list">
-        <li @click="handleRemoveGame"><delete-outlined /> 移除游戏</li>
-        <li @click="handleSaveImage"><download-outlined /> 下载图片</li>
+        <li @click="handleRemoveGame">
+          <delete-outlined />
+          移除游戏
+        </li>
+        <li @click="handleSaveImage">
+          <download-outlined />
+          下载图片
+        </li>
       </ul>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, onMounted, ref, onUnmounted } from "vue";
+<script lang="ts" setup>
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import BasicLayout from "@/layouts/BasicLayout.vue";
 import BlankLayout from "@/layouts/BlankLayout.vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import {
-  ReloadOutlined,
-  LeftOutlined,
-  RightOutlined,
   BulbOutlined,
-  HomeOutlined,
-  DownloadOutlined,
-  SearchOutlined,
-  DeleteOutlined,
   CopyOutlined,
+  DeleteOutlined,
+  DownloadOutlined,
+  HomeOutlined,
+  LeftOutlined,
+  ReloadOutlined,
+  RightOutlined,
+  SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 

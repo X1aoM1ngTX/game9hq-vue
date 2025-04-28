@@ -42,10 +42,16 @@
               <div class="notice-card-content">
                 <div class="notice-content">{{ item.noticeContent }}</div>
                 <div class="notice-footer">
-                  <a-space class="notice-time">
-                    <clock-circle-outlined />
-                    {{ formatDate(item.noticePublishTime) }}
-                  </a-space>
+                  <div class="notice-meta">
+                    <a-space class="notice-time">
+                      <clock-circle-outlined />
+                      {{ formatDate(item.noticePublishTime) }}
+                    </a-space>
+                    <div v-if="item.noticeCreatorId" class="notice-creator">
+                      <user-outlined />
+                      <span>{{ getUserName(item.noticeCreatorId) }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </a-card>
@@ -74,12 +80,31 @@ const getItemDelay = (index: number): string => {
 };
 import { onMounted, ref } from "vue";
 import { getActiveNotices, type INotice, NoticeType } from "@/api/notice";
-import { ClockCircleOutlined } from "@ant-design/icons-vue";
+import { ClockCircleOutlined, UserOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+import { getUserById } from "@/api/user";
 
 const notices = ref<INotice[]>([]);
 const loading = ref(true);
 const error = ref("");
+
+// 添加用户信息状态
+const userMap = ref<Record<string, any>>({});
+
+// 获取用户信息
+const fetchUserInfo = async (userId: number) => {
+  try {
+    // 如果已经获取过该用户信息，直接返回
+    if (userMap.value[userId]) return;
+
+    const resp = await getUserById(userId);
+    if (resp.data && resp.data.data) {
+      userMap.value[userId] = resp.data.data;
+    }
+  } catch (error) {
+    console.error("获取用户信息失败:", error);
+  }
+};
 
 // 获取公告列表
 const fetchNotices = async () => {
@@ -105,6 +130,14 @@ const fetchNotices = async () => {
       console.error("响应数据结构不符合预期:", responseData);
       error.value = "数据格式错误";
       message.error("数据格式错误");
+      return;
+    }
+
+    // 获取所有公告的创建者信息
+    for (const notice of notices.value) {
+      if (notice.noticeCreatorId) {
+        await fetchUserInfo(notice.noticeCreatorId);
+      }
     }
   } catch (err) {
     console.error("获取公告失败:", err);
@@ -120,7 +153,10 @@ const fetchNotices = async () => {
 // 获取公告卡片尺寸
 const getNoticeSize = (notice: INotice): string => {
   // 根据公告类型和内容长度决定卡片大小
-  if (notice.noticeType === NoticeType.IMPORTANT) {
+  if (
+    notice.noticeType === NoticeType.IMPORTANT ||
+    notice.noticeType === NoticeType.ACTIVITY
+  ) {
     return "notice-item-large";
   }
   // 使用内容长度和索引位置来随机分配尺寸，使布局更加不规则
@@ -157,10 +193,10 @@ const formatDate = (dateString?: string): string => {
 // 获取公告类型颜色
 const getNoticeTypeColor = (type: number): string => {
   const typeColors: Record<number, string> = {
-    1: "#1677ff", // 普通公告 - 蓝色
-    2: "#52c41a", // 活动公告 - 绿色
-    3: "#f5222d", // 重要公告 - 红色
-    4: "#fa8c16", // 系统公告 - 橙色
+    0: "#1677ff", // 普通公告 - 蓝色
+    1: "#f5222d", // 重要公告 - 红色
+    2: "#fa8c16", // 系统公告 - 橙色
+    3: "#52c41a", // 活动公告 - 绿色
   };
   return typeColors[type] || "default";
 };
@@ -168,12 +204,21 @@ const getNoticeTypeColor = (type: number): string => {
 // 获取公告类型文本
 const getNoticeTypeText = (type: number): string => {
   const typeTexts: Record<number, string> = {
-    1: "普通公告",
-    2: "活动公告",
-    3: "重要公告",
-    4: "系统公告",
+    0: "普通公告",
+    1: "重要公告",
+    2: "系统公告",
+    3: "活动公告",
   };
   return typeTexts[type] || "其他";
+};
+
+// 获取用户名的方法
+const getUserName = (userId: number): string => {
+  if (!userId) return "未知用户";
+  const user = userMap.value[userId];
+  return user
+    ? user.userNickname || user.userName || `用户 ${userId}`
+    : `用户 ${userId}`;
 };
 
 onMounted(() => {
@@ -266,20 +311,20 @@ onMounted(() => {
 }
 
 /* 为不同类型的卡片添加微妙的背景色 */
-.notice-type-1 {
+.notice-type-0 {
   background-color: rgba(22, 119, 255, 0.02);
 }
 
-.notice-type-2 {
-  background-color: rgba(82, 196, 26, 0.02);
-}
-
-.notice-type-3 {
+.notice-type-1 {
   background-color: rgba(245, 34, 45, 0.02);
 }
 
-.notice-type-4 {
+.notice-type-2 {
   background-color: rgba(250, 140, 22, 0.02);
+}
+
+.notice-type-3 {
+  background-color: rgba(82, 196, 26, 0.02);
 }
 
 /* 添加装饰元素 */
@@ -305,20 +350,20 @@ onMounted(() => {
   opacity: 0.8;
 }
 
-.notice-type-1::before {
+.notice-type-0::before {
   background: #1677ff;
 }
 
-.notice-type-2::before {
-  background: #52c41a;
-}
-
-.notice-type-3::before {
+.notice-type-1::before {
   background: #f5222d;
 }
 
-.notice-type-4::before {
+.notice-type-2::before {
   background: #fa8c16;
+}
+
+.notice-type-3::before {
+  background: #52c41a;
 }
 
 .notice-card:hover {
@@ -438,5 +483,19 @@ onMounted(() => {
     max-width: 400px;
     --rotate: 0deg;
   }
+}
+
+.notice-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notice-creator {
+  font-size: 0.9rem;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 </style>

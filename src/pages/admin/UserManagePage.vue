@@ -3,16 +3,18 @@
     <div class="header-actions">
       <a-space>
         <a-upload
-          accept=".json"
-          :show-upload-list="false"
           :before-upload="handleJsonUpload"
+          :show-upload-list="false"
+          accept=".json"
         >
           <a-button size="large" type="primary">
-            <upload-outlined /> 批量导入用户
+            <upload-outlined />
+            批量导入用户
           </a-button>
         </a-upload>
         <a-button size="large" type="primary" @click="downloadTemplate">
-          <download-outlined /> 下载模板
+          <download-outlined />
+          下载模板
         </a-button>
       </a-space>
       <a-input-search
@@ -40,9 +42,9 @@
         </template>
         <template v-else-if="column.key === 'action'">
           <a-button
+            style="margin-right: 8px"
             type="primary"
             @click="showEditModal(record)"
-            style="margin-right: 8px"
             >编辑
           </a-button>
           <a-button danger @click="doDelete(record.userId)">删除</a-button>
@@ -51,10 +53,10 @@
     </a-table>
     <a-modal
       v-model:visible="modalVisible"
-      :title="modalTitle"
-      @ok="handleModalOk"
-      @cancel="handleModalCancel"
       :destroyOnClose="true"
+      :title="modalTitle"
+      @cancel="handleModalCancel"
+      @ok="handleModalOk"
     >
       <a-form
         v-if="editFormState.userId"
@@ -62,16 +64,16 @@
         layout="vertical"
       >
         <a-form-item
+          :rules="[{ required: true, message: '请输入昵称!' }]"
           label="昵称"
           name="userNickname"
-          :rules="[{ required: true, message: '请输入昵称!' }]"
         >
           <a-input v-model:value="editFormState.userNickname" />
         </a-form-item>
         <a-form-item
+          :rules="[{ required: true, message: '请输入用户名!' }]"
           label="用户名"
           name="userName"
-          :rules="[{ required: true, message: '请输入用户名!' }]"
         >
           <a-input v-model:value="editFormState.userName" />
         </a-form-item>
@@ -101,42 +103,42 @@
     <!-- 批量导入预览模态框 -->
     <a-modal
       v-model:visible="importModalVisible"
-      title="批量导入用户"
-      @ok="handleImportOk"
-      @cancel="handleImportCancel"
       :confirmLoading="importLoading"
+      title="批量导入用户"
+      @cancel="handleImportCancel"
+      @ok="handleImportOk"
     >
       <a-alert
         v-if="importErrors.length > 0"
-        type="error"
-        show-icon
-        :message="'导入出现以下错误：'"
         :description="importErrors.join('\n')"
+        :message="'导入出现以下错误：'"
+        show-icon
         style="margin-bottom: 16px"
+        type="error"
       />
       <a-table
         :columns="previewColumns"
         :data-source="previewData"
-        size="small"
         :scroll="{ y: 300 }"
+        size="small"
       />
     </a-modal>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, onMounted } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { message, Modal } from "ant-design-vue";
 import {
   adminUpdateUser,
+  batchImportUsers,
   deleteUser,
   searchUsers,
-  batchImportUsers,
 } from "@/api/user";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { useRouter } from "vue-router";
 import dayjs from "dayjs";
-import { UploadOutlined, DownloadOutlined } from "@ant-design/icons-vue";
+import { DownloadOutlined, UploadOutlined } from "@ant-design/icons-vue";
 
 const router = useRouter();
 const loginUserStore = useLoginUserStore();
@@ -470,5 +472,10 @@ fetchData();
 
 .ant-upload {
   display: inline-block;
+}
+
+:deep(.ant-input-search-button) {
+  box-shadow: none !important;
+  border-bottom: none !important;
 }
 </style>

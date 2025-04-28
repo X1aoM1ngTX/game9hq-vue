@@ -215,3 +215,11 @@ export const getSignInCount = (year?: number) => {
     params: { year },
   });
 };
+
+/**
+ * 根据用户ID获取用户信息
+ * @param userId 用户ID
+ */
+export const getUserById = (userId: number | string) => {
+  return myAxios.get(`/api/user/${userId}`);
+};

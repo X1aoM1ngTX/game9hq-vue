@@ -1,7 +1,7 @@
 <template>
   <div class="user-left">
     <div class="logo">
-      <span class="highlight">欢迎来到 GameHub</span>
+      <span class="highlight">欢迎来到 Game9</span>
     </div>
   </div>
 </template>

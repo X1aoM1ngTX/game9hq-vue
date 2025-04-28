@@ -4,8 +4,8 @@
     <div
       v-for="(month, index) in months"
       :key="index"
-      class="month"
       :style="{ gridColumn: getMonthPosition(index) }"
+      class="month"
     >
       {{ month }}
     </div>
@@ -15,10 +15,10 @@
       <i
         v-for="(day, index) in days"
         :key="index"
-        class="tile"
         :data-level="day.signed ? 1 : 0"
-        :title="`${day.date}: ${day.signed ? '已签到' : '未签到'}`"
         :style="index === 0 ? { gridRow: startRow + 1 } : {}"
+        :title="`${day.date}: ${day.signed ? '已签到' : '未签到'}`"
+        class="tile"
       />
     </div>
 
@@ -34,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineExpose } from "vue";
+import { defineExpose, onMounted, ref } from "vue";
 import { getSignInHistory } from "@/api/user";
 
 // 月份标签数据
@@ -148,18 +148,23 @@ defineExpose({
 .week + .week {
   grid-row-start: 3;
 }
+
 .week + .week + .week {
   grid-row-start: 4;
 }
+
 .week + .week + .week + .week {
   grid-row-start: 5;
 }
+
 .week + .week + .week + .week + .week {
   grid-row-start: 6;
 }
+
 .week + .week + .week + .week + .week + .week {
   grid-row-start: 7;
 }
+
 .week + .week + .week + .week + .week + .week + .week {
   grid-row-start: 8;
 }
@@ -187,10 +192,14 @@ defineExpose({
 /* 签到状态颜色 */
 .tile[data-level="0"] {
   background: #ebedf0;
-} /* 未签到 */
+}
+
+/* 未签到 */
 .tile[data-level="1"] {
   background: #40c463;
-} /* 已签到 */
+}
+
+/* 已签到 */
 
 /* 底部统计和图例样式 */
 .total {

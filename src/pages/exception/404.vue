@@ -6,14 +6,14 @@
       <p class="exception-desc">
         您访问的页面可能已被删除、更名或暂时无法访问。
       </p>
-      <a-button type="primary" size="large" @click="$router.push('/')">
+      <a-button size="large" type="primary" @click="$router.push('/')">
         返回首页
       </a-button>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 // 组件逻辑
 </script>
 

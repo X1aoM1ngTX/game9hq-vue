@@ -5,10 +5,10 @@ import type { AxiosResponse } from "axios";
  * 公告类型枚举
  */
 export enum NoticeType {
-  NORMAL = 1, // 普通公告
-  ACTIVITY = 2, // 活动公告
-  IMPORTANT = 3, // 重要公告
-  SYSTEM = 4, // 系统公告
+  NORMAL = 0, // 普通公告
+  IMPORTANT = 1, // 重要公告
+  SYSTEM = 2, // 系统公告
+  ACTIVITY = 3, // 活动公告
 }
 
 /**
@@ -63,6 +63,7 @@ export interface INoticeQueryParams {
   status?: NoticeStatus;
   type?: NoticeType;
   creatorId?: number;
+  title?: string;
 }
 
 /**
@@ -93,7 +94,7 @@ type ApiResponse<T> = Promise<AxiosResponse<T>>;
 export const createNotice = (
   noticeData: INoticeCreateRequest
 ): ApiResponse<INotice> => {
-  return myAxios.post(`${API_PREFIX}`, noticeData, API_CONFIG);
+  return myAxios.post(`${API_PREFIX}/create`, noticeData, API_CONFIG);
 };
 
 /**
@@ -103,21 +104,15 @@ export const updateNotice = (
   id: number,
   noticeData: INoticeUpdateRequest
 ): ApiResponse<INotice> => {
-  return myAxios.put(`${API_PREFIX}/${id}`, noticeData, API_CONFIG);
-};
-
-/**
- * 删除公告
- */
-export const deleteNotice = (id: number): ApiResponse<void> => {
-  return myAxios.delete(`${API_PREFIX}/${id}`, API_CONFIG);
+  console.log(`发送更新请求: ${API_PREFIX}/${id}`, noticeData);
+  return myAxios.put(`${API_PREFIX}/update/${id}`, noticeData, API_CONFIG);
 };
 
 /**
  * 获取公告详情
  */
 export const getNoticeDetail = (id: number): ApiResponse<INotice> => {
-  return myAxios.get(`${API_PREFIX}/${id}`, API_CONFIG);
+  return myAxios.get(`${API_PREFIX}/get/${id}`, API_CONFIG);
 };
 
 /**
@@ -126,28 +121,28 @@ export const getNoticeDetail = (id: number): ApiResponse<INotice> => {
 export const getNoticeList = (
   params: INoticeQueryParams
 ): ApiResponse<INoticePage> => {
-  return myAxios.get(API_PREFIX, { ...API_CONFIG, params });
+  return myAxios.get(`${API_PREFIX}/list`, { ...API_CONFIG, params });
 };
 
 /**
  * 发布公告
  */
 export const publishNotice = (id: number): ApiResponse<void> => {
-  return myAxios.post(`${API_PREFIX}/${id}/publish`, null, API_CONFIG);
+  return myAxios.post(`${API_PREFIX}/publish/${id}`, null, API_CONFIG);
 };
 
 /**
  * 将公告设为草稿
  */
 export const draftNotice = (id: number): ApiResponse<void> => {
-  return myAxios.post(`${API_PREFIX}/${id}/draft`, null, API_CONFIG);
+  return myAxios.post(`${API_PREFIX}/draft/${id}`, null, API_CONFIG);
 };
 
 /**
  * 获取有效的公告列表
  */
 export const getActiveNotices = (): ApiResponse<INotice[]> => {
-  return myAxios.get(`${API_PREFIX}/active`, API_CONFIG);
+  return myAxios.get(`${API_PREFIX}/list/active`, API_CONFIG);
 };
 
 /**
@@ -156,5 +151,23 @@ export const getActiveNotices = (): ApiResponse<INotice[]> => {
 export const getActiveNoticesByType = (
   type: NoticeType
 ): ApiResponse<INotice[]> => {
-  return myAxios.get(`${API_PREFIX}/active/type/${type}`, API_CONFIG);
+  return myAxios.get(`${API_PREFIX}/list/active/${type}`, API_CONFIG);
+};
+
+/**
+ * 删除公告
+ */
+export const deleteNotice = (id: number): ApiResponse<void> => {
+  return myAxios.delete(`${API_PREFIX}/delete/${id}`, API_CONFIG);
+};
+
+/**
+ * 批量删除公告
+ * @param ids 公告ID列表
+ */
+export const batchDeleteNotices = (ids: number[]): ApiResponse<void> => {
+  return myAxios.delete(`${API_PREFIX}/delete/batch`, {
+    ...API_CONFIG,
+    params: { ids },
+  });
 };

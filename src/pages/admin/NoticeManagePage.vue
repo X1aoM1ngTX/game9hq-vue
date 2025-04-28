@@ -2,7 +2,7 @@
   <div id="noticeManagePage">
     <div class="header-actions">
       <a-space>
-        <a-button type="primary" size="large" @click="showAddModal">
+        <a-button size="large" type="primary" @click="showAddModal">
           发布公告
         </a-button>
       </a-space>
@@ -48,11 +48,14 @@
               : "-"
           }}
         </template>
+        <template v-else-if="column.key === 'noticeCreatorId'">
+          {{ getUserName(record.noticeCreatorId) }}
+        </template>
         <template v-else-if="column.key === 'action'">
           <a-space :direction="'vertical'">
             <a-button type="primary" @click="showEditModal(record)"
-              >编辑</a-button
-            >
+              >编辑
+            </a-button>
             <a-button
               :type="
                 record.noticeStatus === NoticeStatus.PUBLISHED
@@ -73,10 +76,10 @@
 
     <a-modal
       v-model:visible="modalVisible"
-      :title="modalTitle"
-      @ok="handleModalOk"
-      @cancel="handleModalCancel"
       :destroyOnClose="true"
+      :title="modalTitle"
+      @cancel="handleModalCancel"
+      @ok="handleModalOk"
     >
       <a-form
         v-if="editFormState.noticeId"
@@ -84,38 +87,38 @@
         layout="vertical"
       >
         <a-form-item
+          :rules="[{ required: true, message: '请输入公告标题!' }]"
           label="公告标题"
           name="noticeTitle"
-          :rules="[{ required: true, message: '请输入公告标题!' }]"
         >
           <a-input v-model:value="editFormState.noticeTitle" />
         </a-form-item>
 
         <a-form-item
+          :rules="[{ required: true, message: '请选择公告类型!' }]"
           label="公告类型"
           name="noticeType"
-          :rules="[{ required: true, message: '请选择公告类型!' }]"
         >
           <a-select v-model:value="editFormState.noticeType">
             <a-select-option :value="NoticeType.NORMAL"
-              >普通公告</a-select-option
-            >
-            <a-select-option :value="NoticeType.ACTIVITY"
-              >活动公告</a-select-option
-            >
+              >普通公告
+            </a-select-option>
             <a-select-option :value="NoticeType.IMPORTANT"
-              >重要公告</a-select-option
-            >
+              >重要公告
+            </a-select-option>
             <a-select-option :value="NoticeType.SYSTEM"
-              >系统公告</a-select-option
-            >
+              >系统公告
+            </a-select-option>
+            <a-select-option :value="NoticeType.ACTIVITY"
+              >活动公告
+            </a-select-option>
           </a-select>
         </a-form-item>
 
         <a-form-item
+          :rules="[{ required: true, message: '请输入公告内容!' }]"
           label="公告内容"
           name="noticeContent"
-          :rules="[{ required: true, message: '请输入公告内容!' }]"
         >
           <a-textarea v-model:value="editFormState.noticeContent" :rows="6" />
         </a-form-item>
@@ -132,38 +135,38 @@
 
       <a-form v-else :model="addFormState" layout="vertical">
         <a-form-item
+          :rules="[{ required: true, message: '请输入公告标题!' }]"
           label="公告标题"
           name="noticeTitle"
-          :rules="[{ required: true, message: '请输入公告标题!' }]"
         >
           <a-input v-model:value="addFormState.noticeTitle" />
         </a-form-item>
 
         <a-form-item
+          :rules="[{ required: true, message: '请选择公告类型!' }]"
           label="公告类型"
           name="noticeType"
-          :rules="[{ required: true, message: '请选择公告类型!' }]"
         >
           <a-select v-model:value="addFormState.noticeType">
             <a-select-option :value="NoticeType.NORMAL"
-              >普通公告</a-select-option
-            >
-            <a-select-option :value="NoticeType.ACTIVITY"
-              >活动公告</a-select-option
-            >
+              >普通公告
+            </a-select-option>
             <a-select-option :value="NoticeType.IMPORTANT"
-              >重要公告</a-select-option
-            >
+              >重要公告
+            </a-select-option>
             <a-select-option :value="NoticeType.SYSTEM"
-              >系统公告</a-select-option
-            >
+              >系统公告
+            </a-select-option>
+            <a-select-option :value="NoticeType.ACTIVITY"
+              >活动公告
+            </a-select-option>
           </a-select>
         </a-form-item>
 
         <a-form-item
+          :rules="[{ required: true, message: '请输入公告内容!' }]"
           label="公告内容"
           name="noticeContent"
-          :rules="[{ required: true, message: '请输入公告内容!' }]"
         >
           <a-textarea v-model:value="addFormState.noticeContent" :rows="6" />
         </a-form-item>
@@ -181,25 +184,27 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+<script lang="ts" setup>
+import { onMounted, reactive, ref } from "vue";
 import { message, Modal } from "ant-design-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { useRouter } from "vue-router";
 import dayjs from "dayjs";
 import {
-  NoticeType,
-  NoticeStatus,
-  type INotice,
-  type INoticeCreateRequest,
-  type INoticeUpdateRequest,
   createNotice,
-  updateNotice,
   deleteNotice,
   draftNotice,
-  getActiveNotices,
+  getNoticeList,
+  type INotice,
+  type INoticeCreateRequest,
+  type INoticeQueryParams,
+  type INoticeUpdateRequest,
+  NoticeStatus,
+  NoticeType,
   publishNotice,
+  updateNotice,
 } from "@/api/notice";
+import { getUserById } from "@/api/user";
 
 const router = useRouter();
 const loginUserStore = useLoginUserStore();
@@ -241,6 +246,11 @@ const columns = [
     key: "noticeStatus",
   },
   {
+    title: "创建者ID",
+    dataIndex: "noticeCreatorId",
+    key: "noticeCreatorId",
+  },
+  {
     title: "创建时间",
     dataIndex: "noticeCreateTime",
     key: "noticeCreateTime",
@@ -278,10 +288,38 @@ interface PageData<T> {
   pages: number;
 }
 
-// 获取公告列表
-const fetchData = async () => {
+// 添加用户映射和获取用户信息的方法
+const userMap = ref<Record<string, any>>({});
+
+// 获取用户信息的方法
+const fetchUserInfo = async (userId: number) => {
   try {
-    const res = await getActiveNotices();
+    // 如果已经获取过该用户信息，直接返回
+    if (userMap.value[userId]) return;
+
+    const resp = await getUserById(userId);
+    if (resp.data && resp.data.data) {
+      userMap.value[userId] = resp.data.data;
+    }
+  } catch (error) {
+    console.error("获取用户信息失败:", error);
+  }
+};
+
+// 获取公告列表
+const fetchData = async (searchTitle?: string) => {
+  try {
+    const params: INoticeQueryParams = {
+      pageNum: 1,
+      pageSize: 100,
+    };
+
+    // 如果有搜索标题，添加到查询参数
+    if (searchTitle) {
+      params.title = searchTitle;
+    }
+
+    const res = await getNoticeList(params);
     console.log("获取公告响应:", res);
 
     // 先转为 unknown 类型再断言
@@ -300,6 +338,13 @@ const fetchData = async () => {
           data.value = responseData.data;
         } else {
           data.value = [];
+        }
+
+        // 获取所有公告的创建者信息
+        for (const notice of data.value) {
+          if (notice.noticeCreatorId) {
+            await fetchUserInfo(notice.noticeCreatorId);
+          }
         }
       } else {
         data.value = [];
@@ -441,10 +486,12 @@ const handleModalOk = async () => {
         };
 
     if (editFormState.noticeId) {
-      await updateNotice(
+      console.log("更新公告请求参数:", editFormState.noticeId, formData);
+      const response = await updateNotice(
         editFormState.noticeId,
         formData as INoticeUpdateRequest
       );
+      console.log("更新公告响应:", response);
       message.success("更新成功");
     } else {
       await createNotice(formData as INoticeCreateRequest);
@@ -468,9 +515,9 @@ const handleModalCancel = () => {
 const getNoticeTypeColor = (type: NoticeType): string => {
   const typeColors: Record<number, string> = {
     [NoticeType.NORMAL]: "blue",
-    [NoticeType.ACTIVITY]: "green",
     [NoticeType.IMPORTANT]: "red",
     [NoticeType.SYSTEM]: "orange",
+    [NoticeType.ACTIVITY]: "green",
   };
   return typeColors[type] || "default";
 };
@@ -479,9 +526,9 @@ const getNoticeTypeColor = (type: NoticeType): string => {
 const getNoticeTypeText = (type: NoticeType): string => {
   const typeTexts: Record<number, string> = {
     [NoticeType.NORMAL]: "普通公告",
-    [NoticeType.ACTIVITY]: "活动公告",
     [NoticeType.IMPORTANT]: "重要公告",
     [NoticeType.SYSTEM]: "系统公告",
+    [NoticeType.ACTIVITY]: "活动公告",
   };
   return typeTexts[type] || "其他";
 };
@@ -504,6 +551,15 @@ const getStatusText = (status: NoticeStatus): string => {
     [NoticeStatus.EXPIRED]: "已过期",
   };
   return statusTexts[status] || "未知";
+};
+
+// 获取用户名的方法
+const getUserName = (userId: number): string => {
+  if (!userId) return "未知用户";
+  const user = userMap.value[userId];
+  return user
+    ? user.userNickname || user.userName || `用户 ${userId}`
+    : `用户 ${userId}`;
 };
 </script>
 
@@ -528,5 +584,10 @@ const getStatusText = (status: NoticeStatus): string => {
   padding: 24px;
   max-height: 70vh;
   overflow-y: auto;
+}
+
+:deep(.ant-input-search-button) {
+  box-shadow: none !important;
+  border-bottom: none !important;
 }
 </style>

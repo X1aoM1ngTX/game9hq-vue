@@ -55,8 +55,8 @@
     </div>
     <router-view v-slot="{ Component }">
       <transition
-        name="slide"
         mode="out-in"
+        name="slide"
         @before-leave="handleBeforeLeave"
         @after-leave="handleAfterLeave"
       >
@@ -276,5 +276,10 @@ const handleAfterLeave = (el: Element) => {
   .game-cards {
     grid-template-columns: 1fr;
   }
+}
+
+:deep(.ant-input-search-button) {
+  box-shadow: none !important;
+  border-bottom: none !important;
 }
 </style>

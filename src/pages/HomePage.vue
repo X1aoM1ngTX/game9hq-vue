@@ -2,12 +2,11 @@
   <div class="home-page">
     <div class="content">
       <div class="logo-area">
-        <img alt="logo" class="logo" src="../assets/dice-d20-solid.svg" />
-        <h1>GameHub</h1>
+        <img alt="logo" class="logo" src="../assets/GAME9/game9-black.png" />
+        <h1>Game9</h1>
       </div>
       <p class="slogan">
-        无论您是初出茅庐的玩家，还是资深游戏达人，GameHub
-        将是您最坚实的游戏港湾。
+        无论您是初出茅庐的玩家，还是资深游戏达人，Game9将是您最坚实的游戏港湾。
       </p>
       <div class="action-area">
         <a-button

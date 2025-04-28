@@ -1,22 +1,22 @@
 <template>
-  <div class="GlobalHeader" v-if="!isAuthPage">
+  <div v-if="!isAuthPage" class="GlobalHeader">
     <a-row :wrap="false">
-      <a-col flex="200px" class="logo-col">
+      <a-col class="logo-col" flex="200px">
         <div class="title-bar">
-          <img class="logo" src="../assets/dice-d20-solid.svg" alt="logo" />
-          <div class="title">GameHub</div>
+          <img alt="logo" class="logo" src="../assets/GAME9/game9-black.png" />
+          <div class="title">Game9</div>
         </div>
       </a-col>
-      <a-col flex="auto" class="menu-col">
+      <a-col class="menu-col" flex="auto">
         <a-menu
-          style="height: 55px; display: flex; color: #000000"
           v-model:selectedKeys="current"
-          mode="horizontal"
           :items="menuItems"
+          mode="horizontal"
+          style="height: 55px; display: flex; color: #000000"
           @click="doMenuClick"
         />
       </a-col>
-      <a-col flex="200px" class="user-area-col">
+      <a-col class="user-area-col" flex="200px">
         <div class="user-area">
           <template v-if="loginUserStore.hasLogin">
             <a-dropdown>
@@ -59,12 +59,12 @@
           </template>
           <template v-else>
             <a-button
-              type="primary"
               style="margin-right: 10px"
+              type="primary"
               @click="toLogin"
             >
-              登录</a-button
-            >
+              登录
+            </a-button>
             <a-button @click="toRegister">注册</a-button>
           </template>
         </div>
@@ -77,12 +77,12 @@
 import { computed, h, ref, VNodeChild } from "vue";
 import {
   AppstoreOutlined,
-  DownOutlined,
+  BellOutlined,
+  DownOutlined, HomeOutlined,
+  LogoutOutlined,
   MailOutlined,
   SettingOutlined,
   UserOutlined,
-  LogoutOutlined,
-  BellOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useRoute, useRouter } from "vue-router";
@@ -144,7 +144,7 @@ const menuItems = computed<MenuItem[]>(() => {
   const items: MenuItem[] = [
     {
       key: "/",
-      icon: () => h(MailOutlined),
+      icon: () => h(HomeOutlined),
       label: "首页",
     },
     {

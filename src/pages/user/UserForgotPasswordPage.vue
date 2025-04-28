@@ -9,21 +9,21 @@
       </div>
       <a-form
         :model="formState"
-        name="forgot-password"
         class="forgot-password-form"
+        name="forgot-password"
         @finish="handleSubmit"
       >
         <a-form-item
-          name="email"
           :rules="[
             { required: true, message: '请输入邮箱!' },
             { type: 'email', message: '请输入有效的邮箱地址!' },
           ]"
+          name="email"
         >
           <a-input
             v-model:value="formState.email"
-            size="large"
             placeholder="邮箱"
+            size="large"
           >
             <template #prefix>
               <MailOutlined class="form-icon" />
@@ -32,14 +32,14 @@
         </a-form-item>
 
         <a-form-item
-          name="verifyCode"
           :rules="[{ required: true, message: '请输入验证码!' }]"
+          name="verifyCode"
         >
           <div style="display: flex; gap: 8px">
             <a-input
               v-model:value="formState.verifyCode"
-              size="large"
               placeholder="验证码"
+              size="large"
               style="flex: 1"
             >
               <template #prefix>
@@ -47,10 +47,10 @@
               </template>
             </a-input>
             <a-button
+              :disabled="loading || codeSent"
               size="large"
               type="primary"
               @click="handleSendCode"
-              :disabled="loading || codeSent"
             >
               {{ codeSent ? "已发送" : "获取验证码" }}
             </a-button>
@@ -58,16 +58,16 @@
         </a-form-item>
 
         <a-form-item
-          name="newPassword"
           :rules="[
             { required: true, message: '请输入新密码!' },
             { min: 8, message: '密码长度不能小于8位!' },
           ]"
+          name="newPassword"
         >
           <a-input-password
             v-model:value="formState.newPassword"
-            size="large"
             placeholder="新密码"
+            size="large"
           >
             <template #prefix>
               <LockOutlined class="form-icon" />
@@ -76,16 +76,16 @@
         </a-form-item>
 
         <a-form-item
-          name="confirmPassword"
           :rules="[
             { required: true, message: '请确认新密码!' },
             { validator: validateConfirmPassword },
           ]"
+          name="confirmPassword"
         >
           <a-input-password
             v-model:value="formState.confirmPassword"
-            size="large"
             placeholder="确认新密码"
+            size="large"
           >
             <template #prefix>
               <LockOutlined class="form-icon" />
@@ -95,11 +95,11 @@
 
         <div class="form-actions">
           <a-button
-            type="primary"
-            html-type="submit"
-            class="submit-button"
-            size="large"
             :loading="loading"
+            class="submit-button"
+            html-type="submit"
+            size="large"
+            type="primary"
           >
             重置密码
           </a-button>
@@ -107,7 +107,7 @@
 
         <div class="form-links">
           <span>记起密码了？</span>
-          <router-link to="/user/login" class="login-link">
+          <router-link class="login-link" to="/user/login">
             立即登录
           </router-link>
         </div>

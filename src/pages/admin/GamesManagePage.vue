@@ -2,20 +2,22 @@
   <div id="gamesManagePage">
     <div class="header-actions">
       <a-space>
-        <a-button type="primary" size="large" @click="showAddModal">
+        <a-button size="large" type="primary" @click="showAddModal">
           添加游戏
         </a-button>
         <a-upload
-          accept=".json"
-          :show-upload-list="false"
           :before-upload="handleJsonUpload"
+          :show-upload-list="false"
+          accept=".json"
         >
           <a-button size="large" type="primary">
-            <upload-outlined /> 批量导入
+            <upload-outlined />
+            批量导入
           </a-button>
         </a-upload>
         <a-button size="large" type="primary" @click="downloadTemplate">
-          <download-outlined /> 下载模板
+          <download-outlined />
+          下载模板
         </a-button>
       </a-space>
       <a-input-search
@@ -41,8 +43,8 @@
         <template v-else-if="column.key === 'gameCover'">
           <img
             v-lazy="record.gameCover"
-            style="width: 50px; height: 50px; object-fit: cover"
             alt="gameCover"
+            style="width: 50px; height: 50px; object-fit: cover"
           />
         </template>
         <template v-else-if="column.key === 'gameDiscountedPrices'">
@@ -86,10 +88,10 @@
     </a-table>
     <a-modal
       v-model:visible="modalVisible"
-      :title="modalTitle"
-      @ok="handleModalOk"
-      @cancel="handleModalCancel"
       :destroyOnClose="true"
+      :title="modalTitle"
+      @cancel="handleModalCancel"
+      @ok="handleModalOk"
     >
       <a-form
         v-if="editFormState.gameId"
@@ -97,24 +99,24 @@
         layout="vertical"
       >
         <a-form-item
+          :rules="[{ required: true, message: '请输入游戏名称!' }]"
           label="游戏名称"
           name="gameName"
-          :rules="[{ required: true, message: '请输入游戏名称!' }]"
         >
           <a-input v-model:value="editFormState.gameName" />
         </a-form-item>
         <a-form-item label="游戏封面" name="gameCover">
           <a-upload
             v-model:file-list="fileList"
-            name="file"
-            list-type="picture-card"
-            class="avatar-uploader"
-            :show-upload-list="false"
-            action="http://localhost:8080/api/game/upload"
             :before-upload="beforeUpload"
             :headers="getHeaders()"
-            @change="handleChange"
+            :show-upload-list="false"
+            action="http://localhost:8080/api/game/upload"
+            class="avatar-uploader"
+            list-type="picture-card"
+            name="file"
             withCredentials="true"
+            @change="handleChange"
           >
             <img v-if="imageUrl" :src="imageUrl" alt="gameCover" />
             <div v-else>
@@ -128,9 +130,9 @@
           <a-textarea v-model:value="editFormState.gameDescription" />
         </a-form-item>
         <a-form-item
+          :rules="[{ required: true, message: '请输入游戏价格!' }]"
           label="游戏价格"
           name="gamePrice"
-          :rules="[{ required: true, message: '请输入游戏价格!' }]"
         >
           <a-input-number
             v-model:value="editFormState.gamePrice"
@@ -140,9 +142,9 @@
           />
         </a-form-item>
         <a-form-item
+          :rules="[{ required: true, message: '请输入游戏库存!' }]"
           label="游戏库存"
           name="gameStock"
-          :rules="[{ required: true, message: '请输入游戏库存!' }]"
         >
           <a-input-number
             v-model:value="editFormState.gameStock"
@@ -182,11 +184,11 @@
           />
         </a-form-item>
         <a-form-item
-          label="游戏折扣结束时间"
-          name="gameSaleEndTime"
           :rules="[
             { validator: validateEndTime, message: '结束时间不能早于开始时间' },
           ]"
+          label="游戏折扣结束时间"
+          name="gameSaleEndTime"
         >
           <a-date-picker
             v-model:value="editFormState.gameSaleEndTime"
@@ -196,37 +198,37 @@
           />
         </a-form-item>
         <a-form-item
-          label="游戏折扣"
-          name="gameDiscount"
           :rules="[
             { required: true, message: '请输入游戏折扣!' },
             { type: 'number', min: 0, max: 1, message: '折扣必须在0-1之间!' },
           ]"
+          label="游戏折扣"
+          name="gameDiscount"
         >
           <a-input-number
             v-model:value="editFormState.gameDiscount"
-            :min="0"
             :max="1"
-            :step="0.1"
+            :min="0"
             :precision="2"
-            style="width: 100%"
+            :step="0.1"
             placeholder="输入0.2表示打8折"
+            style="width: 100%"
             @change="handleDiscountChange"
           />
         </a-form-item>
       </a-form>
       <a-form v-else :model="addFormState" layout="vertical">
         <a-form-item
+          :rules="[{ required: true, message: '请输入游戏名称!' }]"
           label="游戏名称"
           name="gameName"
-          :rules="[{ required: true, message: '请输入游戏名称!' }]"
         >
           <a-input v-model:value="addFormState.gameName" />
         </a-form-item>
         <a-form-item
+          :rules="[{ required: true, message: '请输入游戏价格!' }]"
           label="游戏价格"
           name="gamePrice"
-          :rules="[{ required: true, message: '请输入游戏价格!' }]"
         >
           <a-input-number
             v-model:value="addFormState.gamePrice"
@@ -236,9 +238,9 @@
           />
         </a-form-item>
         <a-form-item
+          :rules="[{ required: true, message: '请输入游戏库存!' }]"
           label="游戏库存"
           name="gameStock"
-          :rules="[{ required: true, message: '请输入游戏库存!' }]"
         >
           <a-input-number
             v-model:value="addFormState.gameStock"
@@ -250,24 +252,24 @@
     </a-modal>
     <a-modal
       v-model:visible="importModalVisible"
-      title="批量导入"
-      @ok="handleImportOk"
-      @cancel="handleImportCancel"
       :confirmLoading="importLoading"
+      title="批量导入"
+      @cancel="handleImportCancel"
+      @ok="handleImportOk"
     >
       <a-alert
         v-if="importErrors.length > 0"
-        type="error"
-        show-icon
-        :message="'导入出现以下错误：'"
         :description="importErrors.join('\n')"
+        :message="'导入出现以下错误：'"
+        show-icon
         style="margin-bottom: 16px"
+        type="error"
       />
       <a-table
         :columns="previewColumns"
         :data-source="previewData"
-        size="small"
         :scroll="{ y: 300 }"
+        size="small"
       />
     </a-modal>
   </div>
@@ -275,14 +277,14 @@
 
 <script lang="ts" setup>
 // 导入所需的组件和函数
-import { h, reactive, ref, onMounted } from "vue";
-import { message, Modal } from "ant-design-vue";
+import { h, onMounted, reactive, ref } from "vue";
 import type { UploadChangeParam, UploadProps } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import {
+  DownloadOutlined,
   LoadingOutlined,
   PlusOutlined,
   UploadOutlined,
-  DownloadOutlined,
 } from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import {
@@ -938,5 +940,10 @@ fetchData();
   width: 100%;
   height: 100%;
   object-fit: cover; /* 确保图片适应预览框 */
+}
+
+:deep(.ant-input-search-button) {
+  box-shadow: none !important;
+  border-bottom: none !important;
 }
 </style>

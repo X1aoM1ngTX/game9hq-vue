@@ -4,24 +4,24 @@
       <div class="register-header">
         <div class="title-text">
           <span class="primary">加入 </span>
-          <span class="highlight">GameHub</span>
+          <span class="highlight">Game9</span>
         </div>
       </div>
       <a-form
         :model="formState"
-        name="register"
         class="register-form"
+        name="register"
         @finish="handleSubmit"
         @finishFailed="onFinishFailed"
       >
         <a-form-item
-          name="userName"
           :rules="[{ required: true, message: '请输入用户名!' }]"
+          name="userName"
         >
           <a-input
             v-model:value="formState.userName"
-            size="large"
             placeholder="用户名"
+            size="large"
           >
             <template #prefix>
               <UserOutlined class="form-icon" />
@@ -30,16 +30,16 @@
         </a-form-item>
 
         <a-form-item
-          name="userEmail"
           :rules="[
             { required: true, message: '请输入邮箱!' },
             { type: 'email', message: '请输入有效的邮箱地址!' },
           ]"
+          name="userEmail"
         >
           <a-input
             v-model:value="formState.userEmail"
-            size="large"
             placeholder="邮箱"
+            size="large"
           >
             <template #prefix>
               <MailOutlined class="form-icon" />
@@ -48,14 +48,14 @@
         </a-form-item>
 
         <a-form-item
-          name="verifyCode"
           :rules="[{ required: true, message: '请输入验证码!' }]"
+          name="verifyCode"
         >
           <div style="display: flex; gap: 8px">
             <a-input
               v-model:value="formState.verifyCode"
-              size="large"
               placeholder="验证码"
+              size="large"
               style="flex: 1"
             >
               <template #prefix>
@@ -63,10 +63,10 @@
               </template>
             </a-input>
             <a-button
+              :disabled="loading || codeSent"
               size="large"
               type="primary"
               @click="handleSendCode"
-              :disabled="loading || codeSent"
             >
               {{ codeSent ? `${countdown}s` : "获取验证码" }}
             </a-button>
@@ -74,16 +74,16 @@
         </a-form-item>
 
         <a-form-item
-          name="userPassword"
           :rules="[
             { required: true, message: '请输入密码!' },
             { min: 8, message: '密码长度不能小于8位!' },
           ]"
+          name="userPassword"
         >
           <a-input-password
             v-model:value="formState.userPassword"
-            size="large"
             placeholder="密码"
+            size="large"
           >
             <template #prefix>
               <LockOutlined class="form-icon" />
@@ -92,16 +92,16 @@
         </a-form-item>
 
         <a-form-item
-          name="userCheckPassword"
           :rules="[
             { required: true, message: '请确认密码!' },
             { validator: validatePassword },
           ]"
+          name="userCheckPassword"
         >
           <a-input-password
             v-model:value="formState.userCheckPassword"
-            size="large"
             placeholder="确认密码"
+            size="large"
           >
             <template #prefix>
               <LockOutlined class="form-icon" />
@@ -111,11 +111,11 @@
 
         <div class="form-actions">
           <a-button
-            type="primary"
-            html-type="submit"
-            class="register-button"
-            size="large"
             :loading="loading"
+            class="register-button"
+            html-type="submit"
+            size="large"
+            type="primary"
           >
             注册
           </a-button>
@@ -123,7 +123,7 @@
 
         <div class="form-links">
           <span>已有账号？</span>
-          <router-link to="/user/login" class="login-link">
+          <router-link class="login-link" to="/user/login">
             立即登录
           </router-link>
         </div>
@@ -137,10 +137,10 @@ import { reactive, ref } from "vue";
 import {
   LockOutlined,
   MailOutlined,
-  UserOutlined,
   SafetyOutlined,
+  UserOutlined,
 } from "@ant-design/icons-vue";
-import { userRegister, sendVerifyCode, verifyCode } from "@/api/user";
+import { sendVerifyCode, userRegister, verifyCode } from "@/api/user";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 

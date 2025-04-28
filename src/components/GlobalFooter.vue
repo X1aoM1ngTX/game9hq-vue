@@ -2,14 +2,12 @@
   <div class="global-footer">
     <div class="footer-content">
       <div class="footer-section">
-        <h3>关于 GameHub</h3>
-        <p>
-          GameHub 是一个专业的游戏分享平台，致力于为玩家提供优质的游戏体验。
-        </p>
+        <h3>关于 Game9</h3>
+        <p>Game9 是一个专业的游戏分享平台，致力于为玩家提供优质的游戏体验。</p>
       </div>
       <div class="footer-section">
         <h3>联系我们</h3>
-        <p>邮箱：support@gamehub.com</p>
+        <p>邮箱：support@game9.com</p>
         <p>电话：400-123-4567</p>
       </div>
       <div class="footer-section">
@@ -21,7 +19,7 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2024 GameHub. All rights reserved.</p>
+      <p>© 2024 Game9. All rights reserved.</p>
     </div>
   </div>
 </template>

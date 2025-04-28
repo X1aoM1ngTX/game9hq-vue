@@ -4,24 +4,24 @@
       <div class="login-header">
         <div class="title-text">
           <span class="primary">欢迎来到 </span>
-          <span class="highlight">GameHub</span>
+          <span class="highlight">Game9</span>
         </div>
       </div>
       <a-form
         :model="formState"
-        name="login"
         class="login-form"
+        name="login"
         @finish="handleSubmit"
         @finishFailed="onFinishFailed"
       >
         <a-form-item
-          name="userName"
           :rules="[{ required: true, message: '请输入账号!' }]"
+          name="userName"
         >
           <a-input
             v-model:value="formState.userName"
-            size="large"
             placeholder="用户名"
+            size="large"
           >
             <template #prefix>
               <UserOutlined class="form-icon" />
@@ -30,13 +30,13 @@
         </a-form-item>
 
         <a-form-item
-          name="userPassword"
           :rules="[{ required: true, message: '请输入密码!' }]"
+          name="userPassword"
         >
           <a-input-password
             v-model:value="formState.userPassword"
-            size="large"
             placeholder="密码"
+            size="large"
           >
             <template #prefix>
               <LockOutlined class="form-icon" />
@@ -46,21 +46,21 @@
 
         <div class="form-actions">
           <a-button
-            type="primary"
-            html-type="submit"
-            class="submit-button"
-            size="large"
             :loading="loading"
+            class="submit-button"
+            html-type="submit"
+            size="large"
+            type="primary"
           >
             登录
           </a-button>
         </div>
 
         <div class="form-links">
-          <router-link to="/user/register" class="register-link">
+          <router-link class="register-link" to="/user/register">
             创建新账号
           </router-link>
-          <router-link to="/user/forgot-password" class="forgot-link">
+          <router-link class="forgot-link" to="/user/forgot-password">
             忘记密码？
           </router-link>
         </div>
