@@ -2,17 +2,17 @@
   <div class="profile-container">
     <a-row :gutter="[16, 16]">
       <!-- 左侧内容区域 -->
-      <a-col :xs="24" :sm="24" :md="16" :lg="17">
+      <a-col :lg="17" :md="16" :sm="24" :xs="24">
         <div class="left-content">
           <!-- 签到区域 -->
           <div class="profile-section">
             <div class="section-header">
               <h3>签到记录</h3>
               <a-button
-                type="primary"
-                size="large"
-                :loading="signInLoading"
                 :disabled="isTodaySigned"
+                :loading="signInLoading"
+                size="large"
+                type="primary"
                 @click="handleSignIn"
               >
                 {{ isTodaySigned ? "今日已签到" : "立即签到" }}
@@ -28,8 +28,8 @@
               <div
                 v-for="game in userGames"
                 :key="game.gameId"
-                class="game-item"
                 :data-game-id="game.gameId"
+                class="game-item"
               >
                 <img
                   v-lazy="game.gameCover"
@@ -45,16 +45,16 @@
           </div>
         </div>
       </a-col>
-      <a-col :xs="24" :sm="24" :md="8" :lg="7">
+      <a-col :lg="7" :md="8" :sm="24" :xs="24">
         <!-- 个人卡片 -->
         <div class="profile-card">
           <div class="profile-header">
             <div class="avatar-section">
               <a-upload
-                name="file"
-                :show-upload-list="false"
                 :before-upload="beforeUpload"
                 :customRequest="customUpload"
+                :show-upload-list="false"
+                name="file"
               >
                 <div class="avatar-wrapper">
                   <a-avatar :size="64" :src="user.userAvatar">
@@ -115,41 +115,41 @@
     <a-modal
       v-model:visible="modalVisible"
       title="修改个人资料"
-      @ok="handleModalOk"
       @cancel="handleModalCancel"
+      @ok="handleModalOk"
     >
       <a-form :model="formState" layout="vertical">
         <a-form-item
+          :rules="[{ required: true, message: '请输入昵称!' }]"
           label="昵称"
           name="userNickname"
-          :rules="[{ required: true, message: '请输入昵称!' }]"
         >
           <a-input v-model:value="formState.userNickname" />
         </a-form-item>
 
         <a-form-item
+          :rules="[{ required: true, message: '请输入用户名!' }]"
           label="用户名"
           name="userName"
-          :rules="[{ required: true, message: '请输入用户名!' }]"
         >
           <a-input v-model:value="formState.userName" disabled />
         </a-form-item>
 
         <a-form-item
-          label="邮箱"
-          name="userEmail"
           :rules="[
             { required: true, message: '请输入邮箱!' },
             { type: 'email', message: '请输入有效的邮箱地址!' },
           ]"
+          label="邮箱"
+          name="userEmail"
         >
           <a-input v-model:value="formState.userEmail" />
         </a-form-item>
 
         <a-form-item
+          :rules="[{ required: true, message: '请输入手机号!' }]"
           label="手机号"
           name="userPhone"
-          :rules="[{ required: true, message: '请输入手机号!' }]"
         >
           <a-input v-model:value="formState.userPhone" />
         </a-form-item>
@@ -166,14 +166,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, onUnmounted, reactive, ref } from "vue";
 import {
+  checkTodaySignIn,
   getCurrentUser,
   updateAvatar,
   userModify,
   userSignIn,
-  checkTodaySignIn,
 } from "@/api/user";
 import { getUserLibrary, removeGameFromUserLibrary } from "@/api/userLibrary";
 import { message } from "ant-design-vue";

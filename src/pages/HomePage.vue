@@ -2,7 +2,7 @@
   <div class="home-page">
     <div class="content">
       <div class="logo-area">
-        <img class="logo" src="../assets/dice-d20-solid.svg" alt="logo" />
+        <img alt="logo" class="logo" src="../assets/dice-d20-solid.svg" />
         <h1>GameHub</h1>
       </div>
       <p class="slogan">
@@ -11,9 +11,9 @@
       </p>
       <div class="action-area">
         <a-button
-          type="primary"
-          size="large"
           class="main-button"
+          size="large"
+          type="primary"
           @click="handleButtonClick"
         >
           {{ loginUserStore.hasLogin ? "开始探索" : "立即开启" }}
@@ -40,7 +40,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useRouter } from "vue-router";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 

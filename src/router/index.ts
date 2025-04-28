@@ -67,7 +67,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/notice",
     name: "notice",
-    component: () => import("@/pages/Notice.vue"),
+    component: () => import("@/pages/NoticePage.vue"),
   },
   {
     path: "/game/:gameId",

@@ -369,26 +369,12 @@ const columns = [
     title: "游戏描述📝",
     dataIndex: "gameDescription",
     key: "gameDescription",
+    ellipsis: true,
   },
   {
     title: "游戏库存📦",
     dataIndex: "gameStock",
     key: "gameStock",
-  },
-  {
-    title: "游戏发行日📅",
-    dataIndex: "gameReleaseDate",
-    key: "gameReleaseDate",
-  },
-  {
-    title: "游戏开发商💻",
-    dataIndex: "gameDev",
-    key: "gameDev",
-  },
-  {
-    title: "游戏发行商📤",
-    dataIndex: "gamePub",
-    key: "gamePub",
   },
   {
     title: "游戏封面",
