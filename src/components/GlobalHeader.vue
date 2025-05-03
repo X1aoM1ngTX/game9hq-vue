@@ -158,9 +158,9 @@ const menuItems = computed<MenuItem[]>(() => {
       label: "公告",
     },
     {
-      key: "/about",
+      key: "/news",
       icon: () => h(SettingOutlined),
-      label: "关于",
+      label: "资讯",
     },
   ];
 

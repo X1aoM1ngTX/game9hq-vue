@@ -10,6 +10,7 @@
   "dependencies": {
     "ant-design-vue": "^4.2.6",
     "axios": "^1.7.9",
+    "cherry-markdown": "^0.9.1",
     "core-js": "^3.8.3",
     "pinia": "^2.3.0",
     "pinia-plugin-persistedstate": "^4.2.0",

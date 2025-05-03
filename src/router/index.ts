@@ -88,6 +88,26 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: "/news",
+    name: "NewsPage",
+    component: () => import("@/pages/new/NewsPage.vue"),
+  },
+  {
+    path: "/news/edit",
+    name: "EditNewsPage",
+    component: () => import("@/pages/new/EditNewsPage.vue"),
+  },
+  {
+    path: "/news/edit/:newsId",
+    name: "EditNewsById",
+    component: () => import("@/pages/new/EditNewsPage.vue"),
+  },
+  {
+    path: "/news/detail/:newsId",
+    name: "NewsDetail",
+    component: () => import("@/pages/new/NewsDetailPage.vue"),
+  },
+  {
     path: "/403",
     name: "Exception403",
     component: () => import("@/pages/exception/403.vue"),

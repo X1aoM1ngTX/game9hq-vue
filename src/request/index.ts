@@ -21,7 +21,7 @@ myAxios.interceptors.request.use(
 // 响应拦截器
 myAxios.interceptors.response.use(
   (response) => {
-    return response;
+    return response.data;
   },
   (error) => {
     if (error.response) {
