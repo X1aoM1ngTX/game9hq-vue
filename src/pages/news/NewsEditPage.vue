@@ -1,6 +1,6 @@
 <template>
-  <div class="edit-news-page">
-    <div class="edit-container">
+  <div class="news-edit-page">
+    <div class="news-edit-container">
       <a-card :bordered="false" class="edit-card">
         <div class="page-title">
           {{ isEditMode ? "编辑资讯" : "创建新资讯" }}
@@ -10,9 +10,9 @@
         <a-form-item label="标题">
           <a-input
             v-model:value="newsForm.newsTitle"
-            placeholder="请输入标题"
-            class="title-input"
             :maxLength="100"
+            class="title-input"
+            placeholder="请输入标题"
             showCount
           />
         </a-form-item>
@@ -22,9 +22,9 @@
           <div class="cover-upload">
             <a-upload
               v-model:file-list="fileList"
-              list-type="picture-card"
-              :show-upload-list="false"
               :before-upload="beforeUpload"
+              :show-upload-list="false"
+              list-type="picture-card"
               @change="handleCoverChange"
             >
               <div v-if="uploading" class="uploading-container">
@@ -53,9 +53,9 @@
         <a-form-item label="正文">
           <a-textarea
             v-model:value="newsForm.newsContent"
-            placeholder="请输入正文内容"
             :auto-size="{ minRows: 10, maxRows: 20 }"
             class="content-editor"
+            placeholder="请输入正文内容"
           />
         </a-form-item>
 
@@ -63,9 +63,9 @@
         <a-form-item label="摘要">
           <a-textarea
             v-model:value="newsForm.newsSummary"
-            placeholder="请输入摘要，如果不输入将自动提取正文前 200 字"
             :auto-size="{ minRows: 3, maxRows: 6 }"
             :maxLength="200"
+            placeholder="请输入摘要，如果不输入将自动提取正文前 200 字"
             showCount
           />
           <div class="form-tip">
@@ -77,10 +77,10 @@
         <div class="action-buttons">
           <a-button @click="goBack">取消</a-button>
           <a-space>
-            <a-button @click="saveDraft" :loading="saving" v-if="!isPublished"
-              >保存草稿</a-button
-            >
-            <a-button type="primary" @click="publish" :loading="publishing">
+            <a-button v-if="!isPublished" :loading="saving" @click="saveDraft"
+              >保存草稿
+            </a-button>
+            <a-button :loading="publishing" type="primary" @click="publish">
               {{ isEditMode && isPublished ? "更新" : "发布" }}
             </a-button>
           </a-space>
@@ -90,20 +90,20 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
+<script lang="ts" setup>
+import { onMounted, reactive, ref } from "vue";
+import type { UploadChangeParam } from "ant-design-vue";
 import { message } from "ant-design-vue";
 import { PlusOutlined } from "@ant-design/icons-vue";
-import { useRouter, useRoute } from "vue-router";
-import type { UploadChangeParam } from "ant-design-vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   createNews,
-  publishNews,
-  uploadImage,
-  getNewsDetail,
-  getDraftNews,
-  updateNews,
   draftNews,
+  getDraftNews,
+  getNewsDetail,
+  publishNews,
+  updateNews,
+  uploadImage,
 } from "@/api/news";
 
 const router = useRouter();
@@ -422,13 +422,13 @@ const goBack = () => {
 </script>
 
 <style scoped>
-.edit-news-page {
+.news-edit-page {
   padding: 24px;
   background: #f5f5f5;
   min-height: calc(100vh - 64px);
 }
 
-.edit-container {
+.news-edit-container {
   max-width: 900px;
   margin: 0 auto;
 }

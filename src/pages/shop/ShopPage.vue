@@ -79,6 +79,19 @@ import router from "@/router";
 // 设置 dayjs 为中文
 dayjs.locale("zh-cn");
 
+// 定义游戏项的接口
+interface GameItem {
+  gameId: number;
+  gameName: string;
+  gamePrice: number;
+  gameCover: string;
+  gameOnSale: number;
+  gameDiscount: number;
+  gameDiscountedPrices: number;
+
+  [key: string]: any;
+}
+
 // 搜索关键词
 const searchValue = ref("");
 // 搜索处理函数
@@ -86,7 +99,7 @@ const onSearch = (value: string) => {
   fetchData(value);
 };
 // 表格数据
-const data = ref([]);
+const data = ref<GameItem[]>([]);
 // 表格列
 const columns = [
   {
@@ -106,13 +119,25 @@ const columns = [
   },
 ];
 
+// API响应类型定义
+interface ApiResponse<T> {
+  code: number;
+  message: string;
+  data?: {
+    records?: T[];
+    total?: number;
+    [key: string]: any;
+  };
+}
+
 // 获取游戏列表数据
 const fetchData = async (keyword = "") => {
-  const res = await searchGames({
+  const res = (await searchGames({
     gameName: keyword,
     current: 1,
     pageSize: 10,
-  });
+  })) as unknown as { data: ApiResponse<GameItem> };
+
   if (res.data.code === 0) {
     data.value = res.data.data?.records || [];
   } else {
@@ -121,7 +146,7 @@ const fetchData = async (keyword = "") => {
   }
 };
 
-const goToGameDetail = (gameId: string) => {
+const goToGameDetail = (gameId: number) => {
   if (!gameId) {
     return;
   }
@@ -144,43 +169,92 @@ const handleAfterLeave = (el: Element) => {
 </script>
 
 <style scoped>
+.shop-container {
+  position: relative;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
 #shopPage {
   min-height: calc(100vh - 64px);
-  padding: 24px;
+  padding: 32px 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .header-actions {
   max-width: 1200px;
-  margin: 0 auto 24px;
+  margin: 0 auto 32px;
+  padding: 0 8px;
+}
+
+:deep(.ant-input-search) {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:deep(.ant-input) {
+  font-size: 16px;
+  height: 48px;
+  padding-left: 16px;
+}
+
+:deep(.ant-input-search-button) {
+  height: 48px;
+  font-size: 16px;
+  box-shadow: none !important;
+  border: none !important;
+  background: #1890ff;
+  color: white;
+  transition: all 0.2s;
+}
+
+:deep(.ant-input-search-button:hover) {
+  background: #40a9ff;
+}
+
+:deep(.ant-input-search-button:active) {
+  background: #096dd9;
 }
 
 .game-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 8px;
 }
 
 .game-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 4px;
+  background: #ffffff;
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.game-card:hover .game-cover img {
+  transform: scale(1.05);
 }
 
 .game-cover {
   position: relative;
   width: 100%;
   padding-top: 56.25%; /* 16:9 比例 */
-  background: #f0f0f0;
+  background: #f0f2f5;
+  overflow: hidden;
 }
 
 .game-cover img {
@@ -190,6 +264,7 @@ const handleAfterLeave = (el: Element) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s;
 }
 
 .game-cover :deep(.ant-empty) {
@@ -201,85 +276,147 @@ const handleAfterLeave = (el: Element) => {
 }
 
 .game-info {
-  padding: 12px;
+  padding: 16px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .game-title {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   font-size: 16px;
-  color: #1a1a1a;
+  font-weight: 600;
+  color: #262626;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: color 0.2s;
+  line-height: 1.4;
+}
+
+.game-card:hover .game-title {
+  color: #1890ff;
 }
 
 .price-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: auto;
 }
 
 .discount-tag {
-  background: #4caf50;
+  background: #52c41a;
   color: white;
   padding: 2px 6px;
-  border-radius: 2px;
-  font-size: 14px;
-  font-weight: bold;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(82, 196, 26, 0.2);
 }
 
 .prices {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .original-price {
   color: #999;
   text-decoration: line-through;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .current-price {
-  color: #1890ff;
-  font-weight: bold;
-  font-size: 16px;
+  color: #f5222d;
+  font-weight: 600;
+  font-size: 18px;
 }
 
 /* 修改过渡动画 */
 .slide-enter-active,
 .slide-leave-active {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s;
 }
 
 .slide-enter-from {
   transform: translateX(100%);
+  opacity: 0;
 }
 
 .slide-leave-to {
   transform: translateX(100%);
+  opacity: 0;
 }
 
 .slide-enter-to,
 .slide-leave-from {
   transform: translateX(0);
+  opacity: 1;
+}
+
+/* 添加空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8c8c8c;
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  color: #d9d9d9;
+  margin-bottom: 16px;
+}
+
+.empty-state-text {
+  font-size: 16px;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .game-cards {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  #shopPage {
+    padding: 24px 16px;
+  }
+
+  .game-cards {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  :deep(.ant-input) {
+    height: 42px;
+  }
+
+  :deep(.ant-input-search-button) {
+    height: 42px;
   }
 }
 
 @media (max-width: 480px) {
   .game-cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
   }
-}
 
-:deep(.ant-input-search-button) {
-  box-shadow: none !important;
-  border-bottom: none !important;
+  .game-title {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .game-info {
+    padding: 12px;
+  }
+
+  .current-price {
+    font-size: 16px;
+  }
 }
 </style>

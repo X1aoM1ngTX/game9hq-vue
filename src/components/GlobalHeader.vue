@@ -76,12 +76,13 @@
 <script lang="ts" setup>
 import { computed, h, ref, VNodeChild } from "vue";
 import {
-  AppstoreOutlined,
   BellOutlined,
-  DownOutlined, HomeOutlined,
+  DownOutlined,
+  FileTextOutlined,
+  HomeOutlined,
   LogoutOutlined,
-  MailOutlined,
   SettingOutlined,
+  ShopOutlined,
   UserOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
@@ -149,7 +150,7 @@ const menuItems = computed<MenuItem[]>(() => {
     },
     {
       key: "/shop",
-      icon: () => h(AppstoreOutlined),
+      icon: () => h(ShopOutlined),
       label: "商城",
     },
     {
@@ -159,7 +160,7 @@ const menuItems = computed<MenuItem[]>(() => {
     },
     {
       key: "/news",
-      icon: () => h(SettingOutlined),
+      icon: () => h(FileTextOutlined),
       label: "资讯",
     },
   ];

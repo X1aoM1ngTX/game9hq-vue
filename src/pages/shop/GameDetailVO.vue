@@ -186,12 +186,21 @@ const getBuyButtonText = computed(() => {
   return isGameInLibrary(game.value.gameId) ? "前往游戏库" : "添加到游戏库";
 });
 
+// 接口响应类型定义
+interface ApiResponse<T> {
+  code: number;
+  data: T;
+  message: string;
+}
+
 // 获取游戏详情
 const fetchGameDetail = async (gameId: string) => {
   try {
     loading.value = true;
     error.value = null;
-    const res = await getGameDetail(gameId);
+    const res = (await getGameDetail(gameId)) as unknown as {
+      data: ApiResponse<GameDetailVO>;
+    };
     if (res.data.code === 0 && res.data.data) {
       game.value = res.data.data;
     } else {
@@ -205,9 +214,18 @@ const fetchGameDetail = async (gameId: string) => {
   }
 };
 
+// 用户游戏库中的游戏类型
+interface UserGameItem {
+  gameId: number;
+
+  [key: string]: any;
+}
+
 // 检查游戏是否在用户游戏库中
 const isGameInLibrary = (gameId: number) => {
-  return userLibraryStore.games.some((game) => game.gameId === gameId);
+  return (userLibraryStore.games as UserGameItem[]).some(
+    (game) => game.gameId === gameId
+  );
 };
 
 // 处理按钮点击
@@ -230,10 +248,15 @@ const handleButtonClick = async () => {
     }
 
     try {
-      const res = await userBuyGame(game.value.gameId);
+      const res = (await userBuyGame(game.value.gameId)) as unknown as {
+        data: ApiResponse<any>;
+      };
       if (res.data.code === 0) {
         message.success("游戏已成功添加到您的游戏库");
-        userLibraryStore.games.push(game.value); // 更新全局状态
+        // 更新全局状态
+        (userLibraryStore.games as UserGameItem[]).push(
+          game.value as UserGameItem
+        );
       } else {
         message.error(res.data.message || "添加游戏失败");
       }
@@ -281,25 +304,17 @@ const handleBack = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
-  /* 添加进入动画 */
   animation: slide-in 0.3s ease-out;
 }
 
-/* 添加离开动画类 */
 .game-detail-overlay.slide-out {
   animation: slide-out 0.3s ease-in;
-}
-
-.game-detail {
-  /* ... 其他样式保持不变 ... */
-  /* 确保内容跟随overlay一起移动 */
-  transform-origin: right center;
 }
 
 @keyframes slide-in {
@@ -327,9 +342,10 @@ const handleBack = () => {
 .game-detail-sidebar {
   width: 100%;
   height: 100%;
-  background-color: #f8f8f8;
+  background-color: #ffffff;
   overflow-y: auto;
   animation: slideIn 0.4s ease-out;
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes slideIn {
@@ -344,17 +360,18 @@ const handleBack = () => {
 .game-detail-header {
   padding: 16px 0;
   margin-bottom: 24px;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
 }
 
 .header-content {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -365,78 +382,150 @@ const handleBack = () => {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
+  transition: color 0.2s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .back-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   gap: 4px;
   color: #1890ff;
   font-size: 16px;
+  transition: all 0.2s;
+  background: rgba(24, 144, 255, 0.1);
 }
 
 .back-btn:hover {
-  color: #40a9ff;
+  color: #ffffff;
+  background: #1890ff;
 }
 
 .game-detail-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px 40px;
 }
 
 .game-info {
   display: flex;
-  gap: 24px;
+  gap: 32px;
 }
 
 .game-main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
 }
 
 .game-cover {
   width: 100%;
   height: 400px;
-  background-color: #ffffff;
-  border-radius: 8px;
+  background-color: #f8f8f8;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+
+.game-cover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
 }
 
 .game-cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s;
+}
+
+.game-cover:hover img {
+  transform: scale(1.03);
+}
+
+.game-description {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.game-description h3 {
+  color: #1890ff;
+  font-size: 20px;
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-weight: 600;
+  position: relative;
+  padding-left: 14px;
+}
+
+.game-description h3::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 18px;
+  background: #1890ff;
+  border-radius: 2px;
+}
+
+.game-description p {
+  color: #333333;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  text-align: justify;
 }
 
 .game-sidebar {
-  width: 320px;
+  width: 340px;
   flex-shrink: 0;
 }
 
-.game-basic-info,
-.game-description,
+.game-basic-info {
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
+  transition: all 0.3s;
+}
+
+.game-basic-info:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+}
+
 .game-details {
   background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
 }
 
-.game-basic-info {
-  margin-bottom: 24px;
+.game-details:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
 }
 
-/* Price styles */
 .price-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
 }
 
 .current-price {
-  font-size: 24px;
+  font-size: 28px;
   color: #000000;
   font-weight: bold;
 }
@@ -452,91 +541,109 @@ const handleBack = () => {
   margin-right: 8px;
 }
 
-/* Button styles */
 .buy-button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background-color: #1890ff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
   transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.25);
 }
 
 .buy-button:disabled {
   background-color: #d9d9d9;
   cursor: not-allowed;
   color: rgba(0, 0, 0, 0.25);
+  box-shadow: none;
 }
 
-/* 添加新的样式用于区分不同状态 */
 .buy-button:not(:disabled) {
   background-color: #1890ff;
 }
 
 .buy-button:not(:disabled):hover {
   background-color: #40a9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.35);
 }
 
-/* Details styles */
-.game-details .label {
-  color: #666;
-  min-width: 100px;
+.buy-button:not(:disabled):active {
+  background-color: #096dd9;
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
 }
 
-.sale-end-time {
-  color: #999;
+:deep(.ant-list) {
+  background: transparent;
+}
+
+:deep(.ant-list-item) {
+  padding: 10px 0;
+  border-bottom: none;
+}
+
+:deep(.ant-tag) {
+  margin: 4px 0;
+  padding: 4px 8px;
   font-size: 14px;
-  margin-top: 4px;
-  padding-left: 100px;
+  border: none;
 }
 
-/* Loading and error states */
 .loading,
 .error {
   text-align: center;
-  padding: 40px;
+  padding: 60px;
   font-size: 16px;
   color: #666;
+  border-radius: 12px;
+  background: #f9f9f9;
+  margin: 20px 0;
 }
 
 .error {
   color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.05);
 }
 
-/* Empty state */
-:deep(.ant-empty) {
-  margin: 32px 0;
-  color: #666;
+.countdown {
+  font-family: "Roboto Mono", monospace;
+  font-weight: 500;
 }
 
-:deep(.ant-empty-description) {
-  color: #666;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .game-info {
     flex-direction: column;
   }
 
   .game-sidebar {
-    width: 320px;
-    align-self: flex-start;
-  }
-
-  .game-cover {
-    height: 300px;
+    width: 100%;
   }
 }
 
-.countdown {
-  margin-left: 8px;
-  font-size: 14px;
-  color: #ff4d4f;
-  font-family: monospace; /* 使用等宽字体，让数字对齐 */
+@media (max-width: 768px) {
+  .game-cover {
+    height: 300px;
+  }
+
+  .game-description,
+  .game-basic-info,
+  .game-details {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header-content h1 {
+    font-size: 20px;
+  }
+
+  .game-detail-container {
+    padding: 0 16px 24px;
+  }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
-  <div class="forgot-password-page">
-    <div class="forgot-password-container">
-      <div class="forgot-password-header">
+  <div class="reset-password-page">
+    <div class="reset-password-container">
+      <div class="reset-password-header">
         <div class="title-text">
           <span class="primary">重置 </span>
           <span class="highlight">密码</span>
@@ -9,8 +9,8 @@
       </div>
       <a-form
         :model="formState"
-        class="forgot-password-form"
-        name="forgot-password"
+        class="reset-password-form"
+        name="reset-password"
         @finish="handleSubmit"
       >
         <a-form-item
@@ -197,36 +197,36 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
-.forgot-password-page {
+.reset-password-page {
   height: 100vh;
   width: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f0f2f5, #e6e9ed);
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
 }
 
-.forgot-password-container {
+.reset-password-container {
   width: 100%;
   height: 100%;
   padding: 40px;
   background: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   position: relative;
   overflow: hidden;
 }
 
-.forgot-password-container::before {
+.reset-password-container::before {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 4px;
-  background: #1890ff;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
 }
 
-.forgot-password-header {
+.reset-password-header {
   text-align: center;
   margin-bottom: 48px;
   padding-top: 48px;
@@ -249,11 +249,11 @@ const handleSubmit = async () => {
 }
 
 .highlight {
-  color: #1890ff;
+  color: #4facfe;
   font-weight: 600;
 }
 
-.forgot-password-form {
+.reset-password-form {
   max-width: 100%;
   padding: 0 20px;
 }
@@ -264,20 +264,20 @@ const handleSubmit = async () => {
 
 :deep(.ant-input-affix-wrapper) {
   padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
   background: #ffffff;
   transition: all 0.2s;
 }
 
 :deep(.ant-input-affix-wrapper:hover) {
-  border-color: #40a9ff;
+  border-color: #4facfe;
 }
 
 :deep(.ant-input-affix-wrapper-focused),
 :deep(.ant-input-affix-wrapper:focus) {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  border-color: #4facfe;
+  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
 }
 
 :deep(.ant-input) {
@@ -314,57 +314,57 @@ const handleSubmit = async () => {
 
 .submit-button {
   width: 100%;
-  height: 40px;
+  height: 44px;
   font-size: 15px;
-  border-radius: 6px;
-  background: #1890ff;
+  border-radius: 8px;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
   border: none;
   font-weight: 500;
   transition: all 0.2s;
   color: white;
-  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.25);
 }
 
 .submit-button:hover {
-  background: #40a9ff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+  background: linear-gradient(to right, #4facfe, #00f2fe);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(79, 172, 254, 0.35);
 }
 
 .submit-button:active {
-  background: #096dd9;
+  background: linear-gradient(to right, #3a9efd, #00e0fa);
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+  box-shadow: 0 4px 8px rgba(79, 172, 254, 0.2);
 }
 
 /* 验证码按钮样式 */
 :deep(.ant-btn:not(.submit-button)) {
-  height: 40px;
+  height: 44px;
   background: #ffffff;
-  border: 1px solid #d9d9d9;
+  border: 1px solid #e0e0e0;
   color: #595959;
   font-size: 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 :deep(.ant-btn:not(.submit-button):hover) {
-  color: #40a9ff;
-  border-color: #40a9ff;
+  color: #4facfe;
+  border-color: #4facfe;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.1);
 }
 
 :deep(.ant-btn:not(.submit-button):active) {
-  color: #096dd9;
-  border-color: #096dd9;
-  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
+  color: #3a9efd;
+  border-color: #3a9efd;
+  box-shadow: 0 2px 4px rgba(79, 172, 254, 0.1);
 }
 
 :deep(.ant-btn:not(.submit-button)[disabled]) {
   color: rgba(0, 0, 0, 0.25);
-  border-color: #d9d9d9;
+  border-color: #e0e0e0;
   background: #f5f5f5;
   text-shadow: none;
   box-shadow: none;
@@ -384,7 +384,7 @@ const handleSubmit = async () => {
 }
 
 .login-link:hover {
-  color: #1890ff;
+  color: #4facfe;
 }
 
 /* 表单项文字颜色 */
@@ -420,11 +420,11 @@ const handleSubmit = async () => {
 }
 
 @media (max-width: 576px) {
-  .forgot-password-container {
+  .reset-password-container {
     padding: 24px 16px;
   }
 
-  .forgot-password-header {
+  .reset-password-header {
     margin-bottom: 32px;
     padding-top: 32px;
   }

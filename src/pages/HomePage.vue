@@ -60,92 +60,179 @@ const handleButtonClick = () => {
 <style scoped>
 .home-page {
   min-height: calc(100vh - 64px - 70px);
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+  padding: 80px 20px;
+  background-color: #ffffff;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 70%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 100% 0%,
+    #f0f0f0 0%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  z-index: 0;
 }
 
 .content {
   max-width: 1200px;
   margin: 0 auto;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .logo-area {
   margin-bottom: 40px;
+  animation: fadeIn 1s ease-out;
 }
 
 .logo {
   width: 120px;
   height: 120px;
   margin-bottom: 20px;
+  filter: grayscale(100%);
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+  filter: grayscale(0%);
 }
 
 .logo-area h1 {
-  font-size: 48px;
+  font-size: 56px;
   color: #000000;
   margin: 0;
-  font-weight: bold;
+  font-weight: 700;
+  letter-spacing: -1px;
 }
 
 .slogan {
-  font-size: 24px;
-  color: #666;
+  font-size: 22px;
+  color: #595959;
   margin-bottom: 60px;
-  line-height: 1.5;
+  line-height: 1.6;
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
+  animation: fadeIn 1s ease-out 0.3s both;
+  font-weight: 300;
 }
 
 .action-area {
   margin-bottom: 80px;
+  animation: fadeIn 1s ease-out 0.6s both;
 }
 
 .main-button {
   height: 50px;
   background-color: #000000;
   padding: 0 40px;
-  font-size: 18px;
-  border-radius: 25px;
+  font-size: 16px;
+  border-radius: 2px;
+  border: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: none;
+  letter-spacing: 2px;
+  color: #ffffff;
+}
+
+.main-button:hover {
+  background-color: #333333;
+  transform: translateY(-2px);
+}
+
+.main-button:active {
+  background-color: #000000;
+  transform: translateY(0);
 }
 
 .feature-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
+  gap: 40px;
   margin-top: 60px;
+  animation: fadeIn 1s ease-out 0.9s both;
 }
 
 .feature-card {
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease;
+  background: #ffffff;
+  padding: 40px 30px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  border: 1px solid #f0f0f0;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border-color: #e0e0e0;
 }
 
 .feature-card .icon {
-  font-size: 36px;
-  margin-bottom: 20px;
+  font-size: 40px;
+  margin-bottom: 24px;
+  display: inline-block;
+  position: relative;
+  z-index: 2;
+  color: #000000;
 }
 
 .feature-card h3 {
   font-size: 20px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
+  color: #000000;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+  letter-spacing: 0.5px;
 }
 
 .feature-card p {
-  color: #2c2c2c;
-  line-height: 1.6;
+  color: #595959;
+  line-height: 1.8;
+  position: relative;
+  z-index: 2;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media screen and (max-width: 768px) {
+  .home-page {
+    padding: 60px 20px;
+  }
+
+  .logo {
+    width: 100px;
+    height: 100px;
+  }
+
   .logo-area h1 {
-    font-size: 36px;
+    font-size: 42px;
   }
 
   .slogan {
@@ -155,6 +242,41 @@ const handleButtonClick = () => {
 
   .feature-cards {
     grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .feature-card {
+    padding: 30px 25px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .home-page {
+    padding: 40px 20px;
+  }
+
+  .logo-area h1 {
+    font-size: 36px;
+  }
+
+  .slogan {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .main-button {
+    height: 46px;
+    padding: 0 30px;
+    font-size: 15px;
+  }
+
+  .feature-card .icon {
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+
+  .feature-card h3 {
+    margin-bottom: 12px;
   }
 }
 </style>

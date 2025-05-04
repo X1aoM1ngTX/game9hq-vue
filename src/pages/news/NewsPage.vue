@@ -9,28 +9,32 @@
             :class="['nav-item', activeTab === 'community' ? 'active' : '']"
             @click="switchTab('community')"
           >
-            <read-outlined /> 社区内容
+            <read-outlined />
+            社区内容
           </div>
           <div
             :class="['nav-item', activeTab === 'drafts' ? 'active' : '']"
             @click="switchTab('drafts')"
           >
-            <edit-outlined /> 我的草稿
+            <edit-outlined />
+            我的草稿
           </div>
           <div
             :class="['nav-item', activeTab === 'published' ? 'active' : '']"
             @click="switchTab('published')"
           >
-            <file-done-outlined /> 我的发布
+            <file-done-outlined />
+            我的发布
           </div>
         </div>
         <a-button
-          type="primary"
-          class="publish-btn"
           block
+          class="publish-btn"
+          type="primary"
           @click="createNewNews"
         >
-          <plus-outlined /> 发布资讯
+          <plus-outlined />
+          发布资讯
         </a-button>
       </a-card>
     </aside>
@@ -44,8 +48,8 @@
             <a-input-search
               v-if="activeTab === 'community'"
               v-model:value="searchKeyword"
-              placeholder="搜索资讯..."
               class="search-input"
+              placeholder="搜索资讯..."
               @search="onSearch"
             />
           </div>
@@ -73,11 +77,11 @@
                   <div class="news-title">{{ item.newsTitle }}</div>
                   <div class="news-summary">{{ item.newsSummary }}</div>
                 </div>
-                <div class="news-image" v-if="item.newsCoverImage">
+                <div v-if="item.newsCoverImage" class="news-image">
                   <img
                     v-lazy="item.newsCoverImage"
-                    class="news-cover"
                     alt="资讯封面"
+                    class="news-cover"
                   />
                 </div>
               </div>
@@ -109,34 +113,40 @@
                   <div class="news-title">{{ item.newsTitle }}</div>
                   <div class="news-summary">{{ item.newsSummary }}</div>
                 </div>
-                <div class="news-image" v-if="item.newsCoverImage">
+                <div v-if="item.newsCoverImage" class="news-image">
                   <img
                     v-lazy="item.newsCoverImage"
-                    class="news-cover"
                     alt="资讯封面"
+                    class="news-cover"
                   />
                 </div>
               </div>
               <div class="news-footer">
                 <a-space>
                   <a-button
-                    type="primary"
                     size="small"
+                    type="primary"
                     @click="goToEdit(item.newsId)"
-                    ><edit-outlined /> 编辑</a-button
                   >
+                    <edit-outlined />
+                    编辑
+                  </a-button>
                   <a-button
-                    type="primary"
                     size="small"
+                    type="primary"
                     @click="publishDraft(item.newsId)"
-                    ><send-outlined /> 发布</a-button
                   >
+                    <send-outlined />
+                    发布
+                  </a-button>
                   <a-button
                     danger
                     size="small"
                     @click="deleteDraft(item.newsId)"
-                    ><delete-outlined /> 删除</a-button
                   >
+                    <delete-outlined />
+                    删除
+                  </a-button>
                 </a-space>
               </div>
             </div>
@@ -169,11 +179,11 @@
                   <div class="news-title">{{ item.newsTitle }}</div>
                   <div class="news-summary">{{ item.newsSummary }}</div>
                 </div>
-                <div class="news-image" v-if="item.newsCoverImage">
+                <div v-if="item.newsCoverImage" class="news-image">
                   <img
                     v-lazy="item.newsCoverImage"
-                    class="news-cover"
                     alt="资讯封面"
+                    class="news-cover"
                   />
                 </div>
               </div>
@@ -184,24 +194,30 @@
                 <div class="news-actions">
                   <a-space>
                     <a-button
-                      type="primary"
                       size="small"
-                      @click="goToEdit(item.newsId)"
-                      ><edit-outlined /> 编辑</a-button
-                    >
-                    <a-button
                       type="primary"
+                      @click="goToEdit(item.newsId)"
+                    >
+                      <edit-outlined />
+                      编辑
+                    </a-button>
+                    <a-button
                       ghost
                       size="small"
+                      type="primary"
                       @click="setAsDraft(item.newsId)"
-                      ><file-outlined /> 转为草稿</a-button
                     >
+                      <file-outlined />
+                      转为草稿
+                    </a-button>
                     <a-button
                       danger
                       size="small"
                       @click="deletePublished(item.newsId)"
-                      ><delete-outlined /> 删除</a-button
                     >
+                      <delete-outlined />
+                      删除
+                    </a-button>
                   </a-space>
                 </div>
               </div>
@@ -216,29 +232,29 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
+<script lang="ts" setup>
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { message, Modal } from "ant-design-vue";
 import {
+  DeleteOutlined,
   EditOutlined,
   EyeOutlined,
-  SendOutlined,
-  DeleteOutlined,
-  ReadOutlined,
   FileDoneOutlined,
-  PlusOutlined,
   FileOutlined,
+  PlusOutlined,
+  ReadOutlined,
+  SendOutlined,
 } from "@ant-design/icons-vue";
 import {
-  listPublishedNews,
-  listMyDrafts,
-  listMyPublishedNews,
-  publishNews,
   deleteNews,
   draftNews,
-  type NewsItemWithAuthor,
+  listMyDrafts,
+  listMyPublishedNews,
+  listPublishedNews,
   type NewsItem,
+  type NewsItemWithAuthor,
+  publishNews,
 } from "@/api/news";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 

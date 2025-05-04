@@ -201,6 +201,13 @@ interface Game {
   gameCover: string;
 }
 
+// 自定义事件接口定义
+interface RemoveGameEvent extends Event {
+  detail: {
+    gameId: number;
+  };
+}
+
 const user = ref<UserInfo>({
   userId: "",
   userName: "",
@@ -402,25 +409,23 @@ const handleRemove = async (gameId: number) => {
   }
 };
 
-// 监听自定义事件
-const handleRemoveGameEvent = (event: CustomEvent) => {
+// 处理游戏移除事件
+const handleRemoveGameEvent = (event: RemoveGameEvent) => {
   const { gameId } = event.detail;
   handleRemove(gameId);
 };
 
+// 组件挂载时初始化数据并添加事件监听
 onMounted(async () => {
+  // 并行加载用户数据、游戏库和签到状态
   await Promise.all([fetchData(), fetchUserGames(), checkSignInStatus()]);
-  document.addEventListener(
-    "removeGame",
-    handleRemoveGameEvent as EventListener
-  );
+  // 添加游戏移除事件监听
+  document.addEventListener("removeGame", handleRemoveGameEvent);
 });
 
+// 组件卸载时移除事件监听
 onUnmounted(() => {
-  document.removeEventListener(
-    "removeGame",
-    handleRemoveGameEvent as EventListener
-  );
+  document.removeEventListener("removeGame", handleRemoveGameEvent);
 });
 </script>
 

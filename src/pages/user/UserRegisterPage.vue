@@ -255,39 +255,54 @@ const onFinishFailed = (errorInfo: any) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
 }
 
 .register-container {
   width: 100%;
   height: 100%;
   padding: 40px;
-  background: #1f1f1f;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.register-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
 }
 
 .register-header {
   text-align: center;
-  margin-bottom: 60px;
-  padding-top: 60px;
+  margin-bottom: 48px;
+  padding-top: 48px;
 }
 
 .title-text {
-  font-size: 32px;
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  font-size: 28px;
+  color: #262626;
+  position: relative;
+  display: inline-block;
+  font-weight: 500;
 }
 
 .primary {
-  color: #ffffff;
+  color: #262626;
   font-weight: 500;
-  font-size: 32px;
-  font-family: "MiSans", sans-serif;
+  font-size: 28px;
+  font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .highlight {
-  color: #1890ff;
-  font-weight: bold;
-  text-shadow: 0 0 20px rgba(24, 144, 255, 0.5);
+  color: #4facfe;
+  font-weight: 600;
 }
 
 .register-form {
@@ -300,29 +315,27 @@ const onFinishFailed = (errorInfo: any) => {
 }
 
 :deep(.ant-input-affix-wrapper) {
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid #434343;
-  background: #141414;
-  transition: all 0.3s;
+  border: 1px solid #e0e0e0;
+  background: #ffffff;
+  transition: all 0.2s;
 }
 
 :deep(.ant-input-affix-wrapper:hover) {
-  border-color: #1890ff;
-  background: #141414;
+  border-color: #4facfe;
 }
 
 :deep(.ant-input-affix-wrapper-focused),
 :deep(.ant-input-affix-wrapper:focus) {
-  border-color: #1890ff;
-  background: #141414;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  border-color: #4facfe;
+  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
 }
 
 :deep(.ant-input) {
   background: transparent !important;
-  color: #ffffff !important;
-  font-size: 16px;
+  color: #262626 !important;
+  font-size: 14px;
 }
 
 :deep(.ant-input-password) {
@@ -338,122 +351,138 @@ const onFinishFailed = (errorInfo: any) => {
 }
 
 :deep(.ant-form-item) {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 :deep(.ant-form-item-explain-error) {
   color: #ff4d4f;
   margin-top: 4px;
+  font-size: 13px;
 }
 
 .form-actions {
-  margin-top: 32px;
+  margin-top: 24px;
 }
 
 .register-button {
   width: 100%;
-  height: 48px;
-  font-size: 16px;
+  height: 44px;
+  font-size: 15px;
   border-radius: 8px;
-  background: #1890ff;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
   border: none;
   font-weight: 500;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.25);
 }
 
 .register-button:hover {
-  background: #40a9ff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  background: linear-gradient(to right, #4facfe, #00f2fe);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(79, 172, 254, 0.35);
 }
 
-.form-links {
-  margin-top: 24px;
-  text-align: center;
-  color: #8c8c8c;
-}
-
-.login-link {
-  color: #8c8c8c;
-  margin-left: 8px;
-  transition: all 0.3s;
-  text-decoration: none;
-  position: relative;
-}
-
-.login-link:hover {
-  color: #1890ff;
-}
-
-.login-link::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: #1890ff;
-  transition: width 0.3s;
-}
-
-.login-link:hover::after {
-  width: 100%;
+.register-button:active {
+  background: linear-gradient(to right, #3a9efd, #00e0fa);
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(79, 172, 254, 0.2);
 }
 
 /* 验证码按钮样式 */
 :deep(.ant-btn:not(.register-button)) {
-  background: #141414;
-  border-color: #434343;
-  color: #8c8c8c;
+  height: 44px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  color: #595959;
+  font-size: 14px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 :deep(.ant-btn:not(.register-button):hover) {
-  background: #1890ff;
-  border-color: #1890ff;
-  color: #ffffff;
+  color: #4facfe;
+  border-color: #4facfe;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.1);
 }
 
-@media (max-width: 576px) {
-  .register-container {
-    padding: 30px 20px;
-  }
+:deep(.ant-btn:not(.register-button):active) {
+  color: #3a9efd;
+  border-color: #3a9efd;
+  box-shadow: 0 2px 4px rgba(79, 172, 254, 0.1);
+}
 
-  .register-header {
-    margin-bottom: 40px;
-    padding-top: 40px;
-  }
+:deep(.ant-btn:not(.register-button)[disabled]) {
+  color: rgba(0, 0, 0, 0.25);
+  border-color: #e0e0e0;
+  background: #f5f5f5;
+  text-shadow: none;
+  box-shadow: none;
+}
 
-  .title-text {
-    font-size: 28px;
-  }
+.form-links {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.login-link {
+  color: #595959;
+  font-size: 14px;
+  transition: all 0.2s;
+  text-decoration: none;
+  margin-left: 8px;
+}
+
+.login-link:hover {
+  color: #4facfe;
 }
 
 /* 表单项文字颜色 */
 :deep(.ant-form-item-label > label) {
-  color: #ffffff !important;
+  color: #262626 !important;
+  font-size: 14px;
 }
 
 :deep(.ant-form-item-explain) {
-  color: #ffffff;
+  color: #8c8c8c;
+  font-size: 13px;
 }
 
 :deep(.ant-form-item-required) {
-  color: #ffffff !important;
+  color: #262626 !important;
 }
 
 /* 输入框文字颜色 */
 :deep(.ant-input),
 :deep(.ant-input-password input) {
-  color: #ffffff !important;
+  color: #262626 !important;
 }
 
 :deep(.ant-input::placeholder),
 :deep(.ant-input-password input::placeholder) {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: #bfbfbf !important;
 }
 
 /* 底部文字 */
 .form-links span {
-  color: #ffffff;
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+@media (max-width: 576px) {
+  .register-container {
+    padding: 24px 16px;
+  }
+
+  .register-header {
+    margin-bottom: 32px;
+    padding-top: 32px;
+  }
+
+  .title-text {
+    font-size: 24px;
+  }
 }
 </style>

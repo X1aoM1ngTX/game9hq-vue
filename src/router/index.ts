@@ -34,12 +34,12 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
-        path: "forgot-password",
-        name: "userForgotPassword",
-        component: () => import("@/pages/user/UserForgotPasswordPage.vue"),
+        path: "reset-password",
+        name: "userResetPassword",
+        component: () => import("@/pages/user/ResetPasswordPage.vue"),
         meta: {
           layout: "blank",
-          title: "找回密码",
+          title: "重置密码",
         },
       },
     ],
@@ -90,22 +90,22 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: "/news",
     name: "NewsPage",
-    component: () => import("@/pages/new/NewsPage.vue"),
+    component: () => import("@/pages/news/NewsPage.vue"),
   },
   {
     path: "/news/edit",
     name: "EditNewsPage",
-    component: () => import("@/pages/new/EditNewsPage.vue"),
+    component: () => import("@/pages/news/NewsEditPage.vue"),
   },
   {
     path: "/news/edit/:newsId",
     name: "EditNewsById",
-    component: () => import("@/pages/new/EditNewsPage.vue"),
+    component: () => import("@/pages/news/NewsEditPage.vue"),
   },
   {
     path: "/news/detail/:newsId",
     name: "NewsDetail",
-    component: () => import("@/pages/new/NewsDetailPage.vue"),
+    component: () => import("@/pages/news/NewsDetailPage.vue"),
   },
   {
     path: "/403",

@@ -34,11 +34,11 @@
             </div>
           </div>
 
-          <div class="news-cover-container" v-if="newsData.newsCoverImage">
+          <div v-if="newsData.newsCoverImage" class="news-cover-container">
             <img
               :src="newsData.newsCoverImage"
-              class="news-cover"
               alt="资讯封面"
+              class="news-cover"
             />
           </div>
 
@@ -76,8 +76,8 @@
       <a-result
         v-else
         status="404"
-        title="未找到资讯"
         sub-title="您查找的资讯不存在或已被删除"
+        title="未找到资讯"
       >
         <template #extra>
           <a-button type="primary" @click="goBack">返回列表</a-button>
@@ -87,15 +87,15 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+<script lang="ts" setup>
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { message } from "ant-design-vue";
 import {
+  ArrowLeftOutlined,
+  CalendarOutlined,
   EditOutlined,
   EyeOutlined,
-  CalendarOutlined,
-  ArrowLeftOutlined,
 } from "@ant-design/icons-vue";
 import { getNewsDetail, type NewsItemWithAuthor } from "@/api/news";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
@@ -160,38 +160,49 @@ const contentBlocks = computed(() => {
   const imgRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
 
   paragraphs.forEach((paragraph) => {
-    // 重置正则表达式状态，很重要！
+    // 重置正则表达式状态
     imgRegex.lastIndex = 0;
+
+    // 检查段落是否仅包含图片链接
     const isParagraphJustImage =
       imgRegex.test(paragraph) &&
       paragraph.trim().match(imgRegex)?.[0] === paragraph.trim();
 
-    // 重置正则表达式状态再次，以防万一
+    // 重置正则表达式状态
     imgRegex.lastIndex = 0;
 
     if (isParagraphJustImage) {
+      // 如果段落仅包含图片，直接添加为图片块
       blocks.push({
         type: "image",
         content: paragraph.trim(),
       });
     } else {
+      // 处理包含文本和可能嵌入图片的段落
       let lastIndex = 0;
       let match;
+
+      // 用于标记是否在段落中找到了图片
+      let foundImageInParagraph = false;
+
+      // 临时存储当前段落的文本和图片块
       const currentParagraphBlocks: Array<{
         type: "text" | "image";
         content: string;
       }> = [];
-      let foundImageInParagraph = false;
 
+      // 查找段落中的所有图片
       while ((match = imgRegex.exec(paragraph)) !== null) {
         foundImageInParagraph = true;
-        // 添加图片前的文本
+
+        // 添加图片前的文本（如果有）
         if (match.index > lastIndex) {
           const textContent = paragraph.substring(lastIndex, match.index);
           if (textContent.trim()) {
             currentParagraphBlocks.push({ type: "text", content: textContent });
           }
         }
+
         // 添加图片
         currentParagraphBlocks.push({ type: "image", content: match[0] });
         lastIndex = match.index + match[0].length;
@@ -199,27 +210,22 @@ const contentBlocks = computed(() => {
 
       // 处理段落的剩余部分
       if (foundImageInParagraph) {
-        // 如果找到了图片，添加最后一部分文本（如果存在）
+        // 如果找到了图片，添加最后一部分文本（如果有）
         if (lastIndex < paragraph.length) {
           const textContent = paragraph.substring(lastIndex);
           if (textContent.trim()) {
             currentParagraphBlocks.push({ type: "text", content: textContent });
           }
         }
-      } else {
-        // 如果整个段落都没有找到图片，则将整个段落作为一个文本块添加到 currentParagraphBlocks
-        if (paragraph.trim()) {
-          currentParagraphBlocks.push({ type: "text", content: paragraph });
-        }
-      }
 
-      // 将当前段落生成的所有块添加到最终的 blocks 数组
-      blocks.push(...currentParagraphBlocks);
+        // 将当前段落生成的所有块添加到最终的blocks数组
+        blocks.push(...currentParagraphBlocks);
+      } else {
+        // 如果段落中没有图片，将整个段落作为一个文本块添加
+        blocks.push({ type: "text", content: paragraph });
+      }
     }
   });
-
-  // 打印最终生成的内容块，用于调试
-  console.log("生成的内容块:", blocks);
 
   return blocks;
 });
