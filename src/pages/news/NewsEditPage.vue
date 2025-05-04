@@ -18,7 +18,7 @@
         </a-form-item>
 
         <!-- 封面图上传 -->
-        <a-form-item label="封面图">
+        <a-form-item label="封面">
           <div class="cover-upload">
             <a-upload
               v-model:file-list="fileList"
@@ -50,7 +50,7 @@
         </a-form-item>
 
         <!-- 正文编辑器 -->
-        <a-form-item label="正文内容">
+        <a-form-item label="正文">
           <a-textarea
             v-model:value="newsForm.newsContent"
             placeholder="请输入正文内容"

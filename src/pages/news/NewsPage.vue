@@ -189,6 +189,19 @@
                       @click="goToEdit(item.newsId)"
                       ><edit-outlined /> 编辑</a-button
                     >
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      @click="setAsDraft(item.newsId)"
+                      ><file-outlined /> 转为草稿</a-button
+                    >
+                    <a-button
+                      danger
+                      size="small"
+                      @click="deletePublished(item.newsId)"
+                      ><delete-outlined /> 删除</a-button
+                    >
                   </a-space>
                 </div>
               </div>
@@ -215,6 +228,7 @@ import {
   ReadOutlined,
   FileDoneOutlined,
   PlusOutlined,
+  FileOutlined,
 } from "@ant-design/icons-vue";
 import {
   listPublishedNews,
@@ -222,6 +236,7 @@ import {
   listMyPublishedNews,
   publishNews,
   deleteNews,
+  draftNews,
   type NewsItemWithAuthor,
   type NewsItem,
 } from "@/api/news";
@@ -322,6 +337,61 @@ const deleteDraft = (newsId: number) => {
         if (res.data && res.data.code === 0) {
           message.success("删除成功");
           fetchMyDrafts(); // 刷新草稿列表
+        } else {
+          message.error(res.data?.message || "删除失败");
+        }
+      } catch (error) {
+        console.error("删除失败:", error);
+        message.error("删除失败");
+      } finally {
+        loading.value = false;
+      }
+    },
+  });
+};
+
+// 将已发布的资讯转为草稿
+const setAsDraft = (newsId: number) => {
+  Modal.confirm({
+    title: "转为草稿",
+    content: "确定要将此资讯转为草稿状态吗？转为草稿后该资讯将不再公开显示。",
+    okText: "确认",
+    cancelText: "取消",
+    async onOk() {
+      try {
+        loading.value = true;
+        const res = await draftNews(newsId);
+        if (res.data && res.data.code === 0) {
+          message.success("已转为草稿");
+          fetchMyPublishedNews(); // 刷新已发布列表
+          fetchMyDrafts(); // 同时刷新草稿列表
+        } else {
+          message.error(res.data?.message || "操作失败");
+        }
+      } catch (error) {
+        console.error("转为草稿失败:", error);
+        message.error("操作失败");
+      } finally {
+        loading.value = false;
+      }
+    },
+  });
+};
+
+// 删除已发布的资讯
+const deletePublished = (newsId: number) => {
+  Modal.confirm({
+    title: "确认删除",
+    content: "确定要删除这篇已发布的资讯吗？此操作不可恢复。",
+    okText: "确认",
+    cancelText: "取消",
+    async onOk() {
+      try {
+        loading.value = true;
+        const res = await deleteNews(String(newsId));
+        if (res.data && res.data.code === 0) {
+          message.success("删除成功");
+          fetchMyPublishedNews(); // 刷新已发布列表
         } else {
           message.error(res.data?.message || "删除失败");
         }

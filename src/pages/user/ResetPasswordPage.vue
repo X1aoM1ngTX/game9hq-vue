@@ -106,7 +106,7 @@
         </div>
 
         <div class="form-links">
-          <span>记起密码了？</span>
+          <span>想起密码了？</span>
           <router-link class="login-link" to="/user/login">
             立即登录
           </router-link>
@@ -203,39 +203,54 @@ const handleSubmit = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #f0f2f5, #e6e9ed);
 }
 
 .forgot-password-container {
   width: 100%;
   height: 100%;
   padding: 40px;
-  background: #1f1f1f;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.forgot-password-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #1890ff;
 }
 
 .forgot-password-header {
   text-align: center;
-  margin-bottom: 60px;
-  padding-top: 60px;
+  margin-bottom: 48px;
+  padding-top: 48px;
 }
 
 .title-text {
-  font-size: 32px;
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  font-size: 28px;
+  color: #262626;
+  position: relative;
+  display: inline-block;
+  font-weight: 500;
 }
 
 .primary {
-  color: #ffffff;
+  color: #262626;
   font-weight: 500;
-  font-size: 32px;
-  font-family: "MiSans", sans-serif;
+  font-size: 28px;
+  font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .highlight {
   color: #1890ff;
-  font-weight: bold;
-  text-shadow: 0 0 20px rgba(24, 144, 255, 0.5);
+  font-weight: 600;
 }
 
 .forgot-password-form {
@@ -248,29 +263,27 @@ const handleSubmit = async () => {
 }
 
 :deep(.ant-input-affix-wrapper) {
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #434343;
-  background: #141414;
-  transition: all 0.3s;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  background: #ffffff;
+  transition: all 0.2s;
 }
 
 :deep(.ant-input-affix-wrapper:hover) {
-  border-color: #1890ff;
-  background: #141414;
+  border-color: #40a9ff;
 }
 
 :deep(.ant-input-affix-wrapper-focused),
 :deep(.ant-input-affix-wrapper:focus) {
   border-color: #1890ff;
-  background: #141414;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 :deep(.ant-input) {
   background: transparent !important;
-  color: #ffffff !important;
-  font-size: 16px;
+  color: #262626 !important;
+  font-size: 14px;
 }
 
 :deep(.ant-input-password) {
@@ -286,129 +299,138 @@ const handleSubmit = async () => {
 }
 
 :deep(.ant-form-item) {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 :deep(.ant-form-item-explain-error) {
   color: #ff4d4f;
   margin-top: 4px;
+  font-size: 13px;
 }
 
 .form-actions {
-  margin-top: 32px;
+  margin-top: 24px;
 }
 
 .submit-button {
   width: 100%;
-  height: 48px;
-  font-size: 16px;
-  border-radius: 8px;
+  height: 40px;
+  font-size: 15px;
+  border-radius: 6px;
   background: #1890ff;
   border: none;
   font-weight: 500;
-  transition: all 0.3s;
+  transition: all 0.2s;
+  color: white;
+  box-shadow: 0 2px 6px rgba(24, 144, 255, 0.2);
 }
 
 .submit-button:hover {
   background: #40a9ff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
+}
+
+.submit-button:active {
+  background: #096dd9;
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.2);
+}
+
+/* 验证码按钮样式 */
+:deep(.ant-btn:not(.submit-button)) {
+  height: 40px;
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  color: #595959;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+:deep(.ant-btn:not(.submit-button):hover) {
+  color: #40a9ff;
+  border-color: #40a9ff;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
+}
+
+:deep(.ant-btn:not(.submit-button):active) {
+  color: #096dd9;
+  border-color: #096dd9;
+  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
+}
+
+:deep(.ant-btn:not(.submit-button)[disabled]) {
+  color: rgba(0, 0, 0, 0.25);
+  border-color: #d9d9d9;
+  background: #f5f5f5;
+  text-shadow: none;
+  box-shadow: none;
 }
 
 .form-links {
-  margin-top: 24px;
+  margin-top: 20px;
   text-align: center;
-  color: #8c8c8c;
 }
 
 .login-link {
-  color: #8c8c8c;
-  margin-left: 8px;
-  transition: all 0.3s;
+  color: #595959;
+  font-size: 14px;
+  transition: all 0.2s;
   text-decoration: none;
-  position: relative;
+  margin-left: 8px;
 }
 
 .login-link:hover {
   color: #1890ff;
 }
 
-.login-link::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: #1890ff;
-  transition: width 0.3s;
-}
-
-.login-link:hover::after {
-  width: 100%;
-}
-
-/* 验证码按钮样式 */
-:deep(.ant-btn) {
-  background: #1890ff;
-  border: none;
-  color: #ffffff;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-:deep(.ant-btn:hover) {
-  background: #40a9ff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
-}
-
 /* 表单项文字颜色 */
 :deep(.ant-form-item-label > label) {
-  color: #ffffff !important;
+  color: #262626 !important;
+  font-size: 14px;
 }
 
 :deep(.ant-form-item-explain) {
-  color: #ffffff;
+  color: #8c8c8c;
+  font-size: 13px;
 }
 
 :deep(.ant-form-item-required) {
-  color: #ffffff !important;
+  color: #262626 !important;
 }
 
 /* 输入框文字颜色 */
 :deep(.ant-input),
 :deep(.ant-input-password input) {
-  color: #ffffff !important;
+  color: #262626 !important;
 }
 
 :deep(.ant-input::placeholder),
 :deep(.ant-input-password input::placeholder) {
-  color: rgba(255, 255, 255, 0.45) !important;
-}
-
-/* 验证码按钮文字 */
-:deep(.ant-btn) {
-  color: #ffffff !important;
+  color: #bfbfbf !important;
 }
 
 /* 底部文字 */
 .form-links span {
-  color: #ffffff;
+  color: #8c8c8c;
+  font-size: 14px;
 }
 
 @media (max-width: 576px) {
   .forgot-password-container {
-    padding: 30px 20px;
+    padding: 24px 16px;
   }
 
   .forgot-password-header {
-    margin-bottom: 40px;
-    padding-top: 40px;
+    margin-bottom: 32px;
+    padding-top: 32px;
   }
 
   .title-text {
-    font-size: 28px;
+    font-size: 24px;
   }
 }
 </style>

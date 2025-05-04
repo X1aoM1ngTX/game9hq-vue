@@ -157,68 +157,69 @@ const contentBlocks = computed(() => {
     .split("\n")
     .filter((p) => p.trim() !== "");
 
-  // 图片正则表达式
   const imgRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp))/gi;
 
-  // 处理每个段落
   paragraphs.forEach((paragraph) => {
-    // 如果段落是一个图片链接（整行只有一个链接）
-    if (
+    // 重置正则表达式状态，很重要！
+    imgRegex.lastIndex = 0;
+    const isParagraphJustImage =
       imgRegex.test(paragraph) &&
-      paragraph.trim().match(imgRegex)?.[0] === paragraph.trim()
-    ) {
+      paragraph.trim().match(imgRegex)?.[0] === paragraph.trim();
+
+    // 重置正则表达式状态再次，以防万一
+    imgRegex.lastIndex = 0;
+
+    if (isParagraphJustImage) {
       blocks.push({
         type: "image",
         content: paragraph.trim(),
       });
     } else {
-      // 将段落中的图片链接拆分成多个块
       let lastIndex = 0;
       let match;
-      // 重置正则表达式状态
-      imgRegex.lastIndex = 0;
+      const currentParagraphBlocks: Array<{
+        type: "text" | "image";
+        content: string;
+      }> = [];
+      let foundImageInParagraph = false;
 
       while ((match = imgRegex.exec(paragraph)) !== null) {
+        foundImageInParagraph = true;
         // 添加图片前的文本
         if (match.index > lastIndex) {
           const textContent = paragraph.substring(lastIndex, match.index);
           if (textContent.trim()) {
-            blocks.push({
-              type: "text",
-              content: textContent,
-            });
+            currentParagraphBlocks.push({ type: "text", content: textContent });
           }
         }
-
         // 添加图片
-        blocks.push({
-          type: "image",
-          content: match[0],
-        });
-
+        currentParagraphBlocks.push({ type: "image", content: match[0] });
         lastIndex = match.index + match[0].length;
       }
 
-      // 添加最后一段文本
-      if (lastIndex < paragraph.length) {
-        const textContent = paragraph.substring(lastIndex);
-        if (textContent.trim()) {
-          blocks.push({
-            type: "text",
-            content: textContent,
-          });
+      // 处理段落的剩余部分
+      if (foundImageInParagraph) {
+        // 如果找到了图片，添加最后一部分文本（如果存在）
+        if (lastIndex < paragraph.length) {
+          const textContent = paragraph.substring(lastIndex);
+          if (textContent.trim()) {
+            currentParagraphBlocks.push({ type: "text", content: textContent });
+          }
+        }
+      } else {
+        // 如果整个段落都没有找到图片，则将整个段落作为一个文本块添加到 currentParagraphBlocks
+        if (paragraph.trim()) {
+          currentParagraphBlocks.push({ type: "text", content: paragraph });
         }
       }
 
-      // 如果没有找到图片，则整段作为文本
-      if (lastIndex === 0) {
-        blocks.push({
-          type: "text",
-          content: paragraph,
-        });
-      }
+      // 将当前段落生成的所有块添加到最终的 blocks 数组
+      blocks.push(...currentParagraphBlocks);
     }
   });
+
+  // 打印最终生成的内容块，用于调试
+  console.log("生成的内容块:", blocks);
 
   return blocks;
 });
