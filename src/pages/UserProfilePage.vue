@@ -420,12 +420,18 @@ onMounted(async () => {
   // 并行加载用户数据、游戏库和签到状态
   await Promise.all([fetchData(), fetchUserGames(), checkSignInStatus()]);
   // 添加游戏移除事件监听
-  document.addEventListener("removeGame", handleRemoveGameEvent);
+  document.addEventListener(
+    "removeGame",
+    handleRemoveGameEvent as EventListener
+  );
 });
 
 // 组件卸载时移除事件监听
 onUnmounted(() => {
-  document.removeEventListener("removeGame", handleRemoveGameEvent);
+  document.removeEventListener(
+    "removeGame",
+    handleRemoveGameEvent as EventListener
+  );
 });
 </script>
 
