@@ -184,7 +184,7 @@ const handleAfterLeave = (el: Element) => {
 
 .header-actions {
   max-width: 1200px;
-  margin: 0 auto 32px;
+  margin: 0 auto 16px;
   padding: 0 8px;
 }
 
@@ -220,7 +220,7 @@ const handleAfterLeave = (el: Element) => {
 
 .game-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 28px;
   max-width: 1200px;
   margin: 0 auto;
@@ -374,21 +374,25 @@ const handleAfterLeave = (el: Element) => {
 }
 
 /* 响应式设计 */
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
   .game-cards {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .game-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .game-cards {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
   #shopPage {
     padding: 24px 16px;
-  }
-
-  .game-cards {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
   }
 
   :deep(.ant-input) {

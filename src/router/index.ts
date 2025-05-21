@@ -80,6 +80,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/UserProfilePage.vue"),
   },
   {
+    path: "/user/profile/:userId",
+    name: "UserProfileByIdPage",
+    component: () => import("@/pages/UserProfilePage.vue"),
+  },
+  {
     path: "/about",
     name: "AboutPage",
     component: () => import("@/pages/AboutPage.vue"),

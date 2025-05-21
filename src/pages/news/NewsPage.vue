@@ -62,8 +62,17 @@
             <div v-for="item in newsList" :key="item.newsId" class="news-card">
               <div class="news-header">
                 <div class="author-info">
-                  <a-avatar :size="32" :src="item.authorAvatar" />
-                  <span class="author">{{ item.authorName }}</span>
+                  <a-avatar
+                    :size="32"
+                    :src="item.authorAvatar"
+                    class="author-avatar"
+                    @click="goToUserProfile(item.newsAuthorId)"
+                  />
+                  <span
+                    class="author"
+                    @click="goToUserProfile(item.newsAuthorId)"
+                    >{{ item.authorName }}</span
+                  >
                 </div>
                 <span class="publish-time">{{
                   formatDate(item.newsPublishTime || item.newsCreateTime)
@@ -532,9 +541,14 @@ const onSearch = (value: string) => {
   // TODO: 实现搜索逻辑
 };
 
-// 新增函数，专门用于创建新资讯
+// 跳转到创建新资讯页
 const createNewNews = () => {
   router.push("/news/edit");
+};
+
+// 跳转到用户主页
+const goToUserProfile = (userId: string | number) => {
+  router.push(`/user/profile/${userId}`);
 };
 
 // 初始化加载
@@ -655,9 +669,24 @@ onMounted(() => {
   gap: 8px;
 }
 
+.author-avatar {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.author-avatar:hover {
+  transform: scale(1.1);
+}
+
 .author {
   font-weight: 500;
   color: #1677ff;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.author:hover {
+  color: #40a9ff;
 }
 
 .publish-time {

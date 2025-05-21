@@ -12,6 +12,7 @@
     "axios": "^1.7.9",
     "cherry-markdown": "^0.9.1",
     "core-js": "^3.8.3",
+    "echarts": "^5.6.0",
     "pinia": "^2.3.0",
     "pinia-plugin-persistedstate": "^4.2.0",
     "vue": "^3.2.13",

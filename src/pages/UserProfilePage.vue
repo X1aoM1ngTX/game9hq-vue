@@ -5,31 +5,50 @@
       <a-col :lg="17" :md="16" :sm="24" :xs="24">
         <div class="left-content">
           <!-- 签到区域 -->
-          <div class="profile-section">
-            <div class="section-header">
-              <h3>签到记录</h3>
-              <a-button
-                :disabled="isTodaySigned"
-                :loading="signInLoading"
-                size="large"
-                type="primary"
-                @click="handleSignIn"
-              >
-                {{ isTodaySigned ? "今日已签到" : "立即签到" }}
-              </a-button>
-            </div>
-            <sign-in-calendar ref="calendarRef" />
+          <div class="profile-section sign-section">
+            <a-row :gutter="[24, 0]">
+              <!-- 左侧：统计和日历 -->
+              <a-col :span="isCurrentUser ? 17 : 24" class="sign-calendar-col">
+                <h3>签到记录</h3>
+                <sign-in-calendar ref="calendarRef" />
+              </a-col>
+              <!-- 右侧：签到卡片 -->
+              <a-col v-if="isCurrentUser" :span="7" class="sign-card-col">
+                <div class="sign-card">
+                  <img
+                    :src="
+                      isTodaySigned
+                        ? require('@/assets/GAME9/game9-green.png')
+                        : require('@/assets/GAME9/game9-black.png')
+                    "
+                    class="sign-card-img"
+                    :class="{ signed: isTodaySigned }"
+                    style="width: 80px; height: 80px"
+                  />
+                  <a-button
+                    :disabled="isTodaySigned"
+                    :loading="signInLoading"
+                    class="sign-btn"
+                    @click="handleSignIn"
+                  >
+                    {{ isTodaySigned ? "今日已签到" : "立即签到" }}
+                  </a-button>
+                </div>
+              </a-col>
+            </a-row>
           </div>
 
           <!-- 游戏库 -->
           <div class="profile-library">
-            <h3>我的游戏库</h3>
+            <h3>{{ isCurrentUser ? "我的游戏库" : "游戏库" }}</h3>
             <div v-if="userGames.length > 0" class="games-list">
               <div
                 v-for="game in userGames"
                 :key="game.gameId"
                 :data-game-id="game.gameId"
                 class="game-item"
+                @click="goToGameDetail(game.gameId)"
+                style="cursor: pointer"
               >
                 <img
                   v-lazy="game.gameCover"
@@ -41,7 +60,7 @@
                 </div>
               </div>
             </div>
-            <p v-else class="empty-text">您还没有添加任何游戏</p>
+            <p v-else class="empty-text">暂无游戏</p>
           </div>
         </div>
       </a-col>
@@ -51,6 +70,7 @@
           <div class="profile-header">
             <div class="avatar-section">
               <a-upload
+                v-if="isCurrentUser"
                 :before-upload="beforeUpload"
                 :customRequest="customUpload"
                 :show-upload-list="false"
@@ -66,6 +86,11 @@
                   </div>
                 </div>
               </a-upload>
+              <div v-else class="avatar-wrapper">
+                <a-avatar :size="64" :src="user.userAvatar">
+                  {{ user.userName?.charAt(0) }}
+                </a-avatar>
+              </div>
               <div class="online-status"></div>
             </div>
             <div class="user-info">
@@ -76,7 +101,12 @@
               </h2>
               <span class="user-id">ID：{{ user.userId }}</span>
             </div>
-            <a-button class="edit-btn" type="link" @click="handleEdit">
+            <a-button
+              v-if="isCurrentUser"
+              class="edit-btn"
+              type="link"
+              @click="handleEdit"
+            >
               修改资料
             </a-button>
           </div>
@@ -167,20 +197,26 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, reactive, ref } from "vue";
+import { onMounted, onUnmounted, reactive, ref, computed } from "vue";
 import {
   checkTodaySignIn,
   getCurrentUser,
   updateAvatar,
   userModify,
   userSignIn,
+  getUserById,
 } from "@/api/user";
-import { getUserLibrary, removeGameFromUserLibrary } from "@/api/userLibrary";
+import {
+  getSelfLibrary,
+  getUserLibrary,
+  removeGameFromUserLibrary,
+} from "@/api/userLibrary";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { CameraOutlined } from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import SignInCalendar from "@/components/SignInCalendar.vue";
+import { useRouter, useRoute } from "vue-router";
 
 interface UserInfo {
   userId: string | number;
@@ -208,6 +244,11 @@ interface RemoveGameEvent extends Event {
   };
 }
 
+// 添加 EventListener 类型定义
+type EventListener = (event: Event) => void;
+
+const route = useRoute();
+const router = useRouter();
 const user = ref<UserInfo>({
   userId: "",
   userName: "",
@@ -241,13 +282,24 @@ const signInLoading = ref(false);
 const isTodaySigned = ref(false);
 const calendarRef = ref();
 
+// 判断是否是当前用户的主页
+const isCurrentUser = computed(() => {
+  const userId = route.params.userId;
+  return !userId || userId === loginUserStore.loginUser?.userId;
+});
+
 const formatDate = (date: string) => {
   return dayjs(date).format("YYYY-MM-DD");
 };
 
 const fetchData = async () => {
   try {
-    const res = await getCurrentUser();
+    let res;
+    if (isCurrentUser.value) {
+      res = await getCurrentUser();
+    } else {
+      res = await getUserById(route.params.userId as string);
+    }
     if (res.data.code === 0) {
       user.value = res.data.data;
     } else {
@@ -262,7 +314,12 @@ const fetchData = async () => {
 // 新增的获取用户游戏库数据的方法
 const fetchUserGames = async () => {
   try {
-    const res = await getUserLibrary();
+    let res;
+    if (isCurrentUser.value) {
+      res = await getSelfLibrary();
+    } else {
+      res = await getUserLibrary(route.params.userId as string);
+    }
     if (res.data.code === 0) {
       userGames.value = res.data.data;
     } else {
@@ -276,6 +333,7 @@ const fetchUserGames = async () => {
 
 // 检查今日是否已签到
 const checkSignInStatus = async () => {
+  if (!isCurrentUser.value) return;
   try {
     const res = await checkTodaySignIn();
     if (res.data.code === 0) {
@@ -288,6 +346,7 @@ const checkSignInStatus = async () => {
 
 // 处理签到
 const handleSignIn = async () => {
+  if (!isCurrentUser.value) return;
   if (isTodaySigned.value) {
     message.warning("今日已签到");
     return;
@@ -314,6 +373,7 @@ const handleSignIn = async () => {
 
 // 处理编辑按钮点击
 const handleEdit = () => {
+  if (!isCurrentUser.value) return;
   formState.userName = user.value.userName;
   formState.userNickname = user.value.userNickname || user.value.userName;
   formState.userEmail = user.value.userEmail;
@@ -413,6 +473,10 @@ const handleRemove = async (gameId: number) => {
 const handleRemoveGameEvent = (event: RemoveGameEvent) => {
   const { gameId } = event.detail;
   handleRemove(gameId);
+};
+
+const goToGameDetail = (gameId: number) => {
+  router.push(`/game/${gameId}`);
 };
 
 // 组件挂载时初始化数据并添加事件监听
@@ -575,6 +639,21 @@ onUnmounted(() => {
   .info-grid {
     grid-template-columns: 1fr;
   }
+
+  .sign-section .ant-row {
+    flex-direction: column !important;
+  }
+  .sign-calendar-col,
+  .sign-card-col {
+    width: 100px !important;
+    max-width: 100px !important;
+    padding-left: 0 !important;
+    margin-bottom: 16px;
+  }
+  .sign-card {
+    min-width: 0;
+    width: 100%;
+  }
 }
 
 /* 添加新样式 */
@@ -709,5 +788,86 @@ onUnmounted(() => {
 :deep(.ant-btn-primary:disabled) {
   background: #d9d9d9;
   border-color: #d9d9d9;
+}
+
+.sign-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.sign-card-col {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sign-card {
+  background: rgb(255, 255, 255);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+}
+
+.sign-card-img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  animation: float 3s ease-in-out infinite;
+}
+
+.sign-card-img.signed {
+  animation: signed 1s ease-in-out;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+@keyframes signed {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+.sign-btn {
+  height: 36px;
+  padding: 0 32px;
+  font-size: 16px;
+  border-radius: 8px;
+  margin-top: 0;
+}
+
+.sign-info {
+  margin-bottom: 16px;
+  font-size: 18px;
+  color: #1a1a1a;
+}
+
+.sign-calendar-col {
+  flex: 1;
 }
 </style>

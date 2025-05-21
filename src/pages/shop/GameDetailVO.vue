@@ -111,11 +111,95 @@
           </div>
         </div>
       </div>
+
+      <!-- 游戏玩家统计卡片 -->
+      <div class="game-stat-card">
+        <h2 class="stat-title">玩家统计</h2>
+        <hr class="stat-divider" />
+        <div ref="chartRef" class="stat-chart"></div>
+      </div>
+
+      <!-- 游戏评论区域 -->
+      <div class="game-review-section">
+        <h2 class="review-title">玩家评价</h2>
+        <hr class="review-divider" />
+
+        <!-- 评分统计 -->
+        <div class="rating-summary">
+          <div class="average-rating">
+            <span class="rating-number">{{ averageRating }}</span>
+            <span class="rating-max">/5</span>
+          </div>
+          <div class="rating-stars">
+            <a-rate :value="averageRating" disabled allow-half />
+          </div>
+          <div class="total-reviews">共 {{ totalReviews }} 条评价</div>
+        </div>
+
+        <!-- 发表评论 -->
+        <div class="review-form" v-if="!hasReviewed">
+          <h3>发表评价</h3>
+          <div class="rating-input">
+            <span>评分：</span>
+            <a-rate v-model:value="newReview.rating" allow-half />
+          </div>
+          <a-textarea
+            v-model:value="newReview.content"
+            :rows="4"
+            placeholder="分享您的游戏体验..."
+            :maxlength="500"
+            show-count
+          />
+          <a-button type="primary" @click="submitReview" :loading="submitting">
+            提交评价
+          </a-button>
+        </div>
+
+        <!-- 评论列表 -->
+        <div class="review-list">
+          <div
+            v-for="review in reviews"
+            :key="review.reviewId"
+            class="review-item"
+          >
+            <div class="review-header">
+              <div class="reviewer-info">
+                <span class="reviewer-name">{{ review.userName }}</span>
+                <a-rate :value="review.rating" disabled allow-half />
+              </div>
+              <span class="review-time">{{
+                formatDateTime(review.createTime)
+              }}</span>
+            </div>
+            <div class="review-content">{{ review.content }}</div>
+            <div class="review-actions" v-if="review.userId === currentUserId">
+              <a-button type="link" @click="editReview(review)">编辑</a-button>
+              <a-button
+                type="link"
+                danger
+                @click="deleteReview(review.reviewId)"
+                >删除</a-button
+              >
+            </div>
+          </div>
+
+          <!-- 分页 -->
+          <div class="pagination">
+            <a-pagination
+              v-model:current="currentPage"
+              :total="totalReviews"
+              :pageSize="pageSize"
+              @change="handlePageChange"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import * as echarts from "echarts";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { type GameDetailVO, getGameDetail, userBuyGame } from "@/api/game";
@@ -123,6 +207,14 @@ import { message } from "ant-design-vue";
 import { RightOutlined } from "@ant-design/icons-vue";
 import { useUserLibraryStore } from "@/stores/userLibraryStore";
 import dayjs from "dayjs";
+import {
+  type Review,
+  getGameReviews,
+  getGameAverageRating,
+  addGameReview,
+  updateGameReview,
+  deleteGameReview,
+} from "@/api/gameReview";
 
 // 路由对象
 const route = useRoute();
@@ -135,6 +227,37 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 // 用户游戏库
 const userLibraryStore = useUserLibraryStore();
+// 图表实例
+const chartRef = ref(null);
+const trendData = {
+  dates: [
+    "04-22",
+    "04-23",
+    "04-24",
+    "04-25",
+    "04-26",
+    "04-27",
+    "04-28",
+    "04-29",
+    "04-30",
+    "05-01",
+    "05-02",
+    "05-03",
+    "05-04",
+    "05-05",
+    "05-06",
+    "05-07",
+    "05-08",
+    "05-09",
+    "05-10",
+    "05-11",
+    "05-12",
+  ],
+  values: [
+    1200, 1300, 1100, 1400, 1500, 1200, 1100, 1300, 1250, 1400, 1600, 1800,
+    2500, 3000, 3400, 3800, 4100, 3700, 3900, 4000, 4183,
+  ],
+};
 
 // 倒计时相关
 const countdown = ref("");
@@ -267,6 +390,128 @@ const handleButtonClick = async () => {
   }
 };
 
+// 评论相关数据
+const reviews = ref<Review[]>([]);
+const currentPage = ref(1);
+const pageSize = ref(10);
+const totalReviews = ref(0);
+const averageRating = ref(0);
+const hasReviewed = ref(false);
+const submitting = ref(false);
+const currentUserId = ref(0); // 需要从用户状态获取
+
+const newReview = ref({
+  rating: 5,
+  content: "",
+});
+
+// 获取评论列表
+const fetchReviews = async () => {
+  try {
+    const res = await getGameReviews(
+      Number(route.params.gameId),
+      currentPage.value,
+      pageSize.value
+    );
+    if (res.data.code === 0) {
+      reviews.value = res.data.data.records;
+      totalReviews.value = res.data.data.total;
+    }
+  } catch (error) {
+    message.error("获取评论失败");
+  }
+};
+
+// 获取平均评分
+const fetchAverageRating = async () => {
+  try {
+    const res = await getGameAverageRating(Number(route.params.gameId));
+    if (res.data.code === 0) {
+      averageRating.value = res.data.data;
+    }
+  } catch (error) {
+    message.error("获取评分失败");
+  }
+};
+
+// 提交评论
+const submitReview = async () => {
+  if (!newReview.value.content.trim()) {
+    message.warning("请输入评价内容");
+    return;
+  }
+
+  submitting.value = true;
+  try {
+    const res = await addGameReview({
+      gameId: Number(route.params.gameId),
+      rating: newReview.value.rating,
+      content: newReview.value.content,
+    });
+    if (res.data.code === 0) {
+      message.success("评价发布成功");
+      newReview.value.content = "";
+      newReview.value.rating = 5;
+      hasReviewed.value = true;
+      fetchReviews();
+      fetchAverageRating();
+    } else {
+      message.error(res.data.message || "评价发布失败");
+    }
+  } catch (error) {
+    message.error("评价发布失败");
+  } finally {
+    submitting.value = false;
+  }
+};
+
+// 删除评论
+const deleteReview = async (reviewId: number) => {
+  try {
+    const res = await deleteGameReview(reviewId);
+    if (res.data.code === 0) {
+      message.success("评论删除成功");
+      fetchReviews();
+      fetchAverageRating();
+    } else {
+      message.error(res.data.message || "评论删除失败");
+    }
+  } catch (error) {
+    message.error("评论删除失败");
+  }
+};
+
+// 编辑评论
+const editReview = async (review: Review) => {
+  newReview.value = {
+    rating: review.rating,
+    content: review.content,
+  };
+
+  try {
+    const res = await updateGameReview({
+      reviewId: review.reviewId,
+      rating: newReview.value.rating,
+      content: newReview.value.content,
+    });
+    if (res.data.code === 0) {
+      message.success("评论更新成功");
+      fetchReviews();
+      fetchAverageRating();
+    } else {
+      message.error(res.data.message || "评论更新失败");
+    }
+  } catch (error) {
+    message.error("评论更新失败");
+  }
+};
+
+// 处理分页变化
+const handlePageChange = (page: number) => {
+  currentPage.value = page;
+  fetchReviews();
+};
+
 // 页面挂载时获取游戏详情和启动倒计时
 onMounted(() => {
   userLibraryStore.fetchUserLibrary();
@@ -275,6 +520,43 @@ onMounted(() => {
   updateCountdown();
   // 每秒更新一次倒计时
   timer = setInterval(updateCountdown, 1000);
+
+  const chart = echarts.init(chartRef.value);
+  chart.setOption({
+    title: {
+      text: "在线玩家趋势图",
+      left: "center",
+    },
+    tooltip: {
+      trigger: "axis",
+      axisPointer: {
+        type: "shadow",
+      },
+    },
+    xAxis: {
+      type: "category",
+      data: trendData.dates,
+    },
+    yAxis: {
+      type: "value",
+    },
+    series: [
+      {
+        data: trendData.values,
+        type: "line",
+        barWidth: "60%",
+        itemStyle: {
+          color: "#FFA500",
+        },
+      },
+    ],
+  });
+  window.addEventListener("resize", () => {
+    chart.resize();
+  });
+
+  fetchReviews();
+  fetchAverageRating();
 });
 
 // 组件卸载时清除定时器
@@ -635,6 +917,17 @@ const handleBack = () => {
   .game-details {
     padding: 20px;
   }
+
+  .game-stat-card {
+    padding: 16px 4px;
+  }
+  .stat-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .stat-chart {
+    height: 220px;
+  }
 }
 
 @media (max-width: 576px) {
@@ -644,6 +937,178 @@ const handleBack = () => {
 
   .game-detail-container {
     padding: 0 16px 24px;
+  }
+}
+
+.game-stat-card {
+  margin: 40px auto 0 auto;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.stat-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: #222;
+  letter-spacing: 2px;
+}
+
+.stat-chart {
+  width: 100%;
+  height: 400px;
+  margin: 0 auto;
+}
+
+.game-detail-sidebar > .game-stat-card {
+  margin-top: 48px;
+}
+
+.stat-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 0 0 24px 0;
+}
+
+.game-review-section {
+  margin: 40px auto 0;
+  max-width: 900px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  padding: 32px 24px;
+}
+
+.review-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: #222;
+  letter-spacing: 2px;
+}
+
+.review-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 0 0 24px 0;
+}
+
+.rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.average-rating {
+  display: flex;
+  align-items: baseline;
+}
+
+.rating-number {
+  font-size: 36px;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.rating-max {
+  font-size: 18px;
+  color: #999;
+}
+
+.total-reviews {
+  color: #666;
+  font-size: 14px;
+}
+
+.review-form {
+  margin-bottom: 32px;
+  padding: 24px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.review-form h3 {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.rating-input {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-list {
+  margin-top: 32px;
+}
+
+.review-item {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reviewer-name {
+  font-weight: 500;
+  color: #333;
+}
+
+.review-time {
+  color: #999;
+  font-size: 14px;
+}
+
+.review-content {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.review-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.pagination {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .game-review-section {
+    padding: 20px 16px;
+  }
+
+  .rating-summary {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .review-form {
+    padding: 16px;
   }
 }
 </style>

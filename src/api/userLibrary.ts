@@ -11,6 +11,10 @@ export const removeGameFromUserLibrary = (gameId: number) => {
 };
 
 // 获取用户游戏库
-export const getUserLibrary = () => {
-  return myAxios.get("/api/userLibrary/listUserGames");
+export const getSelfLibrary = () => {
+  return myAxios.get("/api/userLibrary/listSelfGames");
+};
+
+export const getUserLibrary = (userId?: string | number) => {
+  return myAxios.get(`/api/userLibrary/listUserGames/${userId}`);
 };

@@ -13,8 +13,17 @@
 
           <div class="news-meta">
             <div class="author-info">
-              <a-avatar :size="40" :src="authorAvatar" />
-              <span class="author-name">{{ authorName }}</span>
+              <a-avatar
+                :size="40"
+                :src="authorAvatar"
+                class="author-avatar"
+                @click="goToUserProfile(newsData.newsAuthorId)"
+              />
+              <span
+                class="author-name"
+                @click="goToUserProfile(newsData.newsAuthorId)"
+                >{{ authorName }}</span
+              >
             </div>
             <div class="meta-details">
               <div class="meta-item">
@@ -288,6 +297,11 @@ const editNews = () => {
   }
 };
 
+// 跳转到用户主页
+const goToUserProfile = (userId: number) => {
+  router.push(`/user/profile/${userId}`);
+};
+
 onMounted(() => {
   const newsId = route.params.newsId;
   if (newsId) {
@@ -355,10 +369,25 @@ onMounted(() => {
   gap: 12px;
 }
 
+.author-avatar {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.author-avatar:hover {
+  transform: scale(1.1);
+}
+
 .author-name {
   font-weight: 600;
   font-size: 16px;
   color: #262626;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.author-name:hover {
+  color: #1677ff;
 }
 
 .meta-details {
