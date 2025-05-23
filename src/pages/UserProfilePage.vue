@@ -16,13 +16,13 @@
               <a-col v-if="isCurrentUser" :span="7" class="sign-card-col">
                 <div class="sign-card">
                   <img
+                    :class="{ signed: isTodaySigned }"
                     :src="
                       isTodaySigned
                         ? require('@/assets/GAME9/game9-green.png')
                         : require('@/assets/GAME9/game9-black.png')
                     "
                     class="sign-card-img"
-                    :class="{ signed: isTodaySigned }"
                     style="width: 80px; height: 80px"
                   />
                   <a-button
@@ -47,8 +47,8 @@
                 :key="game.gameId"
                 :data-game-id="game.gameId"
                 class="game-item"
-                @click="goToGameDetail(game.gameId)"
                 style="cursor: pointer"
+                @click="goToGameDetail(game.gameId)"
               >
                 <img
                   v-lazy="game.gameCover"
@@ -197,14 +197,14 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, reactive, ref, computed } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import {
   checkTodaySignIn,
   getCurrentUser,
+  getUserById,
   updateAvatar,
   userModify,
   userSignIn,
-  getUserById,
 } from "@/api/user";
 import {
   getSelfLibrary,
@@ -216,7 +216,7 @@ import dayjs from "dayjs";
 import { CameraOutlined } from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import SignInCalendar from "@/components/SignInCalendar.vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 interface UserInfo {
   userId: string | number;
@@ -643,6 +643,7 @@ onUnmounted(() => {
   .sign-section .ant-row {
     flex-direction: column !important;
   }
+
   .sign-calendar-col,
   .sign-card-col {
     width: 100px !important;
@@ -650,6 +651,7 @@ onUnmounted(() => {
     padding-left: 0 !important;
     margin-bottom: 16px;
   }
+
   .sign-card {
     min-width: 0;
     width: 100%;
@@ -812,7 +814,8 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
+  height: 100%;
+  width: 70%;
 }
 
 .sign-card-img {

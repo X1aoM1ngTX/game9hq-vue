@@ -2,8 +2,8 @@
   <div class="global-footer">
     <div class="footer-content">
       <div class="footer-section">
-        <h3>关于 Game9</h3>
-        <p>Game9 是一个专业的游戏分享平台，致力于为玩家提供优质的游戏体验。</p>
+        <h3>关于 游情9局</h3>
+        <p>游情9局是一个专业的游戏分享平台，致力于为玩家提供优质的游戏体验。</p>
       </div>
       <div class="footer-section">
         <h3>联系我们</h3>

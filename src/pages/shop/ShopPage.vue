@@ -379,11 +379,13 @@ const handleAfterLeave = (el: Element) => {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
 @media (max-width: 900px) {
   .game-cards {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
 @media (max-width: 600px) {
   .game-cards {
     grid-template-columns: 1fr;

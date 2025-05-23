@@ -29,6 +29,7 @@
         <div v-else-if="game" class="game-info">
           <div class="game-main-content">
             <div class="game-cover">
+              <!-- eslint-disable-next-line -->
               <img v-lazy="game.gameCover" :alt="game.gameName" />
             </div>
             <div class="game-description">
@@ -127,21 +128,24 @@
         <!-- 评分统计 -->
         <div class="rating-summary">
           <div class="average-rating">
-            <span class="rating-number">{{ averageRating }}</span>
-            <span class="rating-max">/5</span>
-          </div>
-          <div class="rating-stars">
-            <a-rate :value="averageRating" disabled allow-half />
+            <span class="rating-number">{{
+              averageRating?.toFixed(1) || "N/A"
+            }}</span>
+            <span class="rating-max">/ 10</span>
+            <a-rate :value="averageRating / 2" disabled allow-half />
           </div>
           <div class="total-reviews">共 {{ totalReviews }} 条评价</div>
         </div>
 
         <!-- 发表评论 -->
-        <div class="review-form" v-if="!hasReviewed">
-          <h3>发表评价</h3>
+        <div
+          class="review-form"
+          v-if="!hasReviewed || editingReviewId !== null"
+        >
+          <h3>{{ editingReviewId !== null ? "编辑评价" : "发表评价" }}</h3>
           <div class="rating-input">
             <span>评分：</span>
-            <a-rate v-model:value="newReview.rating" allow-half />
+            <a-rate v-model:value="newReview.rating" :allow-half="false" />
           </div>
           <a-textarea
             v-model:value="newReview.content"
@@ -150,9 +154,18 @@
             :maxlength="500"
             show-count
           />
-          <a-button type="primary" @click="submitReview" :loading="submitting">
-            提交评价
-          </a-button>
+          <div class="form-actions">
+            <a-button
+              type="primary"
+              @click="submitReview"
+              :loading="submitting"
+            >
+              {{ editingReviewId !== null ? "保存修改" : "提交评价" }}
+            </a-button>
+            <a-button v-if="editingReviewId !== null" @click="cancelEdit">
+              取消
+            </a-button>
+          </div>
         </div>
 
         <!-- 评论列表 -->
@@ -163,32 +176,46 @@
             class="review-item"
           >
             <div class="review-header">
-              <div class="reviewer-info">
+              <div
+                class="reviewer-info"
+                @click="goToUserProfile(review.userId)"
+              >
+                <a-avatar
+                  :size="32"
+                  :src="userAvatars[review.userId]"
+                  class="reviewer-avatar"
+                />
                 <span class="reviewer-name">{{ review.userName }}</span>
-                <a-rate :value="review.rating" disabled allow-half />
               </div>
-              <span class="review-time">{{
-                formatDateTime(review.createTime)
-              }}</span>
+              <div class="review-meta">
+                <span class="review-time">{{
+                  formatDateTime(review.createTime)
+                }}</span>
+                <div
+                  class="review-actions"
+                  v-if="review.userId === currentUserId"
+                >
+                  <a-button type="link" @click="editReview(review)"
+                    >编辑</a-button
+                  >
+                  <a-button
+                    type="link"
+                    danger
+                    @click="deleteReview(review.reviewId)"
+                    >删除</a-button
+                  >
+                </div>
+              </div>
             </div>
             <div class="review-content">{{ review.content }}</div>
-            <div class="review-actions" v-if="review.userId === currentUserId">
-              <a-button type="link" @click="editReview(review)">编辑</a-button>
-              <a-button
-                type="link"
-                danger
-                @click="deleteReview(review.reviewId)"
-                >删除</a-button
-              >
-            </div>
           </div>
 
           <!-- 分页 -->
           <div class="pagination">
             <a-pagination
               v-model:current="currentPage"
-              :total="totalReviews"
               :pageSize="pageSize"
+              :total="totalReviews"
               @change="handlePageChange"
             />
           </div>
@@ -200,21 +227,23 @@
 
 <script lang="ts" setup>
 import * as echarts from "echarts";
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { type GameDetailVO, getGameDetail, userBuyGame } from "@/api/game";
 import { message } from "ant-design-vue";
 import { RightOutlined } from "@ant-design/icons-vue";
 import { useUserLibraryStore } from "@/stores/userLibraryStore";
+import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import dayjs from "dayjs";
 import {
-  type Review,
-  getGameReviews,
-  getGameAverageRating,
   addGameReview,
-  updateGameReview,
   deleteGameReview,
+  getGameAverageRating,
+  getGameReviews,
+  type Review,
+  updateGameReview,
 } from "@/api/gameReview";
+import { getUserById } from "@/api/user";
 
 // 路由对象
 const route = useRoute();
@@ -227,6 +256,8 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 // 用户游戏库
 const userLibraryStore = useUserLibraryStore();
+// 登录用户库
+const loginUserStore = useLoginUserStore();
 // 图表实例
 const chartRef = ref(null);
 const trendData = {
@@ -398,7 +429,11 @@ const totalReviews = ref(0);
 const averageRating = ref(0);
 const hasReviewed = ref(false);
 const submitting = ref(false);
-const currentUserId = ref(0); // 需要从用户状态获取
+const currentUserId = ref<number | null>(null);
+const editingReviewId = ref<number | null>(null);
+
+// 用户头像缓存
+const userAvatars = reactive<{ [key: number]: string }>({});
 
 const newReview = ref({
   rating: 5,
@@ -416,6 +451,39 @@ const fetchReviews = async () => {
     if (res.data.code === 0) {
       reviews.value = res.data.data.records;
       totalReviews.value = res.data.data.total;
+
+      // 检查当前用户是否已评论
+      if (currentUserId.value !== null) {
+        hasReviewed.value = res.data.data.records.some(
+          (review: Review) => review.userId === currentUserId.value
+        );
+      }
+
+      // 获取评论作者的头像
+      const userIdsToFetch = reviews.value
+        .map((review) => review.userId)
+        .filter(
+          (userId) => userId !== undefined && userAvatars[userId] === undefined
+        );
+
+      const uniqueUserIds = Array.from(new Set(userIdsToFetch));
+
+      for (const userId of uniqueUserIds) {
+        try {
+          const userRes = await getUserById(userId);
+          if (userRes.data.code === 0 && userRes.data.data?.userAvatar) {
+            userAvatars[userId] = userRes.data.data.userAvatar; // 假设用户头像字段名为 userAvatar
+          } else {
+            // 可以设置一个默认头像或者留空
+            userAvatars[userId] = "";
+          }
+        } catch (userError) {
+          console.error(`获取用户 ${userId} 头像失败:`, userError);
+          userAvatars[userId] = ""; // 失败也设置为空，避免重复请求
+        }
+      }
+    } else {
+      message.error(res.data.message || "获取评论失败");
     }
   } catch (error) {
     message.error("获取评论失败");
@@ -428,13 +496,15 @@ const fetchAverageRating = async () => {
     const res = await getGameAverageRating(Number(route.params.gameId));
     if (res.data.code === 0) {
       averageRating.value = res.data.data;
+    } else {
+      message.error(res.data.message || "获取评分失败");
     }
   } catch (error) {
     message.error("获取评分失败");
   }
 };
 
-// 提交评论
+// 提交评论或更新评论
 const submitReview = async () => {
   if (!newReview.value.content.trim()) {
     message.warning("请输入评价内容");
@@ -443,23 +513,43 @@ const submitReview = async () => {
 
   submitting.value = true;
   try {
-    const res = await addGameReview({
-      gameId: Number(route.params.gameId),
-      rating: newReview.value.rating,
-      content: newReview.value.content,
-    });
+    let res;
+    if (editingReviewId.value !== null) {
+      // 更新评论
+      res = await updateGameReview({
+        reviewId: editingReviewId.value,
+        rating: newReview.value.rating,
+        content: newReview.value.content,
+      });
+    } else {
+      // 添加评论
+      res = await addGameReview({
+        gameId: Number(route.params.gameId),
+        rating: newReview.value.rating,
+        content: newReview.value.content,
+      });
+    }
+
     if (res.data.code === 0) {
-      message.success("评价发布成功");
+      message.success(
+        editingReviewId.value !== null ? "评论更新成功" : "评价发布成功"
+      );
       newReview.value.content = "";
       newReview.value.rating = 5;
-      hasReviewed.value = true;
+      editingReviewId.value = null; // 退出编辑模式
+      hasReviewed.value = editingReviewId.value === null; // 如果是发表新评论，设置已评论
       fetchReviews();
       fetchAverageRating();
     } else {
-      message.error(res.data.message || "评价发布失败");
+      message.error(
+        res.data.message ||
+          (editingReviewId.value !== null ? "评论更新失败" : "评价发布失败")
+      );
     }
   } catch (error) {
-    message.error("评价发布失败");
+    message.error(
+      editingReviewId.value !== null ? "评论更新失败" : "评价发布失败"
+    );
   } finally {
     submitting.value = false;
   }
@@ -482,28 +572,22 @@ const deleteReview = async (reviewId: number) => {
 };
 
 // 编辑评论
-const editReview = async (review: Review) => {
+const editReview = (review: Review) => {
+  // 填充表单并进入编辑模式
   newReview.value = {
     rating: review.rating,
     content: review.content,
   };
+  editingReviewId.value = review.reviewId;
+};
 
-  try {
-    const res = await updateGameReview({
-      reviewId: review.reviewId,
-      rating: newReview.value.rating,
-      content: newReview.value.content,
-    });
-    if (res.data.code === 0) {
-      message.success("评论更新成功");
-      fetchReviews();
-      fetchAverageRating();
-    } else {
-      message.error(res.data.message || "评论更新失败");
-    }
-  } catch (error) {
-    message.error("评论更新失败");
-  }
+// 取消编辑
+const cancelEdit = () => {
+  editingReviewId.value = null;
+  newReview.value = {
+    rating: 5,
+    content: "",
+  };
 };
 
 // 处理分页变化
@@ -512,9 +596,21 @@ const handlePageChange = (page: number) => {
   fetchReviews();
 };
 
+// 前往用户主页
+const goToUserProfile = (userId: number) => {
+  router.push(`/user/profile/${userId}`);
+};
+
 // 页面挂载时获取游戏详情和启动倒计时
-onMounted(() => {
+onMounted(async () => {
   userLibraryStore.fetchUserLibrary();
+
+  // 获取当前登录用户并设置 ID
+  await loginUserStore.getLoginUser(); // 确保用户数据已加载
+  if (loginUserStore.loginUser) {
+    currentUserId.value = loginUserStore.loginUser.userId; // 假设用户 ID 属性名为 'userId'
+  }
+
   const gameId = route.params.gameId as string;
   fetchGameDetail(gameId);
   updateCountdown();
@@ -921,10 +1017,12 @@ const handleBack = () => {
   .game-stat-card {
     padding: 16px 4px;
   }
+
   .stat-title {
     font-size: 18px;
     margin-bottom: 16px;
   }
+
   .stat-chart {
     height: 220px;
   }
@@ -1000,6 +1098,7 @@ const handleBack = () => {
 .rating-summary {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
   margin-bottom: 32px;
   padding: 20px;
@@ -1009,7 +1108,8 @@ const handleBack = () => {
 
 .average-rating {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  gap: 10px;
 }
 
 .rating-number {
@@ -1026,6 +1126,7 @@ const handleBack = () => {
 .total-reviews {
   color: #666;
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .review-form {
@@ -1061,12 +1162,18 @@ const handleBack = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .reviewer-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+}
+
+.reviewer-avatar {
+  flex-shrink: 0;
 }
 
 .reviewer-name {
@@ -1074,9 +1181,16 @@ const handleBack = () => {
   color: #333;
 }
 
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .review-time {
   color: #999;
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 .review-content {
@@ -1087,7 +1201,15 @@ const handleBack = () => {
 
 .review-actions {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.review-actions :deep(.ant-btn-link) {
+  padding: 0;
+  height: auto;
+  line-height: normal;
 }
 
 .pagination {
@@ -1107,8 +1229,24 @@ const handleBack = () => {
     gap: 12px;
   }
 
+  .average-rating {
+    justify-content: center;
+    flex-direction: row;
+    gap: 8px;
+  }
+
   .review-form {
     padding: 16px;
   }
+}
+
+.average-rating :deep(.ant-rate) {
+  font-size: 24px;
+}
+
+.form-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 16px;
 }
 </style>
