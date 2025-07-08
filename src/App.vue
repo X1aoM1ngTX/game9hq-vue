@@ -106,6 +106,7 @@ import {
   SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
+import { heartbeat } from "@/api/user";
 
 const route = useRoute();
 const layout = computed(() => {
@@ -114,11 +115,19 @@ const layout = computed(() => {
 
 const loginUserStore = useLoginUserStore();
 
+let heartbeatTimer: number | null = null;
+
 // 页面加载时获取用户信息
 onMounted(() => {
   loginUserStore.getLoginUser();
   document.addEventListener("contextmenu", handleContextMenu);
   document.addEventListener("click", handleClickOutside);
+  // 立即心跳一次
+  heartbeat();
+  // 启动心跳定时器
+  heartbeatTimer = window.setInterval(() => {
+    heartbeat();
+  }, 30000);
 });
 
 const isDarkMode = ref(false);
@@ -272,6 +281,8 @@ const handleRemoveGame = () => {
 onUnmounted(() => {
   document.removeEventListener("contextmenu", handleContextMenu);
   document.removeEventListener("click", handleClickOutside);
+  // 清理心跳定时器
+  if (heartbeatTimer) clearInterval(heartbeatTimer);
 });
 </script>
 

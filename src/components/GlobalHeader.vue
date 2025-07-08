@@ -45,7 +45,13 @@
                     <template #icon>
                       <UserOutlined />
                     </template>
-                    个人资料
+                    我的主页
+                  </a-menu-item>
+                  <a-menu-item key="friends" @click="toFirends">
+                    <template #icon>
+                      <UserOutlined />
+                    </template>
+                    我的好友
                   </a-menu-item>
                   <a-menu-item key="logout" @click="handleLogout">
                     <template #icon>
@@ -105,6 +111,10 @@ const toRegister = () => {
 
 const toUserProfile = () => {
   router.push("/user/profile");
+};
+
+const toFirends = () => {
+  router.push("/friends");
 };
 
 const handleLogout = async () => {

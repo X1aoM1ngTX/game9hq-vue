@@ -223,3 +223,10 @@ export const getSignInCount = (year?: number) => {
 export const getUserById = (userId: number | string) => {
   return myAxios.get(`/api/user/${userId}`);
 };
+
+/**
+ * 用户心跳，刷新在线状态
+ */
+export function heartbeat() {
+  return myAxios.post("/api/user/heartbeat");
+}

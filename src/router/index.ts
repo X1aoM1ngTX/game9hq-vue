@@ -113,6 +113,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/news/NewsDetailPage.vue"),
   },
   {
+    path: "/friends",
+    name: "FriendsPage",
+    component: () => import("@/pages/friends/FriendsPage.vue"),
+  },
+  {
     path: "/403",
     name: "Exception403",
     component: () => import("@/pages/exception/403.vue"),

@@ -101,14 +101,27 @@
               </h2>
               <span class="user-id">ID：{{ user.userId }}</span>
             </div>
-            <a-button
-              v-if="isCurrentUser"
-              class="edit-btn"
-              type="link"
-              @click="handleEdit"
-            >
-              修改资料
-            </a-button>
+            <div class="profile-actions">
+              <a-button
+                v-if="isCurrentUser"
+                class="profile-action-btn"
+                size="small"
+                type="primary"
+                @click="handleEdit"
+              >
+                编辑资料
+              </a-button>
+              <a-button
+                v-else
+                :loading="addingFriend"
+                class="profile-action-btn"
+                size="small"
+                type="primary"
+                @click="handleAddFriend"
+              >
+                添加好友
+              </a-button>
+            </div>
           </div>
 
           <div class="profile-content">
@@ -193,6 +206,23 @@
         </a-form-item>
       </a-form>
     </a-modal>
+
+    <!-- 添加好友备注弹窗 -->
+    <a-modal
+      v-model:visible="friendModalVisible"
+      title="添加好友"
+      @cancel="friendModalVisible = false"
+      @ok="handleFriendModalOk"
+    >
+      <a-form :model="friendForm" layout="vertical">
+        <a-form-item label="备注" name="remark">
+          <a-input
+            v-model:value="friendForm.remark"
+            placeholder="请输入好友备注（选填）"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
@@ -217,6 +247,7 @@ import { CameraOutlined } from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import SignInCalendar from "@/components/SignInCalendar.vue";
 import { useRoute, useRouter } from "vue-router";
+import { addFriend } from "@/api/friend";
 
 interface UserInfo {
   userId: string | number;
@@ -497,6 +528,48 @@ onUnmounted(() => {
     handleRemoveGameEvent as EventListener
   );
 });
+
+const addingFriend = ref(false);
+const friendModalVisible = ref(false);
+const friendForm = ref({
+  remark: "",
+});
+
+// 处理添加好友
+async function handleAddFriend() {
+  if (!user.value.userId) {
+    message.error("用户信息不存在");
+    return;
+  }
+  friendModalVisible.value = true;
+}
+
+// 确认添加好友
+async function handleFriendModalOk() {
+  if (!user.value.userId) {
+    message.error("用户信息不存在");
+    return;
+  }
+
+  addingFriend.value = true;
+  try {
+    const res = await addFriend({
+      friendId: Number(user.value.userId),
+      friendRemark: friendForm.value.remark,
+    });
+    if (res.data.code === 0) {
+      message.success("好友请求已发送");
+      friendModalVisible.value = false;
+      friendForm.value.remark = "";
+    } else {
+      message.error(res.data.message || "发送好友请求失败");
+    }
+  } catch (error) {
+    message.error("发送好友请求失败，请重试");
+  } finally {
+    addingFriend.value = false;
+  }
+}
 </script>
 
 <style scoped>
@@ -872,5 +945,17 @@ onUnmounted(() => {
 
 .sign-calendar-col {
   flex: 1;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.profile-action-btn {
+  padding: 0 12px;
+  height: 28px;
+  font-size: 14px;
+  border-radius: 4px;
 }
 </style>

@@ -2,7 +2,7 @@ import axios from "axios";
 import { message } from "ant-design-vue";
 
 const myAxios = axios.create({
-  baseURL: "http://localhost:8080", // 确保这里的端口号正确
+  baseURL: process.env.VUE_APP_BASE_API || "http://localhost:8080",
   timeout: 10000,
   withCredentials: true,
 });

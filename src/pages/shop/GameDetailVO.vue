@@ -132,15 +132,15 @@
               averageRating?.toFixed(1) || "N/A"
             }}</span>
             <span class="rating-max">/ 10</span>
-            <a-rate :value="averageRating / 2" disabled allow-half />
+            <a-rate :value="averageRating / 2" allow-half disabled />
           </div>
           <div class="total-reviews">共 {{ totalReviews }} 条评价</div>
         </div>
 
         <!-- 发表评论 -->
         <div
-          class="review-form"
           v-if="!hasReviewed || editingReviewId !== null"
+          class="review-form"
         >
           <h3>{{ editingReviewId !== null ? "编辑评价" : "发表评价" }}</h3>
           <div class="rating-input">
@@ -149,16 +149,16 @@
           </div>
           <a-textarea
             v-model:value="newReview.content"
+            :maxlength="500"
             :rows="4"
             placeholder="分享您的游戏体验..."
-            :maxlength="500"
             show-count
           />
           <div class="form-actions">
             <a-button
+              :loading="submitting"
               type="primary"
               @click="submitReview"
-              :loading="submitting"
             >
               {{ editingReviewId !== null ? "保存修改" : "提交评价" }}
             </a-button>
@@ -192,18 +192,18 @@
                   formatDateTime(review.createTime)
                 }}</span>
                 <div
-                  class="review-actions"
                   v-if="review.userId === currentUserId"
+                  class="review-actions"
                 >
                   <a-button type="link" @click="editReview(review)"
-                    >编辑</a-button
-                  >
+                    >编辑
+                  </a-button>
                   <a-button
-                    type="link"
                     danger
+                    type="link"
                     @click="deleteReview(review.reviewId)"
-                    >删除</a-button
-                  >
+                    >删除
+                  </a-button>
                 </div>
               </div>
             </div>
@@ -227,7 +227,7 @@
 
 <script lang="ts" setup>
 import * as echarts from "echarts";
-import { computed, onMounted, onUnmounted, ref, reactive } from "vue";
+import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { type GameDetailVO, getGameDetail, userBuyGame } from "@/api/game";
 import { message } from "ant-design-vue";
@@ -387,37 +387,41 @@ const handleButtonClick = async () => {
   if (!game.value) return;
 
   if (isGameInLibrary(game.value.gameId)) {
+    // 已拥有，直接跳转
     router.push({
       path: "/user/profile",
     });
-  } else {
-    // 如果游戏不在库中，添加到游戏库
-    if (game.value.gameStock <= 0) {
-      message.warning("该游戏已售罄");
-      return;
-    }
-    if (game.value.gameIsRemoved === 1) {
-      message.warning("该游戏已下架");
-      return;
-    }
+    return;
+  }
 
-    try {
-      const res = (await userBuyGame(game.value.gameId)) as unknown as {
-        data: ApiResponse<any>;
-      };
-      if (res.data.code === 0) {
-        message.success("游戏已成功添加到您的游戏库");
-        // 更新全局状态
-        (userLibraryStore.games as UserGameItem[]).push(
-          game.value as UserGameItem
-        );
-      } else {
-        message.error(res.data.message || "添加游戏失败");
-      }
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      message.error(`操作失败: ${err.message || "未知错误"}`);
+  // 未拥有，才请求后端
+  if (game.value.gameStock <= 0) {
+    message.warning("该游戏已售罄");
+    return;
+  }
+  if (game.value.gameIsRemoved === 1) {
+    message.warning("该游戏已下架");
+    return;
+  }
+
+  try {
+    const res = (await userBuyGame(game.value.gameId)) as unknown as {
+      data: ApiResponse<any>;
+    };
+    if (res.data.code === 0) {
+      message.success("游戏已成功添加到您的游戏库");
+      (userLibraryStore.games as UserGameItem[]).push(
+        game.value as UserGameItem
+      );
+    } else if (res.data.code === 40000 && res.data.message.includes("已拥有")) {
+      // 后端返回已拥有
+      message.info("你已拥有该游戏");
+    } else {
+      message.error(res.data.message || "添加游戏失败");
     }
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    message.error(`操作失败: ${err.message || "未知错误"}`);
   }
 };
 
