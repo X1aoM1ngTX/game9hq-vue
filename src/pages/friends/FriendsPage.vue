@@ -384,12 +384,9 @@ const fetchFriends = async () => {
         isOnline: friend.isOnline ?? false,
         currentGame: null,
       }));
-    } else {
-      message.error(response.data.message || "获取好友列表失败");
     }
   } catch (error) {
     console.error("获取好友列表失败:", error);
-    message.error("获取好友列表失败");
   } finally {
     loading.value = false;
   }
@@ -400,12 +397,9 @@ const fetchReceivedRequests = async () => {
     const response = await getReceivedRequests();
     if (response.data.code === 0) {
       receivedRequests.value = response.data.data;
-    } else {
-      message.error(response.data.message || "获取收到的好友申请失败");
     }
   } catch (error) {
     console.error("获取收到的好友申请失败:", error);
-    message.error("获取收到的好友申请失败");
   }
 };
 
@@ -414,12 +408,9 @@ const fetchSentRequests = async () => {
     const response = await getSentRequests();
     if (response.data.code === 0) {
       sentRequests.value = response.data.data;
-    } else {
-      message.error(response.data.message || "获取我发出的好友申请失败");
     }
   } catch (error) {
     console.error("获取我发出的好友申请失败:", error);
-    message.error("获取我发出的好友申请失败");
   }
 };
 
@@ -463,12 +454,9 @@ const handleAddFriend = async () => {
       };
       // 刷新好友列表
       await fetchFriends();
-    } else {
-      message.error(response.data.message || "添加好友失败");
     }
   } catch (error) {
     console.error("添加好友失败:", error);
-    message.error("添加好友失败");
   }
 };
 
@@ -492,12 +480,9 @@ const removeFriend = async (friend: ExtendedFriendVO) => {
     if (response.data.code === 0) {
       message.success("已删除好友");
       await fetchFriends();
-    } else {
-      message.error(response.data.message || "删除好友失败");
     }
   } catch (error) {
     console.error("删除好友失败:", error);
-    message.error("删除好友失败");
   }
 };
 
@@ -519,12 +504,9 @@ const handleRemarkSubmit = async () => {
       message.success("备注设置成功");
       remarkModalVisible.value = false;
       await fetchReceivedRequests();
-    } else {
-      message.error(response.data.message || "备注设置失败");
     }
   } catch (error) {
     console.error("备注设置失败:", error);
-    message.error("备注设置失败");
   }
 };
 
@@ -538,12 +520,9 @@ const handleRequest = async (request: FriendInfo, accept: boolean) => {
       if (accept) {
         await fetchFriends();
       }
-    } else {
-      message.error(response.data.message || "处理好友申请失败");
     }
   } catch (error) {
     console.error("处理好友申请失败:", error);
-    message.error("处理好友申请失败");
   }
 };
 

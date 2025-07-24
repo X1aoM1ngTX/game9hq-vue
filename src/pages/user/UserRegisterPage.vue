@@ -22,11 +22,18 @@
             v-model:value="formState.userName"
             placeholder="用户名"
             size="large"
+            @blur="checkUserNameUnique"
           >
             <template #prefix>
               <UserOutlined class="form-icon" />
             </template>
           </a-input>
+          <div
+            v-if="!userNameUnique && !userNameChecking"
+            style="color: #ff4d4f; margin-bottom: 8px"
+          >
+            用户名已被占用
+          </div>
         </a-form-item>
 
         <a-form-item
@@ -40,11 +47,18 @@
             v-model:value="formState.userEmail"
             placeholder="邮箱"
             size="large"
+            @blur="checkUserEmailUnique"
           >
             <template #prefix>
               <MailOutlined class="form-icon" />
             </template>
           </a-input>
+          <div
+            v-if="!userEmailUnique && !userEmailChecking"
+            style="color: #ff4d4f; margin-bottom: 8px"
+          >
+            邮箱已被注册
+          </div>
         </a-form-item>
 
         <a-form-item
@@ -68,7 +82,7 @@
               type="primary"
               @click="handleSendCode"
             >
-              {{ codeSent ? `${countdown}s` : "获取验证码" }}
+              {{ codeSent ? `重新获取(${countdown}s)` : "获取验证码" }}
             </a-button>
           </div>
         </a-form-item>
@@ -90,6 +104,13 @@
             </template>
           </a-input-password>
         </a-form-item>
+
+        <div
+          v-if="formState.userPassword"
+          :style="{ color: passwordStrengthColor, marginBottom: '8px' }"
+        >
+          {{ passwordStrengthText }}
+        </div>
 
         <a-form-item
           :rules="[
@@ -133,14 +154,19 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, computed } from "vue";
 import {
   LockOutlined,
   MailOutlined,
   SafetyOutlined,
   UserOutlined,
 } from "@ant-design/icons-vue";
-import { sendVerifyCode, userRegister, verifyCode } from "@/api/user";
+import {
+  sendVerifyCode,
+  userRegister,
+  verifyCode,
+  searchUsers,
+} from "@/api/user";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 
@@ -165,6 +191,50 @@ const loading = ref(false);
 const codeSent = ref(false);
 const countdown = ref(60);
 let timer: ReturnType<typeof setInterval> | null = null;
+const userNameUnique = ref(true);
+const userEmailUnique = ref(true);
+const userNameChecking = ref(false);
+const userEmailChecking = ref(false);
+
+// 密码强度计算
+const passwordStrength = computed(() => {
+  const pwd = formState.userPassword;
+  if (!pwd) return 0;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[a-z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  if (score <= 2) return 1; // 弱
+  if (score === 3 || score === 4) return 2; // 中
+  if (score === 5) return 3; // 强
+  return 0;
+});
+const passwordStrengthText = computed(() => {
+  switch (passwordStrength.value) {
+    case 1:
+      return "密码强度：弱";
+    case 2:
+      return "密码强度：中";
+    case 3:
+      return "密码强度：强";
+    default:
+      return "";
+  }
+});
+const passwordStrengthColor = computed(() => {
+  switch (passwordStrength.value) {
+    case 1:
+      return "#ff4d4f";
+    case 2:
+      return "#faad14";
+    case 3:
+      return "#52c41a";
+    default:
+      return "#d9d9d9";
+  }
+});
 
 // 验证密码
 const validatePassword = async (_rule: any, value: string) => {
@@ -190,10 +260,10 @@ const handleSendCode = async () => {
       codeSent.value = true;
       startCountdown();
     } else {
-      message.error(res.data.message || "发送失败");
+      message.error(res.data.description || "发送失败");
     }
   } catch (error: any) {
-    message.error(error.message || "发送失败");
+    message.error(error.description || "发送失败");
   } finally {
     loading.value = false;
   }
@@ -233,10 +303,10 @@ const handleSubmit = async () => {
       message.success("注册成功");
       router.push("/user/login");
     } else {
-      message.error(res.data.message || "注册失败");
+      message.error(res.data.description || "注册失败");
     }
   } catch (error: any) {
-    message.error(error.response?.data?.message || "注册失败");
+    message.error(error.response?.data?.description || "注册失败");
   } finally {
     loading.value = false;
   }
@@ -245,6 +315,37 @@ const handleSubmit = async () => {
 // 表单验证失败
 const onFinishFailed = (errorInfo: any) => {
   console.log("表单验证失败:", errorInfo);
+};
+
+// 检查用户名是否唯一
+const checkUserNameUnique = async () => {
+  if (!formState.userName) return;
+  userNameChecking.value = true;
+  try {
+    const res = await searchUsers({ userName: formState.userName });
+    userNameUnique.value = !res.data.data || res.data.data.length === 0;
+  } catch {
+    userNameUnique.value = true;
+  } finally {
+    userNameChecking.value = false;
+  }
+};
+
+// 检查邮箱是否唯一
+const checkUserEmailUnique = async () => {
+  if (!formState.userEmail) return;
+  userEmailChecking.value = true;
+  try {
+    const res = await searchUsers({ userName: formState.userEmail });
+    // 这里假设后端支持用邮箱查找，否则需新建接口
+    userEmailUnique.value =
+      !res.data.data ||
+      res.data.data.every((u: any) => u.userEmail !== formState.userEmail);
+  } catch {
+    userEmailUnique.value = true;
+  } finally {
+    userEmailChecking.value = false;
+  }
 };
 </script>
 

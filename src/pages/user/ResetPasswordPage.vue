@@ -52,7 +52,7 @@
               type="primary"
               @click="handleSendCode"
             >
-              {{ codeSent ? "已发送" : "获取验证码" }}
+              {{ codeSent ? `重新获取(${countdown}s)` : "获取验证码" }}
             </a-button>
           </div>
         </a-form-item>
@@ -74,6 +74,13 @@
             </template>
           </a-input-password>
         </a-form-item>
+
+        <div
+          v-if="formState.newPassword"
+          :style="{ color: passwordStrengthColor, marginBottom: '8px' }"
+        >
+          {{ passwordStrengthText }}
+        </div>
 
         <a-form-item
           :rules="[
@@ -117,7 +124,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, computed } from "vue";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { resetPassword, sendVerifyCode, verifyCode } from "@/api/user";
@@ -130,6 +137,8 @@ import {
 const router = useRouter();
 const loading = ref(false);
 const codeSent = ref(false);
+const countdown = ref(60);
+let timer: ReturnType<typeof setInterval> | null = null;
 
 const formState = reactive({
   email: "",
@@ -146,6 +155,7 @@ const validateConfirmPassword = async (_rule: any, value: string) => {
 
 // 发送验证码
 const handleSendCode = async () => {
+  if (codeSent.value) return;
   try {
     loading.value = true;
     const res = await sendVerifyCode({
@@ -154,14 +164,28 @@ const handleSendCode = async () => {
     if (res.data.code === 0) {
       message.success("验证码已发送到您的邮箱");
       codeSent.value = true;
+      startCountdown();
     } else {
-      message.error(res.data.message || "发送失败");
+      message.error(res.data.description || "发送失败，请稍后重试");
     }
   } catch (error: any) {
-    message.error(error.message || "发送失败，请稍后重试");
+    message.error(error.description || "发送失败，请稍后重试");
   } finally {
     loading.value = false;
   }
+};
+
+// 倒计时逻辑
+const startCountdown = () => {
+  countdown.value = 60;
+  timer = setInterval(() => {
+    if (countdown.value > 0) {
+      countdown.value--;
+    } else {
+      codeSent.value = false;
+      if (timer) clearInterval(timer);
+    }
+  }, 1000);
 };
 
 // 提交表单
@@ -173,7 +197,7 @@ const handleSubmit = async () => {
       code: formState.verifyCode,
     });
     if (verifyRes.data.code !== 0) {
-      message.error(verifyRes.data.message || "验证码错误");
+      message.error("验证码错误");
       return;
     }
 
@@ -186,14 +210,54 @@ const handleSubmit = async () => {
       message.success("密码重置成功");
       router.push("/user/login");
     } else {
-      message.error(resetRes.data.message || "重置失败");
+      message.error(resetRes.data.description || "重置失败");
     }
   } catch (error: any) {
-    message.error(error.response?.data?.message || "操作失败，请稍后重试");
+    message.error("操作失败，请稍后重试");
   } finally {
     loading.value = false;
   }
 };
+
+// 密码强度计算
+const passwordStrength = computed(() => {
+  const pwd = formState.newPassword;
+  if (!pwd) return 0;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[a-z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  if (score <= 2) return 1; // 弱
+  if (score === 3 || score === 4) return 2; // 中
+  if (score === 5) return 3; // 强
+  return 0;
+});
+const passwordStrengthText = computed(() => {
+  switch (passwordStrength.value) {
+    case 1:
+      return "密码强度：弱";
+    case 2:
+      return "密码强度：中";
+    case 3:
+      return "密码强度：强";
+    default:
+      return "";
+  }
+});
+const passwordStrengthColor = computed(() => {
+  switch (passwordStrength.value) {
+    case 1:
+      return "#ff4d4f";
+    case 2:
+      return "#faad14";
+    case 3:
+      return "#52c41a";
+    default:
+      return "#d9d9d9";
+  }
+});
 </script>
 
 <style scoped>

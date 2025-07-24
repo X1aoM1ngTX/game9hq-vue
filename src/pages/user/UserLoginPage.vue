@@ -47,6 +47,7 @@
         <div class="form-actions">
           <a-button
             :loading="loading"
+            :disabled="loading || lockInfo.locked"
             class="submit-button"
             html-type="submit"
             size="large"
@@ -76,6 +77,7 @@ import { userLogin } from "@/api/user";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
+import { debounce } from "lodash-es";
 
 interface FormState {
   userName: string;
@@ -90,24 +92,49 @@ const formState = reactive<FormState>({
 const router = useRouter();
 const loginUserStore = useLoginUserStore();
 const loading = ref(false);
+const lockInfo = ref({ locked: false, seconds: 0 });
+let lockTimer: ReturnType<typeof setInterval> | null = null;
 
-const handleSubmit = async (values: FormState) => {
-  try {
-    loading.value = true;
-    const res = await userLogin(values);
-    if (res.data.code === 0) {
-      await loginUserStore.getLoginUser();
-      message.success("登录成功");
-      router.push("/");
-    } else {
-      message.error(res.data.message || "登录失败");
+const handleSubmit = debounce(
+  async (values: FormState) => {
+    if (lockInfo.value.locked) {
+      message.error(`账号已锁定，请${lockInfo.value.seconds}秒后再试`);
+      return;
     }
-  } catch (error: any) {
-    message.error(error.response?.data?.message || "登录失败");
-  } finally {
-    loading.value = false;
-  }
-};
+    try {
+      loading.value = true;
+      const res = await userLogin(values);
+      if (res.data.code === 0) {
+        await loginUserStore.getLoginUser();
+        message.success("登录成功");
+        router.push("/");
+      } else {
+        if (
+          res.data.description?.includes("锁定") ||
+          res.data.description?.includes("请10分钟后再试")
+        ) {
+          lockInfo.value.locked = true;
+          lockInfo.value.seconds = 600;
+          message.error(res.data.description || "账号已锁定");
+          if (lockTimer) clearInterval(lockTimer);
+          lockTimer = setInterval(() => {
+            lockInfo.value.seconds--;
+            if (lockInfo.value.seconds <= 0) {
+              lockInfo.value.locked = false;
+              if (lockTimer) clearInterval(lockTimer);
+            }
+          }, 1000);
+        }
+      }
+    } catch (error: any) {
+      console.log(error);
+    } finally {
+      loading.value = false;
+    }
+  },
+  1000,
+  { leading: true, trailing: false }
+);
 
 const onFinishFailed = (errorInfo: any) => {
   console.log("表单验证失败:", errorInfo);

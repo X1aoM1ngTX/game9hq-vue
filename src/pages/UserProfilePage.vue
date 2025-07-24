@@ -392,7 +392,7 @@ const handleSignIn = async () => {
       // 刷新日历组件
       await calendarRef.value?.refreshCalendar?.();
     } else {
-      message.error(res.data.message || "签到失败");
+      message.error(res.data.description || "签到失败");
     }
   } catch (error) {
     console.error("签到失败:", error);
@@ -428,7 +428,7 @@ const handleModalOk = async () => {
       modalVisible.value = false;
       await fetchData();
     } else {
-      message.error(res.data.message || "更新失败");
+      message.error(res.data.description || "更新失败");
     }
   } catch (error: unknown) {
     const err = error as { message?: string };
@@ -474,11 +474,11 @@ const customUpload = async (options: any) => {
       }
       onSuccess(res, file);
     } else {
-      message.error(res.data.message || "上传失败");
-      onError(new Error(res.data.message));
+      message.error(res.data.description || "上传失败");
+      onError(new Error(res.data.description));
     }
   } catch (error: any) {
-    message.error(error.response?.data?.message || "上传失败");
+    message.error(error.response?.data?.description || "上传失败");
     onError(error);
   }
 };
@@ -493,7 +493,7 @@ const handleRemove = async (gameId: number) => {
         (game) => game.gameId !== gameId
       );
     } else {
-      message.error(res.data.message || "游戏移除失败");
+      message.error(res.data.description || "游戏移除失败");
     }
   } catch (error) {
     message.error("操作失败，请稍后重试");
@@ -562,7 +562,7 @@ async function handleFriendModalOk() {
       friendModalVisible.value = false;
       friendForm.value.remark = "";
     } else {
-      message.error(res.data.message || "发送好友请求失败");
+      message.error(res.data.description || "发送好友请求失败");
     }
   } catch (error) {
     message.error("发送好友请求失败，请重试");

@@ -335,12 +335,9 @@ const publishDraft = (newsId: number) => {
         if (res.data && res.data.code === 0) {
           message.success("发布成功");
           fetchMyDrafts(); // 刷新草稿列表
-        } else {
-          message.error(res.data?.message || "发布失败");
         }
       } catch (error) {
         console.error("发布失败:", error);
-        message.error("发布失败");
       } finally {
         loading.value = false;
       }
@@ -362,12 +359,9 @@ const deleteDraft = (newsId: number) => {
         if (res.data && res.data.code === 0) {
           message.success("删除成功");
           fetchMyDrafts(); // 刷新草稿列表
-        } else {
-          message.error(res.data?.message || "删除失败");
         }
       } catch (error) {
         console.error("删除失败:", error);
-        message.error("删除失败");
       } finally {
         loading.value = false;
       }
@@ -390,12 +384,9 @@ const setAsDraft = (newsId: number) => {
           message.success("已转为草稿");
           fetchMyPublishedNews(); // 刷新已发布列表
           fetchMyDrafts(); // 同时刷新草稿列表
-        } else {
-          message.error(res.data?.message || "操作失败");
         }
       } catch (error) {
         console.error("转为草稿失败:", error);
-        message.error("操作失败");
       } finally {
         loading.value = false;
       }
@@ -417,12 +408,9 @@ const deletePublished = (newsId: number) => {
         if (res.data && res.data.code === 0) {
           message.success("删除成功");
           fetchMyPublishedNews(); // 刷新已发布列表
-        } else {
-          message.error(res.data?.message || "删除失败");
         }
       } catch (error) {
         console.error("删除失败:", error);
-        message.error("删除失败");
       } finally {
         loading.value = false;
       }
@@ -469,7 +457,6 @@ const fetchPublishedNews = async () => {
     newsList.value = response.records;
   } catch (error) {
     console.error("获取资讯列表失败:", error);
-    message.error("网络错误，请稍后重试");
   } finally {
     loading.value = false;
   }
@@ -478,7 +465,6 @@ const fetchPublishedNews = async () => {
 // 获取我的草稿资讯
 const fetchMyDrafts = async () => {
   if (!userStore.loginUser?.userId) {
-    message.error("请先登录");
     return;
   }
 
@@ -487,13 +473,9 @@ const fetchMyDrafts = async () => {
     const response = await listMyDrafts();
     if (response && response.data && response.data.code === 0) {
       draftsList.value = response.data.data.records || [];
-    } else {
-      console.warn("获取草稿列表失败:", response);
-      draftsList.value = [];
     }
   } catch (error) {
     console.error("获取草稿列表失败:", error);
-    message.error("获取草稿列表失败");
   } finally {
     loading.value = false;
   }
@@ -502,7 +484,6 @@ const fetchMyDrafts = async () => {
 // 获取我发布的资讯
 const fetchMyPublishedNews = async () => {
   if (!userStore.loginUser?.userId) {
-    message.error("请先登录");
     return;
   }
 
@@ -511,13 +492,9 @@ const fetchMyPublishedNews = async () => {
     const response = await listMyPublishedNews();
     if (response && response.data && response.data.code === 0) {
       myPublishedList.value = response.data.data.records || [];
-    } else {
-      console.warn("获取我的发布列表失败:", response);
-      myPublishedList.value = [];
     }
   } catch (error) {
     console.error("获取我的发布列表失败:", error);
-    message.error("获取我的发布列表失败");
   } finally {
     loading.value = false;
   }

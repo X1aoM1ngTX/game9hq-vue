@@ -344,7 +344,7 @@ const getBuyButtonText = computed(() => {
 interface ApiResponse<T> {
   code: number;
   data: T;
-  message: string;
+  description: string;
 }
 
 // 获取游戏详情
@@ -358,7 +358,7 @@ const fetchGameDetail = async (gameId: string) => {
     if (res.data.code === 0 && res.data.data) {
       game.value = res.data.data;
     } else {
-      error.value = res.data.message || "获取游戏详情失败";
+      error.value = res.data.description || "获取游戏详情失败";
     }
   } catch (err) {
     error.value = "获取游戏详情失败，请稍后重试";
@@ -413,15 +413,18 @@ const handleButtonClick = async () => {
       (userLibraryStore.games as UserGameItem[]).push(
         game.value as UserGameItem
       );
-    } else if (res.data.code === 40000 && res.data.message.includes("已拥有")) {
+    } else if (
+      res.data.code === 40000 &&
+      res.data.description.includes("已拥有")
+    ) {
       // 后端返回已拥有
       message.info("你已拥有该游戏");
     } else {
-      message.error(res.data.message || "添加游戏失败");
+      message.error(res.data.description || "添加游戏失败");
     }
   } catch (error: unknown) {
-    const err = error as { message?: string };
-    message.error(`操作失败: ${err.message || "未知错误"}`);
+    const err = error as { description?: string };
+    message.error(`操作失败: ${err.description || "未知错误"}`);
   }
 };
 
@@ -487,7 +490,7 @@ const fetchReviews = async () => {
         }
       }
     } else {
-      message.error(res.data.message || "获取评论失败");
+      message.error(res.data.description || "获取评论失败");
     }
   } catch (error) {
     message.error("获取评论失败");
@@ -501,7 +504,7 @@ const fetchAverageRating = async () => {
     if (res.data.code === 0) {
       averageRating.value = res.data.data;
     } else {
-      message.error(res.data.message || "获取评分失败");
+      message.error(res.data.description || "获取评分失败");
     }
   } catch (error) {
     message.error("获取评分失败");
@@ -546,7 +549,7 @@ const submitReview = async () => {
       fetchAverageRating();
     } else {
       message.error(
-        res.data.message ||
+        res.data.description ||
           (editingReviewId.value !== null ? "评论更新失败" : "评价发布失败")
       );
     }
@@ -568,7 +571,7 @@ const deleteReview = async (reviewId: number) => {
       fetchReviews();
       fetchAverageRating();
     } else {
-      message.error(res.data.message || "评论删除失败");
+      message.error(res.data.description || "评论删除失败");
     }
   } catch (error) {
     message.error("评论删除失败");

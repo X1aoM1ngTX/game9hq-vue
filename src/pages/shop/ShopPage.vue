@@ -140,9 +140,6 @@ const fetchData = async (keyword = "") => {
 
   if (res.data.code === 0) {
     data.value = res.data.data?.records || [];
-  } else {
-    message.error("游戏数据获取失败");
-    data.value = [];
   }
 };
 

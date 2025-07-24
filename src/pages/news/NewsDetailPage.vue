@@ -274,12 +274,9 @@ const fetchNewsDetail = async (newsId: number): Promise<void> => {
       // 赋值给响应式数据
       newsData.value = newsDataFromApi;
       console.log("详情页资讯数据:", newsData.value);
-    } else {
-      message.error(response.data?.message || "获取资讯详情失败");
     }
   } catch (error) {
     console.error("获取资讯详情失败:", error);
-    message.error("网络错误，请稍后重试");
   } finally {
     loading.value = false;
   }
@@ -307,7 +304,6 @@ onMounted(() => {
   if (newsId) {
     fetchNewsDetail(Number(newsId));
   } else {
-    message.error("资讯ID不存在");
     router.push("/news");
   }
 });

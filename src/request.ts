@@ -1,4 +1,5 @@
 import axios from "axios";
+import { message } from "ant-design-vue";
 
 const myAxios = axios.create({
   baseURL: process.env.VUE_APP_BASE_API || "http://localhost:8080",
@@ -36,6 +37,25 @@ myAxios.interceptors.response.use(
       ) {
         window.location.href = `/user/login?redirect=${window.location.href}`;
       }
+    }
+    // 常见错误码本地化提示
+    if (data.code && data.code !== 0) {
+      let msg = data.description || data.message || "操作失败";
+      if (msg.includes("锁定") || msg.includes("请10分钟后再试")) {
+        msg = "账号已锁定，请10分钟后再试";
+      } else if (msg.includes("验证码错误")) {
+        msg = "验证码错误，请检查后重新输入";
+      } else if (msg.includes("邮箱已存在")) {
+        msg = "该邮箱已被注册";
+      } else if (msg.includes("用户名已存在")) {
+        msg = "该用户名已被占用";
+      } else if (msg.includes("密码错误")) {
+        msg = "密码错误，请重试";
+      } else if (msg.includes("用户不存在")) {
+        msg = "用户不存在";
+      }
+      // 只要不是成功，自动弹出错误提示
+      message.error(msg);
     }
     return response;
   },
