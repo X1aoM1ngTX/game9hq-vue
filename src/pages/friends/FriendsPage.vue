@@ -6,10 +6,10 @@
         <h2 class="page-title">好友管理</h2>
         <div class="friends-stats">
           <span class="stat-item"
-            >在线好友: <strong>{{ onlineFriendsCount }}</strong></span
+          >在线好友: <strong>{{ onlineFriendsCount }}</strong></span
           >
           <span class="stat-item"
-            >全部好友: <strong>{{ totalFriendsCount }}</strong></span
+          >全部好友: <strong>{{ totalFriendsCount }}</strong></span
           >
         </div>
       </div>
@@ -162,14 +162,14 @@
                 <div class="friend-info">
                   <div class="friend-info-header">
                     <span class="friend-name">{{
-                      request.username || "未知用户"
-                    }}</span>
+                        request.username || "未知用户"
+                      }}</span>
                   </div>
                   <div class="friend-info-meta">
                     <span class="friend-label">申请时间：</span>
                     <span class="friend-time">{{
-                      formatDate(request.createTime)
-                    }}</span>
+                        formatDate(request.createTime)
+                      }}</span>
                   </div>
                   <div v-if="request.remark" class="friend-info-meta">
                     <span class="friend-label">备注：</span>
@@ -180,13 +180,18 @@
               <div class="friend-actions friend-actions-bottom">
                 <a-space>
                   <a-button type="primary" @click="handleRequest(request, true)"
-                    >接受</a-button
+                  >接受
+                  </a-button
                   >
                   <a-button danger @click="handleRequest(request, false)"
-                    >拒绝</a-button
+                  >拒绝
+                  </a-button
                   >
                   <a-button @click="showRemarkModal(request)"
-                    ><edit-outlined />备注</a-button
+                  >
+                    <edit-outlined />
+                    备注
+                  </a-button
                   >
                 </a-space>
               </div>
@@ -300,6 +305,7 @@ import {
   PlusOutlined,
   UserOutlined,
 } from "@ant-design/icons-vue";
+import type { FriendRequestVO } from "@/api/friend";
 import {
   addFriend,
   deleteFriend,
@@ -311,7 +317,6 @@ import {
   handleFriendRequest,
   updateFriendRemark,
 } from "@/api/friend";
-import type { FriendRequestVO } from "@/api/friend";
 
 // 扩展 FriendVO 类型
 interface ExtendedFriendVO extends FriendVO {
@@ -359,7 +364,7 @@ const filteredFriends = computed(() => {
           .toLowerCase()
           .includes(searchValue.value.toLowerCase())) ||
       (friend.remark &&
-        friend.remark.toLowerCase().includes(searchValue.value.toLowerCase()))
+        friend.remark.toLowerCase().includes(searchValue.value.toLowerCase())),
   );
   return activeGroup.value === "online"
     ? filtered.filter((f) => f.isOnline)
@@ -466,7 +471,7 @@ const openFriendProfile = (friend: ExtendedFriendVO) => {
 
 const sendMessage = (friend: ExtendedFriendVO) => {
   message.info(
-    `向 ${friend.userNickname || friend.userName} 发送消息功能开发中...`
+    `向 ${friend.userNickname || friend.userName} 发送消息功能开发中...`,
   );
 };
 
@@ -498,7 +503,7 @@ const handleRemarkSubmit = async () => {
   try {
     const response = await updateFriendRemark(
       remarkForm.value.friendId,
-      remarkForm.value.remark
+      remarkForm.value.remark,
     );
     if (response.data.code === 0) {
       message.success("备注设置成功");
@@ -849,22 +854,26 @@ onMounted(() => {
   align-items: stretch;
   padding: 24px 28px;
 }
+
 .friend-card-main {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   gap: 18px;
 }
+
 .friend-info {
   flex: 1;
   min-width: 0;
 }
+
 .friend-info-header {
   font-size: 18px;
   font-weight: 600;
   color: #262626;
   margin-bottom: 6px;
 }
+
 .friend-info-meta {
   font-size: 13px;
   color: #8c8c8c;
@@ -873,12 +882,15 @@ onMounted(() => {
   gap: 4px;
   align-items: center;
 }
+
 .friend-label {
   color: #bfbfbf;
 }
+
 .friend-time {
   color: #8c8c8c;
 }
+
 .friend-remark {
   color: #1890ff;
   background: #f0f8ff;
@@ -889,6 +901,7 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .friend-actions-bottom {
   margin-top: 18px;
   display: flex;

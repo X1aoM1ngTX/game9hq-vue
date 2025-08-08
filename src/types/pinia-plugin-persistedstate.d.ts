@@ -19,5 +19,5 @@ declare module "pinia-plugin-persistedstate" {
     paths?: string[];
   }
 
-  export default function (context: PiniaPluginContext): void;
+  export default function(context: PiniaPluginContext): void;
 }

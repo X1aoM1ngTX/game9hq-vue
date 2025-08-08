@@ -118,6 +118,14 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/friends/FriendsPage.vue"),
   },
   {
+    path: "/wishlist",
+    name: "WishlistPage",
+    component: () => import("@/pages/WishlistPage.vue"),
+    meta: {
+      title: "愿望单",
+    },
+  },
+  {
     path: "/403",
     name: "Exception403",
     component: () => import("@/pages/exception/403.vue"),

@@ -228,19 +228,8 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
-import {
-  checkTodaySignIn,
-  getCurrentUser,
-  getUserById,
-  updateAvatar,
-  userModify,
-  userSignIn,
-} from "@/api/user";
-import {
-  getSelfLibrary,
-  getUserLibrary,
-  removeGameFromUserLibrary,
-} from "@/api/userLibrary";
+import { checkTodaySignIn, getCurrentUser, getUserById, updateAvatar, userModify, userSignIn } from "@/api/user";
+import { getSelfLibrary, getUserLibrary, removeGameFromUserLibrary } from "@/api/userLibrary";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { CameraOutlined } from "@ant-design/icons-vue";
@@ -490,7 +479,7 @@ const handleRemove = async (gameId: number) => {
     if (res.data.code === 0) {
       message.success("游戏已成功移除");
       userGames.value = userGames.value.filter(
-        (game) => game.gameId !== gameId
+        (game) => game.gameId !== gameId,
       );
     } else {
       message.error(res.data.description || "游戏移除失败");
@@ -517,7 +506,7 @@ onMounted(async () => {
   // 添加游戏移除事件监听
   document.addEventListener(
     "removeGame",
-    handleRemoveGameEvent as EventListener
+    handleRemoveGameEvent as EventListener,
   );
 });
 
@@ -525,7 +514,7 @@ onMounted(async () => {
 onUnmounted(() => {
   document.removeEventListener(
     "removeGame",
-    handleRemoveGameEvent as EventListener
+    handleRemoveGameEvent as EventListener,
   );
 });
 

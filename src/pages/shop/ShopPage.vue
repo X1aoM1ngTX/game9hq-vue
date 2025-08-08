@@ -31,13 +31,13 @@
               <div v-if="game.gamePrice !== 0">
                 <div class="prices">
                   <span v-if="game.gameOnSale === 1" class="original-price"
-                    >￥{{ game.gamePrice }}</span
+                  >￥{{ game.gamePrice }}</span
                   >
                   <div v-if="game.gameOnSale === 1" class="discount-tag">
                     -{{ (game.gameDiscount * 100).toFixed(1) }}%
                   </div>
                   <span class="current-price"
-                    >￥{{
+                  >￥{{
                       game.gameOnSale === 1
                         ? game.gameDiscountedPrices
                         : game.gamePrice
@@ -68,8 +68,7 @@
 
 <script lang="ts" setup>
 // 导入所需的组件和函数
-import { ref } from "vue";
-import { message } from "ant-design-vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { searchGames } from "@/api/game";
 // 导入日期处理库
 import dayjs from "dayjs";
@@ -147,11 +146,58 @@ const goToGameDetail = (gameId: number) => {
   if (!gameId) {
     return;
   }
+  // 保存当前滚动位置
+  saveScrollPosition();
   router.push(`/game/${gameId}`);
+};
+
+// 保存滚动位置的函数
+const saveScrollPosition = () => {
+  const shopPage = document.getElementById("shopPage");
+  if (shopPage) {
+    sessionStorage.setItem(
+      "shopPageScrollPosition",
+      shopPage.scrollTop.toString(),
+    );
+  }
+};
+
+// 恢复滚动位置的函数
+const restoreScrollPosition = () => {
+  const savedPosition = sessionStorage.getItem("shopPageScrollPosition");
+  if (savedPosition) {
+    setTimeout(() => {
+      const shopPage = document.getElementById("shopPage");
+      if (shopPage) {
+        shopPage.scrollTop = parseInt(savedPosition);
+        sessionStorage.removeItem("shopPageScrollPosition");
+      }
+    }, 100); // 延迟恢复确保DOM已渲染
+  }
 };
 
 // 初始化加载数据
 fetchData();
+
+// 组件挂载时恢复滚动位置
+onMounted(() => {
+  restoreScrollPosition();
+});
+
+// 监听路由变化，当从详情页返回时恢复滚动位置
+const handleRouteChange = () => {
+  if (router.currentRoute.value.path === "/shop") {
+    restoreScrollPosition();
+  }
+};
+
+// 在组件卸载前移除事件监听
+onBeforeUnmount(() => {
+  window.removeEventListener("popstate", handleRouteChange);
+});
+
+// 添加事件监听
+window.addEventListener("popstate", handleRouteChange);
 
 // 添加过渡钩子函数
 const handleBeforeLeave = (el: Element) => {

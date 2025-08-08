@@ -15,7 +15,7 @@ myAxios.interceptors.request.use(
   (error) => {
     message.error("请求发送失败");
     return Promise.reject(error);
-  }
+  },
 );
 
 // 响应拦截器
@@ -39,7 +39,7 @@ myAxios.interceptors.response.use(
       message.error("网络错误，请检查网络连接");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default myAxios;

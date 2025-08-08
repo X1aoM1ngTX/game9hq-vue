@@ -5,6 +5,7 @@ interface GameCreateRequest {
   gameName: string;
   gamePrice: number;
   gameStock: number;
+  gameAppId?: string | number;
 }
 
 // 游戏状态更新参数接口
@@ -36,6 +37,7 @@ export interface GameDetailVO {
   gameSaleEndTime: string;
   gameIsRemoved: number;
   gameOnSale: number;
+  gameAppId?: string | number;
 }
 
 /**
@@ -58,7 +60,7 @@ export const deleteGame = (gameId: string) => {
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 };
 
@@ -89,7 +91,7 @@ export const updateGameStatus = (params: GameStatusUpdateRequest) => {
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 };
 
@@ -109,7 +111,7 @@ export const searchGames = (params: Partial<GameSearchRequest>) => {
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 };
 /**
@@ -126,4 +128,12 @@ export const getGameDetail = (gameId: string | number) => {
  */
 export const userBuyGame = (gameId: string | number) => {
   return myAxios.post("/api/game/purchase", { gameId });
+};
+
+/**
+ * 获取游戏在线人数
+ * @param gameId 游戏ID
+ */
+export const getGameOnlineCount = (gameId: string | number) => {
+  return myAxios.get<number>(`/api/game/${gameId}/online-count`);
 };

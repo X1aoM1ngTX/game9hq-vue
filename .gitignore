@@ -7,6 +7,8 @@ node_modules
 # 本地环境文件
 .env.local
 .env.*.local
+.env.development
+.env.production
 
 # 日志文件
 npm-debug.log*

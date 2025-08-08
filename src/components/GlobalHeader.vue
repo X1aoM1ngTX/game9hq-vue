@@ -53,6 +53,12 @@
                     </template>
                     我的好友
                   </a-menu-item>
+                  <a-menu-item key="wishlist" @click="toWishlist">
+                    <template #icon>
+                      <HeartOutlined />
+                    </template>
+                    我的愿望单
+                  </a-menu-item>
                   <a-menu-item key="logout" @click="handleLogout">
                     <template #icon>
                       <LogoutOutlined />
@@ -85,6 +91,7 @@ import {
   BellOutlined,
   DownOutlined,
   FileTextOutlined,
+  HeartOutlined,
   HomeOutlined,
   LogoutOutlined,
   SettingOutlined,
@@ -115,6 +122,10 @@ const toUserProfile = () => {
 
 const toFirends = () => {
   router.push("/friends");
+};
+
+const toWishlist = () => {
+  router.push("/wishlist");
 };
 
 const handleLogout = async () => {
