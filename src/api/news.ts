@@ -72,7 +72,7 @@ export interface NewsApiResponse<T> extends ApiResponse<T> {
 export const createNews = async (params: NewsCreateRequest) => {
   return await myAxios.post<ApiResponse<NewsItem>>(
     `${API_PREFIX}/create`,
-    params
+    params,
   );
 };
 
@@ -80,7 +80,7 @@ export const createNews = async (params: NewsCreateRequest) => {
 export const updateNews = async (params: NewsUpdateRequest) => {
   return await myAxios.put<ApiResponse<NewsItem>>(
     `${API_PREFIX}/update/${params.newsId}`,
-    params
+    params,
   );
 };
 
@@ -107,7 +107,7 @@ export const listNews = (): Promise<PageResponse<NewsItem>> => {
 // 获取指定已发布资讯的详细信息
 export const getNewsDetail = async (newsId: number) => {
   const response = await myAxios.get<NewsApiResponse<NewsItemWithAuthor>>(
-    `${API_PREFIX}/get/${newsId}`
+    `${API_PREFIX}/get/${newsId}`,
   );
 
   // 如果后端没有返回作者信息，处理作者信息
@@ -167,14 +167,14 @@ export const uploadImage = (params: FormData) => {
 // 获取当前用户的草稿资讯列表
 export const listMyDrafts = async () => {
   return await myAxios.get<ApiResponse<PageResponse<NewsItem>>>(
-    `${API_PREFIX}/my/drafts`
+    `${API_PREFIX}/my/drafts`,
   );
 };
 
 // 获取当前用户的已发布资讯列表
 export const listMyPublishedNews = async () => {
   return await myAxios.get<ApiResponse<PageResponse<NewsItem>>>(
-    `${API_PREFIX}/my/published`
+    `${API_PREFIX}/my/published`,
   );
 };
 
@@ -183,7 +183,7 @@ export const listPublishedNews = async (): Promise<
   PageResponse<NewsItemWithAuthor>
 > => {
   const { data } = await myAxios.get<NewsApiResponse<PageResponse<NewsItem>>>(
-    `${API_PREFIX}/list/published`
+    `${API_PREFIX}/list/published`,
   );
   console.log("API原始响应:", data);
 
@@ -245,7 +245,7 @@ export const listPublishedNews = async (): Promise<
       }
 
       return newsWithAuthor;
-    }
+    },
   );
 
   // 等待所有作者信息获取完成

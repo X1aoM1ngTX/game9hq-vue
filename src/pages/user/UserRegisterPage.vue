@@ -154,19 +154,9 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref, computed } from "vue";
-import {
-  LockOutlined,
-  MailOutlined,
-  SafetyOutlined,
-  UserOutlined,
-} from "@ant-design/icons-vue";
-import {
-  sendVerifyCode,
-  userRegister,
-  verifyCode,
-  searchUsers,
-} from "@/api/user";
+import { computed, reactive, ref } from "vue";
+import { LockOutlined, MailOutlined, SafetyOutlined, UserOutlined } from "@ant-design/icons-vue";
+import { searchUsers, sendVerifyCode, userRegister, verifyCode } from "@/api/user";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 
@@ -398,7 +388,7 @@ const checkUserEmailUnique = async () => {
   font-weight: 500;
   font-size: 28px;
   font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  "Helvetica Neue", Arial, sans-serif;
 }
 
 .highlight {

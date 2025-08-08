@@ -78,7 +78,7 @@
           <a-button @click="goBack">取消</a-button>
           <a-space>
             <a-button v-if="!isPublished" :loading="saving" @click="saveDraft"
-              >保存草稿
+            >保存草稿
             </a-button>
             <a-button :loading="publishing" type="primary" @click="publish">
               {{ isEditMode && isPublished ? "更新" : "发布" }}
@@ -96,15 +96,7 @@ import type { UploadChangeParam } from "ant-design-vue";
 import { message } from "ant-design-vue";
 import { PlusOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
-import {
-  createNews,
-  draftNews,
-  getDraftNews,
-  getNewsDetail,
-  publishNews,
-  updateNews,
-  uploadImage,
-} from "@/api/news";
+import { createNews, draftNews, getDraftNews, getNewsDetail, publishNews, updateNews, uploadImage } from "@/api/news";
 
 const router = useRouter();
 const route = useRoute();

@@ -43,14 +43,14 @@
               <div class="price-section">
                 <div v-if="game.gamePrice !== 0">
                   <span v-if="game.gameOnSale === 1" class="original-price"
-                    >￥{{ game.gamePrice }}</span
+                  >￥{{ game.gamePrice }}</span
                   >
                   <span
                     :class="{
                       'price-on-sale': game.gameOnSale === 1,
                     }"
                     class="current-price"
-                    >￥{{
+                  >￥{{
                       game.gameOnSale === 1
                         ? game.gameDiscountedPrices
                         : game.gamePrice
@@ -61,39 +61,53 @@
                   <span class="current-price">免费</span>
                 </div>
               </div>
-              <button
-                :disabled="game.gameStock <= 0 || game.gameIsRemoved === 1"
-                class="buy-button"
-                @click="handleButtonClick"
-              >
-                {{ getBuyButtonText }}
-              </button>
+              <div class="action-buttons">
+                <button
+                  :disabled="game.gameStock <= 0 || game.gameIsRemoved === 1"
+                  class="buy-button"
+                  @click="handleButtonClick"
+                >
+                  {{ getBuyButtonText }}
+                </button>
+                <button
+                  :class="{ 'wishlist-button-active': isInWishlist }"
+                  :disabled="!loginUserStore.hasLogin"
+                  class="wishlist-button"
+                  @click="handleWishlistToggle"
+                >
+                  <component
+                    :is="isInWishlist ? HeartFilled : HeartOutlined"
+                    class="wishlist-icon"
+                  />
+                  {{ isInWishlist ? "查看愿望单" : "加入愿望单" }}
+                </button>
+              </div>
             </div>
             <div class="game-details">
               <a-list>
                 <a-list-item>
                   <a-tag color="blue"
-                    ><strong>发行日期：</strong>{{ game.gameReleaseDate }}
+                  ><strong>发行日期：</strong>{{ game.gameReleaseDate }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="green"
-                    ><strong>开发商：</strong>{{ game.gameDev }}
+                  ><strong>开发商：</strong>{{ game.gameDev }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="purple"
-                    ><strong>发行商：</strong>{{ game.gamePub }}
+                  ><strong>发行商：</strong>{{ game.gamePub }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="orange"
-                    ><strong>库存：</strong>{{ game.gameStock }}
+                  ><strong>库存：</strong>{{ game.gameStock }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
                   <a-tag color="magenta"
-                    ><strong>促销折扣：</strong>{{ game.gameDiscount }}折
+                  ><strong>促销折扣：</strong>{{ game.gameDiscount }}折
                   </a-tag>
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
@@ -104,20 +118,24 @@
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
                   <a-tag color="blue"
-                    ><strong>促销剩余：</strong>{{ countdown }}
+                  ><strong>促销剩余：</strong>{{ countdown }}
+                  </a-tag>
+                </a-list-item>
+                <a-list-item>
+                  <a-tag color="cyan">
+                    <strong>当前在线：</strong>
+                    <template v-if="onlineCount !== null">
+                      {{ onlineCount.toLocaleString() }}
+                    </template>
+                    <template v-else>
+                      <a-spin size="small" />
+                    </template>
                   </a-tag>
                 </a-list-item>
               </a-list>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- 游戏玩家统计卡片 -->
-      <div class="game-stat-card">
-        <h2 class="stat-title">玩家统计</h2>
-        <hr class="stat-divider" />
-        <div ref="chartRef" class="stat-chart"></div>
       </div>
 
       <!-- 游戏评论区域 -->
@@ -129,8 +147,8 @@
         <div class="rating-summary">
           <div class="average-rating">
             <span class="rating-number">{{
-              averageRating?.toFixed(1) || "N/A"
-            }}</span>
+                averageRating?.toFixed(1) || "N/A"
+              }}</span>
             <span class="rating-max">/ 10</span>
             <a-rate :value="averageRating / 2" allow-half disabled />
           </div>
@@ -189,20 +207,20 @@
               </div>
               <div class="review-meta">
                 <span class="review-time">{{
-                  formatDateTime(review.createTime)
-                }}</span>
+                    formatDateTime(review.createTime)
+                  }}</span>
                 <div
                   v-if="review.userId === currentUserId"
                   class="review-actions"
                 >
                   <a-button type="link" @click="editReview(review)"
-                    >编辑
+                  >编辑
                   </a-button>
                   <a-button
                     danger
                     type="link"
                     @click="deleteReview(review.reviewId)"
-                    >删除
+                  >删除
                   </a-button>
                 </div>
               </div>
@@ -226,12 +244,11 @@
 </template>
 
 <script lang="ts" setup>
-import * as echarts from "echarts";
-import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
+import { computed, onActivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { type GameDetailVO, getGameDetail, userBuyGame } from "@/api/game";
+import { type GameDetailVO, getGameDetail, getGameOnlineCount, userBuyGame } from "@/api/game";
 import { message } from "ant-design-vue";
-import { RightOutlined } from "@ant-design/icons-vue";
+import { HeartFilled, HeartOutlined, RightOutlined } from "@ant-design/icons-vue";
 import { useUserLibraryStore } from "@/stores/userLibraryStore";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import dayjs from "dayjs";
@@ -244,6 +261,7 @@ import {
   updateGameReview,
 } from "@/api/gameReview";
 import { getUserById } from "@/api/user";
+import { addGameToWishlist, getMyWishlist } from "@/api/wishlist";
 
 // 路由对象
 const route = useRoute();
@@ -258,41 +276,19 @@ const error = ref<string | null>(null);
 const userLibraryStore = useUserLibraryStore();
 // 登录用户库
 const loginUserStore = useLoginUserStore();
-// 图表实例
-const chartRef = ref(null);
-const trendData = {
-  dates: [
-    "04-22",
-    "04-23",
-    "04-24",
-    "04-25",
-    "04-26",
-    "04-27",
-    "04-28",
-    "04-29",
-    "04-30",
-    "05-01",
-    "05-02",
-    "05-03",
-    "05-04",
-    "05-05",
-    "05-06",
-    "05-07",
-    "05-08",
-    "05-09",
-    "05-10",
-    "05-11",
-    "05-12",
-  ],
-  values: [
-    1200, 1300, 1100, 1400, 1500, 1200, 1100, 1300, 1250, 1400, 1600, 1800,
-    2500, 3000, 3400, 3800, 4100, 3700, 3900, 4000, 4183,
-  ],
-};
+
+// 愿望单相关
+const isInWishlist = ref(false);
+const wishlistLoading = ref(false);
+const wishlistGames = ref<number[]>([]);
 
 // 倒计时相关
 const countdown = ref("");
 let timer: ReturnType<typeof setInterval> | null = null;
+
+// 在线人数相关
+const onlineCount = ref<number | null>(null);
+let onlineCountTimer: ReturnType<typeof setInterval> | null = null;
 
 // 格式化日期时间
 const formatDateTime = (date: string) => {
@@ -347,6 +343,24 @@ interface ApiResponse<T> {
   description: string;
 }
 
+// 获取游戏在线人数
+const fetchOnlineCount = async () => {
+  if (!game.value?.gameId) return;
+
+  try {
+    const res = await getGameOnlineCount(game.value.gameId);
+    if (res.data.code === 0) {
+      onlineCount.value = res.data.data;
+    } else {
+      console.error("获取在线人数失败:", res.data.description);
+      onlineCount.value = 0;
+    }
+  } catch (error) {
+    console.error("获取在线人数失败:", error);
+    onlineCount.value = 0;
+  }
+};
+
 // 获取游戏详情
 const fetchGameDetail = async (gameId: string) => {
   try {
@@ -378,8 +392,44 @@ interface UserGameItem {
 // 检查游戏是否在用户游戏库中
 const isGameInLibrary = (gameId: number) => {
   return (userLibraryStore.games as UserGameItem[]).some(
-    (game) => game.gameId === gameId
+    (game) => game.gameId === gameId,
   );
+};
+
+// 检查游戏是否在愿望单中
+const checkGameInWishlist = (gameId: number) => {
+  return wishlistGames.value.includes(gameId);
+};
+
+// 处理愿望单操作
+const handleWishlistToggle = async () => {
+  if (!game.value || !loginUserStore.hasLogin) {
+    message.warning("请先登录");
+    return;
+  }
+
+  // 如果游戏已经在愿望单中，跳转到愿望单页面
+  if (isInWishlist.value) {
+    router.push("/wishlist");
+    return;
+  }
+
+  wishlistLoading.value = true;
+  try {
+    // 添加到愿望单
+    const res = await addGameToWishlist(game.value.gameId);
+    if (res.data.code === 0) {
+      message.success("已添加到愿望单");
+      isInWishlist.value = true;
+      wishlistGames.value.push(game.value.gameId);
+    } else {
+      message.error(res.data.description || "添加失败");
+    }
+  } catch (error) {
+    message.error("操作失败，请稍后重试");
+  } finally {
+    wishlistLoading.value = false;
+  }
 };
 
 // 处理按钮点击
@@ -411,7 +461,7 @@ const handleButtonClick = async () => {
     if (res.data.code === 0) {
       message.success("游戏已成功添加到您的游戏库");
       (userLibraryStore.games as UserGameItem[]).push(
-        game.value as UserGameItem
+        game.value as UserGameItem,
       );
     } else if (
       res.data.code === 40000 &&
@@ -453,7 +503,7 @@ const fetchReviews = async () => {
     const res = await getGameReviews(
       Number(route.params.gameId),
       currentPage.value,
-      pageSize.value
+      pageSize.value,
     );
     if (res.data.code === 0) {
       reviews.value = res.data.data.records;
@@ -462,7 +512,7 @@ const fetchReviews = async () => {
       // 检查当前用户是否已评论
       if (currentUserId.value !== null) {
         hasReviewed.value = res.data.data.records.some(
-          (review: Review) => review.userId === currentUserId.value
+          (review: Review) => review.userId === currentUserId.value,
         );
       }
 
@@ -470,7 +520,7 @@ const fetchReviews = async () => {
       const userIdsToFetch = reviews.value
         .map((review) => review.userId)
         .filter(
-          (userId) => userId !== undefined && userAvatars[userId] === undefined
+          (userId) => userId !== undefined && userAvatars[userId] === undefined,
         );
 
       const uniqueUserIds = Array.from(new Set(userIdsToFetch));
@@ -539,7 +589,7 @@ const submitReview = async () => {
 
     if (res.data.code === 0) {
       message.success(
-        editingReviewId.value !== null ? "评论更新成功" : "评价发布成功"
+        editingReviewId.value !== null ? "评论更新成功" : "评价发布成功",
       );
       newReview.value.content = "";
       newReview.value.rating = 5;
@@ -550,12 +600,12 @@ const submitReview = async () => {
     } else {
       message.error(
         res.data.description ||
-          (editingReviewId.value !== null ? "评论更新失败" : "评价发布失败")
+        (editingReviewId.value !== null ? "评论更新失败" : "评价发布失败"),
       );
     }
   } catch (error) {
     message.error(
-      editingReviewId.value !== null ? "评论更新失败" : "评价发布失败"
+      editingReviewId.value !== null ? "评论更新失败" : "评价发布失败",
     );
   } finally {
     submitting.value = false;
@@ -608,6 +658,21 @@ const goToUserProfile = (userId: number) => {
   router.push(`/user/profile/${userId}`);
 };
 
+// 获取愿望单数据
+const fetchWishlist = async () => {
+  try {
+    const res = await getMyWishlist();
+    if (res.data.code === 0) {
+      // 修复数据映射问题，从后端的嵌套结构中提取gameId
+      wishlistGames.value = res.data.data.map(
+        (wishlistVO: any) => wishlistVO.game?.gameId,
+      );
+    }
+  } catch (error) {
+    console.error("获取愿望单失败:", error);
+  }
+};
+
 // 页面挂载时获取游戏详情和启动倒计时
 onMounted(async () => {
   userLibraryStore.fetchUserLibrary();
@@ -620,46 +685,43 @@ onMounted(async () => {
 
   const gameId = route.params.gameId as string;
   fetchGameDetail(gameId);
+
+  // 获取愿望单数据
+  if (loginUserStore.hasLogin) {
+    await fetchWishlist();
+  }
+
   updateCountdown();
   // 每秒更新一次倒计时
   timer = setInterval(updateCountdown, 1000);
 
-  const chart = echarts.init(chartRef.value);
-  chart.setOption({
-    title: {
-      text: "在线玩家趋势图",
-      left: "center",
-    },
-    tooltip: {
-      trigger: "axis",
-      axisPointer: {
-        type: "shadow",
-      },
-    },
-    xAxis: {
-      type: "category",
-      data: trendData.dates,
-    },
-    yAxis: {
-      type: "value",
-    },
-    series: [
-      {
-        data: trendData.values,
-        type: "line",
-        barWidth: "60%",
-        itemStyle: {
-          color: "#FFA500",
-        },
-      },
-    ],
-  });
-  window.addEventListener("resize", () => {
-    chart.resize();
-  });
+  // 获取在线人数
+  fetchOnlineCount();
+  // 每30秒更新一次在线人数
+  onlineCountTimer = setInterval(fetchOnlineCount, 30 * 1000);
 
   fetchReviews();
   fetchAverageRating();
+});
+
+// 监听路由变化，当页面重新显示时更新愿望单状态
+
+// 页面激活时（从其他页面返回时）重新获取愿望单状态
+onActivated(async () => {
+  if (loginUserStore.hasLogin) {
+    await fetchWishlist();
+  }
+});
+
+// 监听游戏数据变化，更新愿望单状态和在线人数
+watch([game, wishlistGames], ([newGame]) => {
+  if (newGame && loginUserStore.hasLogin) {
+    isInWishlist.value = checkGameInWishlist(newGame.gameId);
+  }
+  // 如果游戏有游戏ID，获取在线人数
+  if (newGame?.gameId) {
+    fetchOnlineCount();
+  }
 });
 
 // 组件卸载时清除定时器
@@ -667,6 +729,10 @@ onUnmounted(() => {
   if (timer) {
     clearInterval(timer);
     timer = null;
+  }
+  if (onlineCountTimer) {
+    clearInterval(onlineCountTimer);
+    onlineCountTimer = null;
   }
 });
 
@@ -689,17 +755,39 @@ const handleBack = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   z-index: 1000;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  animation: slide-in 0.3s ease-out;
+  justify-content: flex-end;
+  align-items: stretch;
+  animation: fade-in 0.3s ease-out;
 }
 
 .game-detail-overlay.slide-out {
-  animation: slide-out 0.3s ease-in;
+  animation: fade-out 0.3s ease-in;
+}
+
+.game-detail-overlay.slide-out .game-detail-sidebar {
+  animation: sidebar-slide-out 0.3s ease-in;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 @keyframes slide-in {
@@ -729,8 +817,27 @@ const handleBack = () => {
   height: 100%;
   background-color: #ffffff;
   overflow-y: auto;
-  animation: slideIn 0.4s ease-out;
-  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.2);
+  animation: sidebar-slide-in 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: -8px 0 30px rgba(0, 0, 0, 0.3);
+  margin-left: auto;
+}
+
+@keyframes sidebar-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sidebar-slide-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes slideIn {
@@ -909,6 +1016,55 @@ const handleBack = () => {
   align-items: center;
 }
 
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wishlist-button {
+  width: 100%;
+  padding: 12px;
+  background: #f8f9fa;
+  color: #666;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.wishlist-button:hover:not(:disabled) {
+  background: #e9ecef;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+.wishlist-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.wishlist-button-active {
+  background: #fff1f0;
+  color: #f5222d;
+  border-color: #ffccc7;
+}
+
+.wishlist-button-active:hover:not(:disabled) {
+  background: #ffe7e6;
+  border-color: #ffa39e;
+}
+
+.wishlist-icon {
+  font-size: 16px;
+}
+
 .current-price {
   font-size: 28px;
   color: #000000;
@@ -1043,40 +1199,6 @@ const handleBack = () => {
   .game-detail-container {
     padding: 0 16px 24px;
   }
-}
-
-.game-stat-card {
-  margin: 40px auto 0 auto;
-  max-width: 900px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
-  padding: 32px 24px;
-  text-align: center;
-}
-
-.stat-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 32px;
-  color: #222;
-  letter-spacing: 2px;
-}
-
-.stat-chart {
-  width: 100%;
-  height: 400px;
-  margin: 0 auto;
-}
-
-.game-detail-sidebar > .game-stat-card {
-  margin-top: 48px;
-}
-
-.stat-divider {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 0 0 24px 0;
 }
 
 .game-review-section {

@@ -76,7 +76,7 @@
         <template v-else-if="column.key === 'action'">
           <a-space :direction="'vertical'">
             <a-button type="primary" @click="showEditModal(record)"
-              >编辑
+            >编辑
             </a-button>
             <a-button type="default" @click="toggleStatus(record)">
               {{ record.gameIsRemoved === true ? "上架" : "下架" }}
@@ -111,7 +111,7 @@
             :before-upload="beforeUpload"
             :headers="getHeaders()"
             :show-upload-list="false"
-            action="http://localhost:8080/api/game/upload"
+            :action="uploadUrl"
             class="avatar-uploader"
             list-type="picture-card"
             name="file"
@@ -157,6 +157,12 @@
         </a-form-item>
         <a-form-item label="游戏开发商" name="gameDev">
           <a-input v-model:value="editFormState.gameDev" />
+        </a-form-item>
+        <a-form-item label="Steam 应用ID" name="gameAppId">
+          <a-input
+            v-model:value="editFormState.gameAppId"
+            placeholder="Steam 应用的数字ID，用于获取在线人数"
+          />
         </a-form-item>
         <a-form-item label="发行日期" name="gameReleaseDate">
           <a-date-picker
@@ -248,6 +254,12 @@
             style="width: 100%"
           />
         </a-form-item>
+        <a-form-item label="Steam 应用ID" name="gameAppId">
+          <a-input
+            v-model:value="addFormState.gameAppId"
+            placeholder="Steam 应用的数字ID，用于获取在线人数"
+          />
+        </a-form-item>
       </a-form>
     </a-modal>
     <a-modal
@@ -280,20 +292,9 @@
 import { h, onMounted, reactive, ref } from "vue";
 import type { UploadChangeParam, UploadProps } from "ant-design-vue";
 import { message, Modal } from "ant-design-vue";
-import {
-  DownloadOutlined,
-  LoadingOutlined,
-  PlusOutlined,
-  UploadOutlined,
-} from "@ant-design/icons-vue";
+import { DownloadOutlined, LoadingOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
-import {
-  createGame,
-  deleteGame,
-  searchGames,
-  updateGame,
-  updateGameStatus,
-} from "@/api/game";
+import { createGame, deleteGame, searchGames, updateGame, updateGameStatus } from "@/api/game";
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import { useRouter } from "vue-router";
@@ -368,12 +369,6 @@ const columns = [
     key: "gameName",
   },
   {
-    title: "游戏描述📝",
-    dataIndex: "gameDescription",
-    key: "gameDescription",
-    ellipsis: true,
-  },
-  {
     title: "游戏库存📦",
     dataIndex: "gameStock",
     key: "gameStock",
@@ -387,15 +382,15 @@ const columns = [
         record.gameCover ? "img" : "span",
         record.gameCover
           ? {
-              src: record.gameCover,
-              alt: "Game Cover",
-              style: {
-                width: "50px",
-                height: "50px",
-                objectFit: "cover",
-              },
-            }
-          : { innerHTML: "-" }
+            src: record.gameCover,
+            alt: "Game Cover",
+            style: {
+              width: "50px",
+              height: "50px",
+              objectFit: "cover",
+            },
+          }
+          : { innerHTML: "-" },
       );
     },
   },
@@ -502,6 +497,7 @@ interface AddFormState {
   gameName: string;
   gamePrice: number;
   gameStock: number;
+  gameAppId: string | null;
 }
 
 // 新增表单状态初始化
@@ -509,6 +505,7 @@ const addFormState = reactive<AddFormState>({
   gameName: "",
   gamePrice: 0,
   gameStock: 0,
+  gameAppId: null,
 });
 
 // 编辑表单状态的类型定义
@@ -521,6 +518,7 @@ interface EditFormState {
   gamePub: string;
   gameReleaseDate: dayjs.Dayjs | null; // any 或者使用 dayjs.Dayjs | null 更严格
   gameDev: string;
+  gameAppId: string | null;
   gameIsRemoved: boolean;
   gameOnSale: boolean;
   gameSaleStartTime: dayjs.Dayjs | null; // any 或者使用 dayjs.Dayjs | null 更严格
@@ -539,6 +537,7 @@ const editFormState = reactive<EditFormState>({
   gamePub: "",
   gameReleaseDate: null,
   gameDev: "",
+  gameAppId: null,
   gameIsRemoved: false,
   gameOnSale: false,
   gameSaleStartTime: null,
@@ -555,6 +554,7 @@ const showAddModal = () => {
     gameName: "",
     gamePrice: 0,
     gameStock: 0,
+    gameAppId: null,
   });
   // 显示模态框
   modalVisible.value = true;
@@ -582,6 +582,7 @@ const showEditModal = (record: any) => {
       : null,
     gameOnSale: record.gameDiscount > 0,
     gameDiscount: record.gameDiscount || 0,
+    gameAppId: record.gameAppId || null,
   };
   Object.assign(editFormState, formData);
   if (record.gameCover) {
@@ -597,6 +598,7 @@ const handleAddGame = async () => {
       gameName: addFormState.gameName,
       gamePrice: addFormState.gamePrice,
       gameStock: addFormState.gameStock,
+      gameAppId: addFormState.gameAppId,
     };
 
     const res = await createGame(addData);
@@ -624,6 +626,7 @@ const handleEditGame = async () => {
       gamePub: editFormState.gamePub,
       gameReleaseDate: editFormState.gameReleaseDate?.toISOString(),
       gameDev: editFormState.gameDev,
+      gameAppId: editFormState.gameAppId,
       gameOnSale: editFormState.gameOnSale,
       gameSaleStartTime: editFormState.gameSaleStartTime?.toISOString(),
       gameSaleEndTime: editFormState.gameSaleEndTime?.toISOString(),
@@ -666,6 +669,7 @@ const handleModalCancel = () => {
     gamePub: "",
     gameReleaseDate: null,
     gameDev: "",
+    gameAppId: null,
     gameOnSale: false,
     gameSaleStartTime: null,
     gameSaleEndTime: null,
@@ -725,6 +729,7 @@ function getBase64(img: Blob, callback: (base64Url: string) => void) {
 const fileList = ref([]);
 const loading = ref<boolean>(false);
 const imageUrl = ref<string>("");
+const uploadUrl = ref(process.env.VUE_APP_BASE_API + "/api/game/upload");
 
 const handleChange = (info: UploadChangeParam) => {
   if (info.file.status === "uploading") {
@@ -793,7 +798,11 @@ const previewColumns = [
     dataIndex: "gameStock",
     key: "gameStock",
   },
-  // 可以根据需要添加更多列
+  {
+    title: "Steam应用ID",
+    dataIndex: "gameAppId",
+    key: "gameAppId",
+  },
 ];
 
 // 处理 JSON 文件上传
@@ -872,6 +881,7 @@ const downloadTemplate = () => {
         gameDescription: "游戏描述",
         gamePub: "发行商",
         gameDev: "开发商",
+        gameAppId: "123456",
       },
     ],
   };

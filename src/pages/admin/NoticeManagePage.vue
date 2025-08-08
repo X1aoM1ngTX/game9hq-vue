@@ -54,7 +54,7 @@
         <template v-else-if="column.key === 'action'">
           <a-space :direction="'vertical'">
             <a-button type="primary" @click="showEditModal(record)"
-              >编辑
+            >编辑
             </a-button>
             <a-button
               :type="
@@ -101,16 +101,16 @@
         >
           <a-select v-model:value="editFormState.noticeType">
             <a-select-option :value="NoticeType.NORMAL"
-              >普通公告
+            >普通公告
             </a-select-option>
             <a-select-option :value="NoticeType.IMPORTANT"
-              >重要公告
+            >重要公告
             </a-select-option>
             <a-select-option :value="NoticeType.SYSTEM"
-              >系统公告
+            >系统公告
             </a-select-option>
             <a-select-option :value="NoticeType.ACTIVITY"
-              >活动公告
+            >活动公告
             </a-select-option>
           </a-select>
         </a-form-item>
@@ -149,16 +149,16 @@
         >
           <a-select v-model:value="addFormState.noticeType">
             <a-select-option :value="NoticeType.NORMAL"
-              >普通公告
+            >普通公告
             </a-select-option>
             <a-select-option :value="NoticeType.IMPORTANT"
-              >重要公告
+            >重要公告
             </a-select-option>
             <a-select-option :value="NoticeType.SYSTEM"
-              >系统公告
+            >系统公告
             </a-select-option>
             <a-select-option :value="NoticeType.ACTIVITY"
-              >活动公告
+            >活动公告
             </a-select-option>
           </a-select>
         </a-form-item>
@@ -393,7 +393,7 @@ const toggleStatus = async (record: INotice) => {
       await publishNotice(record.noticeId);
     }
     message.success(
-      record.noticeStatus === NoticeStatus.PUBLISHED ? "下架成功" : "发布成功"
+      record.noticeStatus === NoticeStatus.PUBLISHED ? "下架成功" : "发布成功",
     );
     await fetchData(searchValue.value);
   } catch (error) {
@@ -470,26 +470,26 @@ const handleModalOk = async () => {
   try {
     const formData = editFormState.noticeId
       ? {
-          noticeId: editFormState.noticeId,
-          noticeTitle: editFormState.noticeTitle,
-          noticeContent: editFormState.noticeContent,
-          noticeType: editFormState.noticeType,
-          noticeExpireTime:
-            editFormState.noticeExpireTime?.toISOString() || null,
-        }
+        noticeId: editFormState.noticeId,
+        noticeTitle: editFormState.noticeTitle,
+        noticeContent: editFormState.noticeContent,
+        noticeType: editFormState.noticeType,
+        noticeExpireTime:
+          editFormState.noticeExpireTime?.toISOString() || null,
+      }
       : {
-          noticeTitle: addFormState.noticeTitle,
-          noticeContent: addFormState.noticeContent,
-          noticeType: addFormState.noticeType,
-          noticeExpireTime:
-            addFormState.noticeExpireTime?.toISOString() || null,
-        };
+        noticeTitle: addFormState.noticeTitle,
+        noticeContent: addFormState.noticeContent,
+        noticeType: addFormState.noticeType,
+        noticeExpireTime:
+          addFormState.noticeExpireTime?.toISOString() || null,
+      };
 
     if (editFormState.noticeId) {
       console.log("更新公告请求参数:", editFormState.noticeId, formData);
       const response = await updateNotice(
         editFormState.noticeId,
-        formData as INoticeUpdateRequest
+        formData as INoticeUpdateRequest,
       );
       console.log("更新公告响应:", response);
       message.success("更新成功");

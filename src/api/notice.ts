@@ -92,7 +92,7 @@ type ApiResponse<T> = Promise<AxiosResponse<T>>;
  * 创建公告
  */
 export const createNotice = (
-  noticeData: INoticeCreateRequest
+  noticeData: INoticeCreateRequest,
 ): ApiResponse<INotice> => {
   return myAxios.post(`${API_PREFIX}/create`, noticeData, API_CONFIG);
 };
@@ -102,7 +102,7 @@ export const createNotice = (
  */
 export const updateNotice = (
   id: number,
-  noticeData: INoticeUpdateRequest
+  noticeData: INoticeUpdateRequest,
 ): ApiResponse<INotice> => {
   console.log(`发送更新请求: ${API_PREFIX}/${id}`, noticeData);
   return myAxios.put(`${API_PREFIX}/update/${id}`, noticeData, API_CONFIG);
@@ -119,7 +119,7 @@ export const getNoticeDetail = (id: number): ApiResponse<INotice> => {
  * 分页查询公告列表
  */
 export const getNoticeList = (
-  params: INoticeQueryParams
+  params: INoticeQueryParams,
 ): ApiResponse<INoticePage> => {
   return myAxios.get(`${API_PREFIX}/list`, { ...API_CONFIG, params });
 };
@@ -149,7 +149,7 @@ export const getActiveNotices = (): ApiResponse<INotice[]> => {
  * 获取指定类型的有效公告
  */
 export const getActiveNoticesByType = (
-  type: NoticeType
+  type: NoticeType,
 ): ApiResponse<INotice[]> => {
   return myAxios.get(`${API_PREFIX}/list/active/${type}`, API_CONFIG);
 };

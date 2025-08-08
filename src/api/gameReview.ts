@@ -36,7 +36,7 @@ export interface ReviewUpdateRequest {
 export function getGameReviews(
   gameId: number,
   current: number,
-  pageSize: number
+  pageSize: number,
 ) {
   return myAxios.get("/api/game/review/page", {
     params: {
