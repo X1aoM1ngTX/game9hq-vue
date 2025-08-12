@@ -71,12 +71,12 @@
                   <span
                     class="author"
                     @click="goToUserProfile(item.newsAuthorId)"
-                  >{{ item.authorName }}</span
+                    >{{ item.authorName }}</span
                   >
                 </div>
                 <span class="publish-time">{{
-                    formatDate(item.newsPublishTime || item.newsCreateTime)
-                  }}</span>
+                  formatDate(item.newsPublishTime || item.newsCreateTime)
+                }}</span>
               </div>
               <div
                 class="news-content-container"
@@ -114,7 +114,7 @@
               <div class="news-header">
                 <a-tag color="orange">草稿</a-tag>
                 <span class="publish-time"
-                >创建于 {{ formatDate(item.newsCreateTime) }}</span
+                  >创建于 {{ formatDate(item.newsCreateTime) }}</span
                 >
               </div>
               <div class="news-content-container">
@@ -177,7 +177,7 @@
               <div class="news-header">
                 <a-tag color="green">已发布</a-tag>
                 <span class="publish-time"
-                >发布于 {{ formatDate(item.newsPublishTime) }}</span
+                  >发布于 {{ formatDate(item.newsPublishTime) }}</span
                 >
               </div>
               <div

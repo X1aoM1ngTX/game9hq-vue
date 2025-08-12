@@ -40,5 +40,5 @@ export const useLoginUserStore = defineStore(
   },
   {
     persist: true,
-  },
+  }
 );

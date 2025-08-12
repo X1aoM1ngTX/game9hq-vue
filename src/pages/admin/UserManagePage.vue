@@ -45,7 +45,7 @@
             style="margin-right: 8px"
             type="primary"
             @click="showEditModal(record)"
-          >编辑
+            >编辑
           </a-button>
           <a-button danger @click="doDelete(record.userId)">删除</a-button>
         </template>
@@ -129,7 +129,12 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from "vue";
 import { message, Modal } from "ant-design-vue";
-import { adminUpdateUser, batchImportUsers, deleteUser, searchUsers } from "@/api/user";
+import {
+  adminUpdateUser,
+  batchImportUsers,
+  deleteUser,
+  searchUsers,
+} from "@/api/user";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { useRouter } from "vue-router";
 import dayjs from "dayjs";

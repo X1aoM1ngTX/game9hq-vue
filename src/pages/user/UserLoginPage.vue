@@ -133,7 +133,7 @@ const handleSubmit = debounce(
     }
   },
   1000,
-  { leading: true, trailing: false },
+  { leading: true, trailing: false }
 );
 
 const onFinishFailed = (errorInfo: any) => {
@@ -190,7 +190,7 @@ const onFinishFailed = (errorInfo: any) => {
   font-weight: 500;
   font-size: 28px;
   font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-  "Helvetica Neue", Arial, sans-serif;
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .highlight {

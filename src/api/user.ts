@@ -108,7 +108,7 @@ export const deleteUser = async (userId: string | number) => {
       headers: {
         "Content-Type": "application/json",
       },
-    },
+    }
   );
 };
 

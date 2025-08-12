@@ -101,7 +101,12 @@
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
 import { message } from "ant-design-vue";
-import { CalendarOutlined, DeleteOutlined, HeartOutlined, ShopOutlined } from "@ant-design/icons-vue";
+import {
+  CalendarOutlined,
+  DeleteOutlined,
+  HeartOutlined,
+  ShopOutlined,
+} from "@ant-design/icons-vue";
 import { useRouter } from "vue-router";
 import { getMyWishlist, removeGameFromWishlist } from "@/api/wishlist";
 import dayjs from "dayjs";
@@ -152,7 +157,7 @@ const removeFromWishlist = async (gameId: number) => {
     if (res.data.code === 0) {
       message.success("已从愿望单移除");
       wishlistGames.value = wishlistGames.value.filter(
-        (game) => game.gameId !== gameId,
+        (game) => game.gameId !== gameId
       );
     } else {
       message.error(res.data.description || "移除失败");

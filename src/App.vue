@@ -133,7 +133,7 @@ onMounted(() => {
 const isDarkMode = ref(false);
 
 const themeClass = computed(() =>
-  isDarkMode.value ? "dark-mode" : "light-mode",
+  isDarkMode.value ? "dark-mode" : "light-mode"
 );
 
 const themeConfig = computed(() => ({
@@ -243,7 +243,7 @@ const handleSearchText = () => {
   if (selectedText.value) {
     window.open(
       `https://www.bing.com/search?q=${encodeURIComponent(selectedText.value)}`,
-      "_blank",
+      "_blank"
     );
   } else {
     message.warning("请先选择要搜索的文本");
@@ -299,8 +299,8 @@ onUnmounted(() => {
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-  "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
-  "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

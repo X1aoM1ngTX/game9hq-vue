@@ -22,7 +22,7 @@
               <span
                 class="author-name"
                 @click="goToUserProfile(newsData.newsAuthorId)"
-              >{{ authorName }}</span
+                >{{ authorName }}</span
               >
             </div>
             <div class="meta-details">
@@ -99,7 +99,12 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { ArrowLeftOutlined, CalendarOutlined, EditOutlined, EyeOutlined } from "@ant-design/icons-vue";
+import {
+  ArrowLeftOutlined,
+  CalendarOutlined,
+  EditOutlined,
+  EyeOutlined,
+} from "@ant-design/icons-vue";
 import { getNewsDetail, type NewsItemWithAuthor } from "@/api/news";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 

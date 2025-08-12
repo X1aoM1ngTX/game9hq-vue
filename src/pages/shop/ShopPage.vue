@@ -31,13 +31,13 @@
               <div v-if="game.gamePrice !== 0">
                 <div class="prices">
                   <span v-if="game.gameOnSale === 1" class="original-price"
-                  >￥{{ game.gamePrice }}</span
+                    >￥{{ game.gamePrice }}</span
                   >
                   <div v-if="game.gameOnSale === 1" class="discount-tag">
                     -{{ (game.gameDiscount * 100).toFixed(1) }}%
                   </div>
                   <span class="current-price"
-                  >￥{{
+                    >￥{{
                       game.gameOnSale === 1
                         ? game.gameDiscountedPrices
                         : game.gamePrice
@@ -157,7 +157,7 @@ const saveScrollPosition = () => {
   if (shopPage) {
     sessionStorage.setItem(
       "shopPageScrollPosition",
-      shopPage.scrollTop.toString(),
+      shopPage.scrollTop.toString()
     );
   }
 };

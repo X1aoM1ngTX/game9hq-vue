@@ -6,4 +6,10 @@ const { defineConfig } = require("@vue/cli-service");
 module.exports = defineConfig({
   transpileDependencies: true,
   lintOnSave: "warning",
+  pages: {
+    index: {
+      entry: "src/main.ts",
+      title: "Game9 - 今天玩什么",
+    },
+  },
 });

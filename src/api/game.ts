@@ -60,7 +60,7 @@ export const deleteGame = (gameId: string) => {
       headers: {
         "Content-Type": "application/json",
       },
-    },
+    }
   );
 };
 
@@ -91,7 +91,7 @@ export const updateGameStatus = (params: GameStatusUpdateRequest) => {
       headers: {
         "Content-Type": "application/json",
       },
-    },
+    }
   );
 };
 
@@ -111,7 +111,7 @@ export const searchGames = (params: Partial<GameSearchRequest>) => {
       headers: {
         "Content-Type": "application/json",
       },
-    },
+    }
   );
 };
 /**

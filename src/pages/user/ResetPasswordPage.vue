@@ -128,7 +128,11 @@ import { computed, reactive, ref } from "vue";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { resetPassword, sendVerifyCode, verifyCode } from "@/api/user";
-import { LockOutlined, MailOutlined, SafetyOutlined } from "@ant-design/icons-vue";
+import {
+  LockOutlined,
+  MailOutlined,
+  SafetyOutlined,
+} from "@ant-design/icons-vue";
 
 const router = useRouter();
 const loading = ref(false);
@@ -305,7 +309,7 @@ const passwordStrengthColor = computed(() => {
   font-weight: 500;
   font-size: 28px;
   font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-  "Helvetica Neue", Arial, sans-serif;
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 .highlight {

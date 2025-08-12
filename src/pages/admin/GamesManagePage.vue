@@ -76,7 +76,7 @@
         <template v-else-if="column.key === 'action'">
           <a-space :direction="'vertical'">
             <a-button type="primary" @click="showEditModal(record)"
-            >编辑
+              >编辑
             </a-button>
             <a-button type="default" @click="toggleStatus(record)">
               {{ record.gameIsRemoved === true ? "上架" : "下架" }}
@@ -159,10 +159,19 @@
           <a-input v-model:value="editFormState.gameDev" />
         </a-form-item>
         <a-form-item label="Steam 应用ID" name="gameAppId">
-          <a-input
-            v-model:value="editFormState.gameAppId"
-            placeholder="Steam 应用的数字ID，用于获取在线人数"
-          />
+          <a-space direction="vertical" style="width: 100%">
+            <a-input
+              v-model:value="editFormState.gameAppId"
+              placeholder="Steam 应用的数字ID，用于获取在线人数"
+            />
+            <a-input
+              v-model:value="steamUrlInput"
+              placeholder="或输入Steam商店URL自动解析AppID，如：https://store.steampowered.com/app/1172470/Apex_Legends/"
+            />
+            <a-button type="primary" size="small" @click="parseSteamUrl">
+              解析Steam URL
+            </a-button>
+          </a-space>
         </a-form-item>
         <a-form-item label="发行日期" name="gameReleaseDate">
           <a-date-picker
@@ -255,10 +264,19 @@
           />
         </a-form-item>
         <a-form-item label="Steam 应用ID" name="gameAppId">
-          <a-input
-            v-model:value="addFormState.gameAppId"
-            placeholder="Steam 应用的数字ID，用于获取在线人数"
-          />
+          <a-space direction="vertical" style="width: 100%">
+            <a-input
+              v-model:value="addFormState.gameAppId"
+              placeholder="Steam 应用的数字ID，用于获取在线人数"
+            />
+            <a-input
+              v-model:value="addSteamUrlInput"
+              placeholder="或输入Steam商店URL自动解析AppID，如：https://store.steampowered.com/app/1172470/Apex_Legends/"
+            />
+            <a-button type="primary" size="small" @click="parseAddSteamUrl">
+              解析Steam URL
+            </a-button>
+          </a-space>
         </a-form-item>
       </a-form>
     </a-modal>
@@ -292,9 +310,21 @@
 import { h, onMounted, reactive, ref } from "vue";
 import type { UploadChangeParam, UploadProps } from "ant-design-vue";
 import { message, Modal } from "ant-design-vue";
-import { DownloadOutlined, LoadingOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons-vue";
+import {
+  DownloadOutlined,
+  LoadingOutlined,
+  PlusOutlined,
+  UploadOutlined,
+} from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
-import { createGame, deleteGame, searchGames, updateGame, updateGameStatus } from "@/api/game";
+import myAxios from "@/request";
+import {
+  createGame,
+  deleteGame,
+  searchGames,
+  updateGame,
+  updateGameStatus,
+} from "@/api/game";
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import { useRouter } from "vue-router";
@@ -367,6 +397,15 @@ const columns = [
     title: "游戏名称🎯",
     dataIndex: "gameName",
     key: "gameName",
+    ellipsis: true,
+  },
+  {
+    title: "Steam应用ID",
+    dataIndex: "gameAppId",
+    key: "gameAppId",
+    customRender: ({ text }: { text: string | null }) => {
+      return text || "-";
+    },
   },
   {
     title: "游戏库存📦",
@@ -382,15 +421,15 @@ const columns = [
         record.gameCover ? "img" : "span",
         record.gameCover
           ? {
-            src: record.gameCover,
-            alt: "Game Cover",
-            style: {
-              width: "50px",
-              height: "50px",
-              objectFit: "cover",
-            },
-          }
-          : { innerHTML: "-" },
+              src: record.gameCover,
+              alt: "Game Cover",
+              style: {
+                width: "50px",
+                height: "50px",
+                objectFit: "cover",
+              },
+            }
+          : { innerHTML: "-" }
       );
     },
   },
@@ -546,6 +585,69 @@ const editFormState = reactive<EditFormState>({
   gameCover: "",
 });
 
+// Steam URL输入
+const steamUrlInput = ref("");
+const addSteamUrlInput = ref("");
+
+// 解析Steam URL（编辑模式）
+const parseSteamUrl = async () => {
+  if (!steamUrlInput.value.trim()) {
+    message.error("请输入Steam URL");
+    return;
+  }
+
+  try {
+    const steamUrl = steamUrlInput.value.trim();
+    // 使用正则表达式提取AppID
+    const appIdMatch = steamUrl.match(/\/app\/(\d+)\//);
+    if (appIdMatch && appIdMatch[1]) {
+      const appId = appIdMatch[1];
+      message.success("Steam URL解析成功");
+      // 更新表单中的gameAppId
+      editFormState.gameAppId = appId;
+      // 清空输入框
+      steamUrlInput.value = "";
+    } else {
+      message.error("无效的Steam URL格式");
+    }
+  } catch (error) {
+    message.error("解析失败，请检查URL格式");
+  }
+};
+
+// 解析Steam URL（新增模式）
+const parseAddSteamUrl = async () => {
+  if (!addSteamUrlInput.value.trim()) {
+    message.error("请输入Steam URL");
+    return;
+  }
+
+  try {
+    const steamUrl = addSteamUrlInput.value.trim();
+    // 使用正则表达式提取AppID
+    const appIdMatch = steamUrl.match(/\/app\/(\d+)\//);
+    if (appIdMatch && appIdMatch[1]) {
+      const appId = appIdMatch[1];
+      console.log("解析到的AppID:", appId, "类型:", typeof appId);
+      message.success("Steam URL解析成功");
+      // 更新表单中的gameAppId
+      addFormState.gameAppId = appId;
+      console.log(
+        "设置后的gameAppId:",
+        addFormState.gameAppId,
+        "类型:",
+        typeof addFormState.gameAppId
+      );
+      // 清空输入框
+      addSteamUrlInput.value = "";
+    } else {
+      message.error("无效的Steam URL格式");
+    }
+  } catch (error) {
+    message.error("解析失败，请检查URL格式");
+  }
+};
+
 // 新增模态框
 const showAddModal = () => {
   modalTitle.value = "新增游戏";
@@ -556,9 +658,11 @@ const showAddModal = () => {
     gameStock: 0,
     gameAppId: null,
   });
+  // 重置Steam URL输入
+  addSteamUrlInput.value = "";
   // 显示模态框
   modalVisible.value = true;
-};
+};  
 
 // 编辑方法
 const showEditModal = (record: any) => {
@@ -680,6 +784,8 @@ const handleModalCancel = () => {
   imageUrl.value = "";
   loading.value = false;
   fileList.value = [];
+  // 重置Steam URL输入
+  steamUrlInput.value = "";
 };
 
 // 在 script 部分添加验证函数

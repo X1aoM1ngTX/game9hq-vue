@@ -43,14 +43,14 @@
               <div class="price-section">
                 <div v-if="game.gamePrice !== 0">
                   <span v-if="game.gameOnSale === 1" class="original-price"
-                  >￥{{ game.gamePrice }}</span
+                    >￥{{ game.gamePrice }}</span
                   >
                   <span
                     :class="{
                       'price-on-sale': game.gameOnSale === 1,
                     }"
                     class="current-price"
-                  >￥{{
+                    >￥{{
                       game.gameOnSale === 1
                         ? game.gameDiscountedPrices
                         : game.gamePrice
@@ -87,27 +87,27 @@
               <a-list>
                 <a-list-item>
                   <a-tag color="blue"
-                  ><strong>发行日期：</strong>{{ game.gameReleaseDate }}
+                    ><strong>发行日期：</strong>{{ game.gameReleaseDate }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="green"
-                  ><strong>开发商：</strong>{{ game.gameDev }}
+                    ><strong>开发商：</strong>{{ game.gameDev }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="purple"
-                  ><strong>发行商：</strong>{{ game.gamePub }}
+                    ><strong>发行商：</strong>{{ game.gamePub }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item>
                   <a-tag color="orange"
-                  ><strong>库存：</strong>{{ game.gameStock }}
+                    ><strong>库存：</strong>{{ game.gameStock }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
                   <a-tag color="magenta"
-                  ><strong>促销折扣：</strong>{{ game.gameDiscount }}折
+                    ><strong>促销折扣：</strong>{{ game.gameDiscount }}折
                   </a-tag>
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
@@ -118,7 +118,7 @@
                 </a-list-item>
                 <a-list-item v-if="game.gameOnSale === 1">
                   <a-tag color="blue"
-                  ><strong>促销剩余：</strong>{{ countdown }}
+                    ><strong>促销剩余：</strong>{{ countdown }}
                   </a-tag>
                 </a-list-item>
                 <a-list-item>
@@ -147,8 +147,8 @@
         <div class="rating-summary">
           <div class="average-rating">
             <span class="rating-number">{{
-                averageRating?.toFixed(1) || "N/A"
-              }}</span>
+              averageRating?.toFixed(1) || "N/A"
+            }}</span>
             <span class="rating-max">/ 10</span>
             <a-rate :value="averageRating / 2" allow-half disabled />
           </div>
@@ -207,20 +207,20 @@
               </div>
               <div class="review-meta">
                 <span class="review-time">{{
-                    formatDateTime(review.createTime)
-                  }}</span>
+                  formatDateTime(review.createTime)
+                }}</span>
                 <div
                   v-if="review.userId === currentUserId"
                   class="review-actions"
                 >
                   <a-button type="link" @click="editReview(review)"
-                  >编辑
+                    >编辑
                   </a-button>
                   <a-button
                     danger
                     type="link"
                     @click="deleteReview(review.reviewId)"
-                  >删除
+                    >删除
                   </a-button>
                 </div>
               </div>
@@ -244,11 +244,28 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onActivated, onMounted, onUnmounted, reactive, ref, watch } from "vue";
+import {
+  computed,
+  onActivated,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { type GameDetailVO, getGameDetail, getGameOnlineCount, userBuyGame } from "@/api/game";
+import {
+  type GameDetailVO,
+  getGameDetail,
+  getGameOnlineCount,
+  userBuyGame,
+} from "@/api/game";
 import { message } from "ant-design-vue";
-import { HeartFilled, HeartOutlined, RightOutlined } from "@ant-design/icons-vue";
+import {
+  HeartFilled,
+  HeartOutlined,
+  RightOutlined,
+} from "@ant-design/icons-vue";
 import { useUserLibraryStore } from "@/stores/userLibraryStore";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import dayjs from "dayjs";
@@ -392,7 +409,7 @@ interface UserGameItem {
 // 检查游戏是否在用户游戏库中
 const isGameInLibrary = (gameId: number) => {
   return (userLibraryStore.games as UserGameItem[]).some(
-    (game) => game.gameId === gameId,
+    (game) => game.gameId === gameId
   );
 };
 
@@ -461,7 +478,7 @@ const handleButtonClick = async () => {
     if (res.data.code === 0) {
       message.success("游戏已成功添加到您的游戏库");
       (userLibraryStore.games as UserGameItem[]).push(
-        game.value as UserGameItem,
+        game.value as UserGameItem
       );
     } else if (
       res.data.code === 40000 &&
@@ -503,7 +520,7 @@ const fetchReviews = async () => {
     const res = await getGameReviews(
       Number(route.params.gameId),
       currentPage.value,
-      pageSize.value,
+      pageSize.value
     );
     if (res.data.code === 0) {
       reviews.value = res.data.data.records;
@@ -512,7 +529,7 @@ const fetchReviews = async () => {
       // 检查当前用户是否已评论
       if (currentUserId.value !== null) {
         hasReviewed.value = res.data.data.records.some(
-          (review: Review) => review.userId === currentUserId.value,
+          (review: Review) => review.userId === currentUserId.value
         );
       }
 
@@ -520,7 +537,7 @@ const fetchReviews = async () => {
       const userIdsToFetch = reviews.value
         .map((review) => review.userId)
         .filter(
-          (userId) => userId !== undefined && userAvatars[userId] === undefined,
+          (userId) => userId !== undefined && userAvatars[userId] === undefined
         );
 
       const uniqueUserIds = Array.from(new Set(userIdsToFetch));
@@ -589,7 +606,7 @@ const submitReview = async () => {
 
     if (res.data.code === 0) {
       message.success(
-        editingReviewId.value !== null ? "评论更新成功" : "评价发布成功",
+        editingReviewId.value !== null ? "评论更新成功" : "评价发布成功"
       );
       newReview.value.content = "";
       newReview.value.rating = 5;
@@ -600,12 +617,12 @@ const submitReview = async () => {
     } else {
       message.error(
         res.data.description ||
-        (editingReviewId.value !== null ? "评论更新失败" : "评价发布失败"),
+          (editingReviewId.value !== null ? "评论更新失败" : "评价发布失败")
       );
     }
   } catch (error) {
     message.error(
-      editingReviewId.value !== null ? "评论更新失败" : "评价发布失败",
+      editingReviewId.value !== null ? "评论更新失败" : "评价发布失败"
     );
   } finally {
     submitting.value = false;
@@ -665,7 +682,7 @@ const fetchWishlist = async () => {
     if (res.data.code === 0) {
       // 修复数据映射问题，从后端的嵌套结构中提取gameId
       wishlistGames.value = res.data.data.map(
-        (wishlistVO: any) => wishlistVO.game?.gameId,
+        (wishlistVO: any) => wishlistVO.game?.gameId
       );
     }
   } catch (error) {
