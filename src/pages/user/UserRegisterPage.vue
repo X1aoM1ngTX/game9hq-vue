@@ -23,16 +23,29 @@
             placeholder="用户名"
             size="large"
             @blur="checkUserNameUnique"
+            @input="debouncedCheckUserName"
           >
             <template #prefix>
               <UserOutlined class="form-icon" />
             </template>
           </a-input>
           <div
-            v-if="!userNameUnique && !userNameChecking"
+            v-if="userNameChecking"
+            style="color: #8c8c8c; margin-bottom: 8px; font-size: 12px"
+          >
+            检查用户名可用性...
+          </div>
+          <div
+            v-else-if="!userNameUnique && formState.userName.length >= 3"
             style="color: #ff4d4f; margin-bottom: 8px"
           >
             用户名已被占用
+          </div>
+          <div
+            v-else-if="userNameUnique && formState.userName.length >= 3"
+            style="color: #52c41a; margin-bottom: 8px"
+          >
+            用户名可用
           </div>
         </a-form-item>
 
@@ -48,16 +61,29 @@
             placeholder="邮箱"
             size="large"
             @blur="checkUserEmailUnique"
+            @input="debouncedCheckEmail"
           >
             <template #prefix>
               <MailOutlined class="form-icon" />
             </template>
           </a-input>
           <div
-            v-if="!userEmailUnique && !userEmailChecking"
+            v-if="userEmailChecking"
+            style="color: #8c8c8c; margin-bottom: 8px; font-size: 12px"
+          >
+            检查邮箱可用性...
+          </div>
+          <div
+            v-else-if="!userEmailUnique && formState.userEmail.includes('@')"
             style="color: #ff4d4f; margin-bottom: 8px"
           >
             邮箱已被注册
+          </div>
+          <div
+            v-else-if="userEmailUnique && formState.userEmail.includes('@')"
+            style="color: #52c41a; margin-bottom: 8px"
+          >
+            邮箱可用
           </div>
         </a-form-item>
 
@@ -107,7 +133,8 @@
 
         <div
           v-if="formState.userPassword"
-          :style="{ color: passwordStrengthColor, marginBottom: '8px' }"
+          class="password-strength"
+          :style="{ color: passwordStrengthColor }"
         >
           {{ passwordStrengthText }}
         </div>
@@ -162,7 +189,8 @@ import {
   UserOutlined,
 } from "@ant-design/icons-vue";
 import {
-  searchUsers,
+  checkUsernameAvailable,
+  checkEmailAvailable,
   sendVerifyCode,
   userRegister,
   verifyCode,
@@ -317,13 +345,25 @@ const onFinishFailed = (errorInfo: any) => {
   console.log("表单验证失败:", errorInfo);
 };
 
+// 防抖函数
+const debounce = (fn: Function, delay: number) => {
+  let timer: ReturnType<typeof setTimeout>;
+  return function (this: any, ...args: any[]) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+};
+
 // 检查用户名是否唯一
 const checkUserNameUnique = async () => {
-  if (!formState.userName) return;
+  if (!formState.userName || formState.userName.length < 3) {
+    userNameUnique.value = true;
+    return;
+  }
   userNameChecking.value = true;
   try {
-    const res = await searchUsers({ userName: formState.userName });
-    userNameUnique.value = !res.data.data || res.data.data.length === 0;
+    const res = await checkUsernameAvailable(formState.userName);
+    userNameUnique.value = res.data.data;
   } catch {
     userNameUnique.value = true;
   } finally {
@@ -333,20 +373,24 @@ const checkUserNameUnique = async () => {
 
 // 检查邮箱是否唯一
 const checkUserEmailUnique = async () => {
-  if (!formState.userEmail) return;
+  if (!formState.userEmail || !formState.userEmail.includes("@")) {
+    userEmailUnique.value = true;
+    return;
+  }
   userEmailChecking.value = true;
   try {
-    const res = await searchUsers({ userName: formState.userEmail });
-    // 这里假设后端支持用邮箱查找，否则需新建接口
-    userEmailUnique.value =
-      !res.data.data ||
-      res.data.data.every((u: any) => u.userEmail !== formState.userEmail);
+    const res = await checkEmailAvailable(formState.userEmail);
+    userEmailUnique.value = res.data.data;
   } catch {
     userEmailUnique.value = true;
   } finally {
     userEmailChecking.value = false;
   }
 };
+
+// 创建防抖版本的检查函数
+const debouncedCheckUserName = debounce(checkUserNameUnique, 800);
+const debouncedCheckEmail = debounce(checkUserEmailUnique, 800);
 </script>
 
 <style scoped>
@@ -570,6 +614,14 @@ const checkUserEmailUnique = async () => {
 .form-links span {
   color: #8c8c8c;
   font-size: 14px;
+}
+
+/* 密码强度提示 */
+.password-strength {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 18px;
 }
 
 @media (max-width: 576px) {

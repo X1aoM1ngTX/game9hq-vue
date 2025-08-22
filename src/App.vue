@@ -105,7 +105,7 @@ import {
   RightOutlined,
   SearchOutlined,
 } from "@ant-design/icons-vue";
-import { message, Modal } from "ant-design-vue";
+// message 和 Modal 已在 main.ts 中全局注册
 import { heartbeat } from "@/api/user";
 
 const route = useRoute();
@@ -231,8 +231,8 @@ const handleCopyText = () => {
   if (selectedText.value) {
     navigator.clipboard
       .writeText(selectedText.value)
-      .then(() => message.success("文本已复制"))
-      .catch(() => message.error("复制失败"));
+      .then(() => window.$message?.success("文本已复制"))
+      .catch(() => window.$message?.error("复制失败"));
   }
   showContextMenu.value = false;
 };
@@ -246,7 +246,7 @@ const handleSearchText = () => {
       "_blank"
     );
   } else {
-    message.warning("请先选择要搜索的文本");
+    window.$message?.warning("请先选择要搜索的文本");
   }
 };
 
@@ -260,7 +260,7 @@ const handleRemoveGame = () => {
   const gameId = gameItem.getAttribute("data-game-id");
   if (!gameId) return;
 
-  Modal.confirm({
+  window.$Modal?.confirm({
     title: "确认移除",
     content: "确定要从游戏库中移除这个游戏吗？",
     okText: "确认",

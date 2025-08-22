@@ -167,7 +167,7 @@
           </div>
           <a-textarea
             v-model:value="newReview.content"
-            :maxlength="500"
+            :maxlength="2000"
             :rows="4"
             placeholder="分享您的游戏体验..."
             show-count
@@ -224,6 +224,9 @@
                   </a-button>
                 </div>
               </div>
+            </div>
+            <div class="review-rating">
+              <a-rate :value="review.rating" allow-half disabled />
             </div>
             <div class="review-content">{{ review.content }}</div>
           </div>
@@ -672,7 +675,13 @@ const handlePageChange = (page: number) => {
 
 // 前往用户主页
 const goToUserProfile = (userId: number) => {
-  router.push(`/user/profile/${userId}`);
+  // 如果是当前登录用户，跳转到个人主页（不带ID）
+  // 如果是其他用户，跳转到用户主页（带ID）
+  if (userId === currentUserId.value) {
+    router.push('/user/profile/');
+  } else {
+    router.push(`/user/profile/${userId}`);
+  }
 };
 
 // 获取愿望单数据
@@ -1339,10 +1348,20 @@ const handleBack = () => {
   flex-shrink: 0;
 }
 
+.review-rating {
+  margin-bottom: 12px;
+}
+
+.review-rating :deep(.ant-rate) {
+  font-size: 16px;
+}
+
 .review-content {
   color: #666;
   line-height: 1.6;
   margin-bottom: 12px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .review-actions {

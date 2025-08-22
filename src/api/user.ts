@@ -225,6 +225,24 @@ export const getUserById = (userId: number | string) => {
 };
 
 /**
+ * 检查用户名是否可用（注册时使用）
+ */
+export const checkUsernameAvailable = (userName: string) => {
+  return myAxios.get("/api/user/checkUsernameAvailable", {
+    params: { userName },
+  });
+};
+
+/**
+ * 检查邮箱是否可用（注册时使用）
+ */
+export const checkEmailAvailable = (email: string) => {
+  return myAxios.get("/api/user/checkEmailAvailable", {
+    params: { email },
+  });
+};
+
+/**
  * 用户心跳，刷新在线状态
  */
 export function heartbeat() {

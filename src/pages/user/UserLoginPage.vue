@@ -13,6 +13,7 @@
         name="login"
         @finish="handleSubmit"
         @finishFailed="onFinishFailed"
+        @keyup.enter="handleSubmit"
       >
         <a-form-item
           :rules="[{ required: true, message: '请输入账号!' }]"
@@ -44,6 +45,10 @@
           </a-input-password>
         </a-form-item>
 
+        <div class="form-options">
+          <a-checkbox v-model:checked="rememberMe">记住我</a-checkbox>
+        </div>
+
         <div class="form-actions">
           <a-button
             :disabled="loading || lockInfo.locked"
@@ -53,8 +58,12 @@
             size="large"
             type="primary"
           >
-            登录
+            {{ lockInfo.locked ? `账号已锁定(${lockInfo.seconds}s)` : "登录" }}
           </a-button>
+        </div>
+
+        <div v-if="lockInfo.locked" class="lock-warning">
+          <span>账号已锁定，请{{ lockInfo.seconds }}秒后再试</span>
         </div>
 
         <div class="form-links">
@@ -71,7 +80,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, onMounted } from "vue";
 import { LockOutlined, UserOutlined } from "@ant-design/icons-vue";
 import { userLogin } from "@/api/user";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
@@ -93,6 +102,7 @@ const router = useRouter();
 const loginUserStore = useLoginUserStore();
 const loading = ref(false);
 const lockInfo = ref({ locked: false, seconds: 0 });
+const rememberMe = ref(false);
 let lockTimer: ReturnType<typeof setInterval> | null = null;
 
 const handleSubmit = debounce(
@@ -105,6 +115,7 @@ const handleSubmit = debounce(
       loading.value = true;
       const res = await userLogin(values);
       if (res.data.code === 0) {
+        saveCredentials();
         await loginUserStore.getLoginUser();
         message.success("登录成功");
         router.push("/");
@@ -139,6 +150,40 @@ const handleSubmit = debounce(
 const onFinishFailed = (errorInfo: any) => {
   console.log("表单验证失败:", errorInfo);
 };
+
+// 记住密码功能
+const saveCredentials = () => {
+  if (rememberMe.value) {
+    localStorage.setItem(
+      "rememberedUser",
+      JSON.stringify({
+        userName: formState.userName,
+        userPassword: formState.userPassword,
+      })
+    );
+  } else {
+    localStorage.removeItem("rememberedUser");
+  }
+};
+
+const loadCredentials = () => {
+  const saved = localStorage.getItem("rememberedUser");
+  if (saved) {
+    try {
+      const credentials = JSON.parse(saved);
+      formState.userName = credentials.userName;
+      formState.userPassword = credentials.userPassword;
+      rememberMe.value = true;
+    } catch (e) {
+      localStorage.removeItem("rememberedUser");
+    }
+  }
+};
+
+// 页面加载时读取保存的凭据
+onMounted(() => {
+  loadCredentials();
+});
 </script>
 
 <style scoped>
@@ -247,6 +292,19 @@ const onFinishFailed = (errorInfo: any) => {
   margin-bottom: 20px;
 }
 
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+:deep(.ant-checkbox-wrapper) {
+  color: #595959;
+  font-size: 14px;
+}
+
 :deep(.ant-form-item-explain-error) {
   color: #ff4d4f;
   margin-top: 4px;
@@ -334,6 +392,18 @@ const onFinishFailed = (errorInfo: any) => {
 .form-links span {
   color: #8c8c8c;
   font-size: 14px;
+}
+
+/* 锁定警告 */
+.lock-warning {
+  margin-top: 12px;
+  text-align: center;
+  color: #ff4d4f;
+  font-size: 13px;
+  background: #fff2f0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ffccc7;
 }
 
 @media (max-width: 576px) {

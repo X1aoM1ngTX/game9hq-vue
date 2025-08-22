@@ -525,7 +525,13 @@ const createNewNews = () => {
 
 // 跳转到用户主页
 const goToUserProfile = (userId: string | number) => {
-  router.push(`/user/profile/${userId}`);
+  // 如果是当前登录用户，跳转到个人主页（不带ID）
+  // 如果是其他用户，跳转到用户主页（带ID）
+  if (userId === userStore.loginUser?.userId) {
+    router.push('/user/profile/');
+  } else {
+    router.push(`/user/profile/${userId}`);
+  }
 };
 
 // 初始化加载

@@ -662,7 +662,7 @@ const showAddModal = () => {
   addSteamUrlInput.value = "";
   // 显示模态框
   modalVisible.value = true;
-};  
+};
 
 // 编辑方法
 const showEditModal = (record: any) => {

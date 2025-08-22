@@ -77,7 +77,8 @@
 
         <div
           v-if="formState.newPassword"
-          :style="{ color: passwordStrengthColor, marginBottom: '8px' }"
+          class="password-strength"
+          :style="{ color: passwordStrengthColor }"
         >
           {{ passwordStrengthText }}
         </div>
@@ -481,6 +482,14 @@ const passwordStrengthColor = computed(() => {
 .form-links span {
   color: #8c8c8c;
   font-size: 14px;
+}
+
+/* 密码强度提示 */
+.password-strength {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  min-height: 18px;
 }
 
 @media (max-width: 576px) {

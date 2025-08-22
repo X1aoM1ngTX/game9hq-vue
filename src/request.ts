@@ -1,5 +1,4 @@
 import axios from "axios";
-import { message } from "ant-design-vue";
 
 const myAxios = axios.create({
   baseURL: process.env.VUE_APP_BASE_API || "http://localhost:8080",
@@ -24,16 +23,15 @@ myAxios.interceptors.response.use(
   function (response) {
     // 任何状态码在2xx范围内的都会触发这个函数
     // 处理响应数据
-    console.log(response);
-
     const { data } = response;
-    console.log(data);
     // 未登录
     if (data.code === 40100) {
-      // 不是获取用户信息接口，或者不是登录页面，则跳转到登录页面
+      // 不是获取用户信息接口，且不是登录、注册、重置密码页面，则跳转到登录页面
       if (
         !response.request.responseURL.includes("user/current") &&
-        !window.location.pathname.includes("/user/login")
+        !window.location.pathname.includes("/user/login") &&
+        !window.location.pathname.includes("/user/register") &&
+        !window.location.pathname.includes("/user/reset-password")
       ) {
         window.location.href = `/user/login?redirect=${window.location.href}`;
       }
@@ -55,7 +53,7 @@ myAxios.interceptors.response.use(
         msg = "用户不存在";
       }
       // 只要不是成功，自动弹出错误提示
-      message.error(msg);
+      window.$message?.error(msg);
     }
     return response;
   },
