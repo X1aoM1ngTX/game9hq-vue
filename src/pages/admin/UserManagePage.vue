@@ -77,8 +77,14 @@
         >
           <a-input v-model:value="editFormState.userName" />
         </a-form-item>
-        <a-form-item label="手机号码" name="userPhone">
-          <a-input v-model:value="editFormState.userPhone" />
+        <a-form-item
+          label="手机号码"
+          name="userPhone"
+          :rules="[
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的11位手机号!' },
+          ]"
+        >
+          <a-input v-model:value="editFormState.userPhone" maxlength="11" />
         </a-form-item>
         <a-form-item label="邮箱地址" name="userEmail">
           <a-input

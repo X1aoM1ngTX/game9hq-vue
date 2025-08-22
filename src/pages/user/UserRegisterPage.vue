@@ -92,16 +92,23 @@
           name="verifyCode"
         >
           <div style="display: flex; gap: 8px">
-            <a-input
-              v-model:value="formState.verifyCode"
-              placeholder="验证码"
-              size="large"
-              style="flex: 1"
-            >
-              <template #prefix>
-                <SafetyOutlined class="form-icon" />
-              </template>
-            </a-input>
+            <div style="display: flex; gap: 4px; flex: 1">
+              <a-input
+                v-for="(char, index) in 6"
+                :key="index"
+                :value="formState.verifyCode[index] || ''"
+                @input="handleVerifyCodeInput($event, index)"
+                @keydown="handleVerifyCodeKeydown($event, index)"
+                @paste="handleVerifyCodePaste"
+                placeholder=""
+                size="large"
+                style="width: 48px; text-align: center"
+                maxlength="1"
+                ref="verifyCodeInputs"
+                inputmode="numeric"
+                pattern="[0-9]*"
+              />
+            </div>
             <a-button
               :disabled="loading || codeSent"
               size="large"
@@ -181,7 +188,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, nextTick } from "vue";
 import {
   LockOutlined,
   MailOutlined,
@@ -223,6 +230,77 @@ const userNameUnique = ref(true);
 const userEmailUnique = ref(true);
 const userNameChecking = ref(false);
 const userEmailChecking = ref(false);
+const verifyCodeInputs = ref<any[]>([]);
+
+// 验证码输入处理
+const handleVerifyCodeInput = (event: any, index: number) => {
+  const value = event.target.value;
+  // 如果输入的是多个字符，只取最后一个有效字符
+  const finalValue = value.length > 1 ? value[value.length - 1] : value;
+  // 验证输入是否为有效字符（0-9）
+  if (finalValue && /^[0-9]$/.test(finalValue)) {
+    const currentCode = formState.verifyCode.split("");
+    currentCode[index] = finalValue;
+    formState.verifyCode = currentCode.join("");
+    // 自动跳转到下一个输入框
+    if (index < 5) {
+      nextTick(() => {
+        verifyCodeInputs.value[index + 1]?.focus();
+      });
+    }
+  } else if (!value) {
+    // 如果输入框为空，清除对应位置的字符
+    const currentCode = formState.verifyCode.split("");
+    currentCode[index] = "";
+    formState.verifyCode = currentCode.join("");
+  }
+  // 清除输入框的值，防止显示多个字符
+  event.target.value = finalValue;
+};
+
+// 验证码键盘事件处理
+const handleVerifyCodeKeydown = (event: any, index: number) => {
+  const key = event.key;
+
+  // 处理删除键
+  if (key === "Backspace" && !formState.verifyCode[index] && index > 0) {
+    nextTick(() => {
+      verifyCodeInputs.value[index - 1]?.focus();
+    });
+  }
+
+  // 处理左右方向键
+  if (key === "ArrowLeft" && index > 0) {
+    nextTick(() => {
+      verifyCodeInputs.value[index - 1]?.focus();
+    });
+  }
+
+  if (key === "ArrowRight" && index < 5) {
+    nextTick(() => {
+      verifyCodeInputs.value[index + 1]?.focus();
+    });
+  }
+};
+
+// 验证码粘贴处理
+const handleVerifyCodePaste = (event: any) => {
+  event.preventDefault();
+  const pastedData = event.clipboardData
+    .getData("text")
+    .replace(/[^0-9]/g, "")
+    .slice(0, 6);
+
+  if (pastedData) {
+    formState.verifyCode = pastedData;
+
+    // 聚焦到最后一个非空字符的下一个输入框
+    const lastIndex = Math.min(pastedData.length - 1, 5);
+    nextTick(() => {
+      verifyCodeInputs.value[lastIndex]?.focus();
+    });
+  }
+};
 
 // 密码强度计算
 const passwordStrength = computed(() => {
@@ -346,7 +424,7 @@ const onFinishFailed = (errorInfo: any) => {
 };
 
 // 防抖函数
-const debounce = (fn: Function, delay: number) => {
+const debounce = (fn: (...args: any[]) => void, delay: number) => {
   let timer: ReturnType<typeof setTimeout>;
   return function (this: any, ...args: any[]) {
     clearTimeout(timer);

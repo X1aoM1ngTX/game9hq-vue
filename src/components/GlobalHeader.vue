@@ -14,8 +14,8 @@
           <div class="nav-links">
             <router-link to="/" class="nav-link">首页</router-link>
             <router-link to="/shop" class="nav-link">商城</router-link>
+            <router-link to="/news" class="nav-link">社区</router-link>
             <router-link to="/notice" class="nav-link">公告</router-link>
-            <router-link to="/news" class="nav-link">资讯</router-link>
             <router-link
               v-if="
                 loginUserStore.hasLogin &&

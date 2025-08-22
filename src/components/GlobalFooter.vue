@@ -16,21 +16,25 @@
       <div class="footer-links">
         <div class="footer-column">
           <h4 class="footer-heading">产品</h4>
-          <router-link to="/shop" class="footer-link">游戏库</router-link>
-          <a href="#" class="footer-link">社区</a>
-          <a href="#" class="footer-link">支持</a>
+          <router-link to="/shop" class="footer-link">商城</router-link>
+          <router-link to="/news" class="footer-link">社区</router-link>
+          <router-link to="/notice" class="footer-link">公告</router-link>
         </div>
         <div class="footer-column">
           <h4 class="footer-heading">公司</h4>
           <router-link to="/about" class="footer-link">关于我们</router-link>
-          <a href="#" class="footer-link">联系我们</a>
-          <a href="#" class="footer-link">隐私政策</a>
+          <router-link to="/contact" class="footer-link">联系我们</router-link>
         </div>
         <div class="footer-column">
           <h4 class="footer-heading">社区</h4>
-          <a href="#" class="footer-link">论坛</a>
-          <a href="#" class="footer-link">博客</a>
-          <a href="#" class="footer-link">开发者</a>
+          <router-link to="/forum" class="footer-link">论坛</router-link>
+          <router-link to="/blog" class="footer-link">博客</router-link>
+          <a
+            class="footer-link"
+            href="https://github.com/X1aoM1ngTX"
+            target="_blank"
+            >开发者</a
+          >
         </div>
       </div>
     </div>

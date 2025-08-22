@@ -196,11 +196,14 @@
         </a-form-item>
 
         <a-form-item
-          :rules="[{ required: true, message: '请输入手机号!' }]"
+          :rules="[
+            { required: true, message: '请输入手机号!' },
+            { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的11位手机号!' },
+          ]"
           label="手机号"
           name="userPhone"
         >
-          <a-input v-model:value="formState.userPhone" />
+          <a-input v-model:value="formState.userPhone" maxlength="11" />
         </a-form-item>
 
         <a-form-item label="简介" name="userProfile">
