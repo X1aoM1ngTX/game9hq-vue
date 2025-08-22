@@ -45,19 +45,27 @@ const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
-    path: "/admin/userManage",
-    name: "adminUserManage",
-    component: () => import("@/pages/admin/UserManagePage.vue"),
-  },
-  {
-    path: "/admin/gameManage",
-    name: "adminGameManage",
-    component: () => import("@/pages/admin/GamesManagePage.vue"),
-  },
-  {
-    path: "/admin/noticeManage",
-    name: "adminNoticeManage",
-    component: () => import("@/pages/admin/NoticeManagePage.vue"),
+    path: "/admin",
+    name: "admin",
+    component: () => import("@/layouts/AdminLayout.vue"),
+    redirect: "/admin/userManage",
+    children: [
+      {
+        path: "userManage",
+        name: "adminUserManage",
+        component: () => import("@/pages/admin/UserManagePage.vue"),
+      },
+      {
+        path: "gameManage",
+        name: "adminGameManage",
+        component: () => import("@/pages/admin/GamesManagePage.vue"),
+      },
+      {
+        path: "noticeManage",
+        name: "adminNoticeManage",
+        component: () => import("@/pages/admin/NoticeManagePage.vue"),
+      },
+    ],
   },
   {
     path: "/shop",
@@ -169,9 +177,12 @@ router.beforeEach((to, from, next) => {
   const loginUserStore = useLoginUserStore();
 
   // 检查是否需要管理员权限
-  if (to.path.startsWith("/admin")) {
+  if (to.path.startsWith("/admin") && to.path !== "/admin") {
     // 如果用户不是管理员，重定向到403页面
-    if (!loginUserStore.loginUser?.userIsAdmin) {
+    if (
+      !loginUserStore.loginUser ||
+      loginUserStore.loginUser.userIsAdmin !== 1
+    ) {
       next("/403");
       return;
     }

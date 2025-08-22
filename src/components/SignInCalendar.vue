@@ -34,8 +34,16 @@
 </template>
 
 <script setup>
-import { defineExpose, onMounted, ref } from "vue";
+import { defineExpose, defineProps, onMounted, ref, watch } from "vue";
 import { getSignInHistory } from "@/api/user";
+
+// 定义props
+const props = defineProps({
+  userId: {
+    type: [Number, undefined],
+    default: undefined,
+  },
+});
 
 // 月份标签数据
 const months = [
@@ -58,13 +66,44 @@ const days = ref([]); // 存储所有日期的签到状态
 const startRow = ref(0); // 第一天的起始行位置
 const totalSigns = ref(0); // 总签到天数
 
-// 组件挂载时获取签到历史
-onMounted(async () => {
-  const res = await getSignInHistory(2025);
+// 获取签到历史的函数
+const fetchSignInHistory = async () => {
+  console.log(
+    "SignInCalendar - props.userId:",
+    props.userId,
+    "type:",
+    typeof props.userId
+  );
+  console.log("SignInCalendar - 调用API参数: year=2025, userId=", props.userId);
+  const res = await getSignInHistory(2025, props.userId);
+  console.log("SignInCalendar - API response:", res.data);
   if (res.data.code === 0) {
+    console.log("SignInCalendar - 签到记录数据:", res.data.data);
     generateCalendar(res.data.data || []);
   }
+};
+
+// 组件挂载时获取签到历史
+onMounted(async () => {
+  fetchSignInHistory();
 });
+
+// 监听userId变化，重新获取签到历史
+watch(
+  () => props.userId,
+  (newUserId, oldUserId) => {
+    console.log(
+      "SignInCalendar - userId changed from",
+      oldUserId,
+      "to",
+      newUserId
+    );
+    if (newUserId !== oldUserId) {
+      fetchSignInHistory();
+    }
+  },
+  { immediate: false }
+);
 
 /**
  * 生成日历数据
@@ -74,6 +113,9 @@ function generateCalendar(signInDates) {
   const year = new Date().getFullYear();
   const startDate = new Date(year, 0, 1); // 年初
   startRow.value = startDate.getDay(); // 获取第一天是星期几
+
+  // 重置总签到天数
+  totalSigns.value = 0;
 
   const allDays = [];
   // 遍历整年的每一天
@@ -104,7 +146,7 @@ function getMonthPosition(monthIndex) {
  * 供父组件调用的方法
  */
 const refreshCalendar = async () => {
-  const res = await getSignInHistory(2025);
+  const res = await getSignInHistory(2025, props.userId);
   if (res.data.code === 0) {
     generateCalendar(res.data.data || []);
   }

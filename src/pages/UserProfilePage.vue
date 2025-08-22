@@ -10,7 +10,10 @@
               <!-- 左侧：统计和日历 -->
               <a-col :span="isCurrentUser ? 17 : 24" class="sign-calendar-col">
                 <h3>签到记录</h3>
-                <sign-in-calendar ref="calendarRef" />
+                <sign-in-calendar
+                  ref="calendarRef"
+                  :user-id="user.userId ? Number(user.userId) : undefined"
+                />
               </a-col>
               <!-- 右侧：签到卡片 -->
               <a-col v-if="isCurrentUser" :span="7" class="sign-card-col">
@@ -112,7 +115,7 @@
                 编辑资料
               </a-button>
               <a-button
-                v-else
+                v-else-if="!isAlreadyFriend"
                 :loading="addingFriend"
                 class="profile-action-btn"
                 size="small"
@@ -120,6 +123,9 @@
                 @click="handleAddFriend"
               >
                 添加好友
+              </a-button>
+              <a-button v-else class="profile-action-btn" size="small" disabled>
+                已是好友
               </a-button>
             </div>
           </div>
@@ -247,7 +253,7 @@ import { CameraOutlined } from "@ant-design/icons-vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import SignInCalendar from "@/components/SignInCalendar.vue";
 import { useRoute, useRouter } from "vue-router";
-import { addFriend } from "@/api/friend";
+import { addFriend, getFriendList } from "@/api/friend";
 
 interface UserInfo {
   userId: string | number;
@@ -293,6 +299,7 @@ const user = ref<UserInfo>({
 
 // 新增的用户游戏库数据
 const userGames = ref<Game[]>([]);
+const friendList = ref<any[]>([]); // 存储当前用户的好友列表
 
 // 表单状态
 const formState = reactive({
@@ -319,12 +326,27 @@ const isCurrentUser = computed(() => {
   return !userId || userId === loginUserStore.loginUser?.userId;
 });
 
+// 判断是否已经是好友
+const isAlreadyFriend = computed(() => {
+  if (!user.value.userId || !friendList.value.length) return false;
+  return friendList.value.some(
+    (friend) => friend.friendId === Number(user.value.userId)
+  );
+});
+
 const formatDate = (date: string) => {
   return dayjs(date).format("YYYY-MM-DD");
 };
 
 const fetchData = async () => {
   try {
+    console.log("fetchData - isCurrentUser:", isCurrentUser.value);
+    console.log("fetchData - route.params.userId:", route.params.userId);
+    console.log(
+      "fetchData - loginUserStore.loginUser?.userId:",
+      loginUserStore.loginUser?.userId
+    );
+
     let res;
     if (isCurrentUser.value) {
       res = await getCurrentUser();
@@ -333,12 +355,39 @@ const fetchData = async () => {
     }
     if (res.data.code === 0) {
       user.value = res.data.data;
+      console.log("fetchData - user.value:", user.value);
+      console.log(
+        "fetchData - user.value.userId:",
+        user.value.userId,
+        "type:",
+        typeof user.value.userId
+      );
+      console.log(
+        "fetchData - user.value.userId === '':",
+        user.value.userId === ""
+      );
+      console.log(
+        "fetchData - Number(user.value.userId):",
+        Number(user.value.userId)
+      );
     } else {
       message.error("用户数据获取失败");
     }
   } catch (error: unknown) {
     const err = error as { message?: string };
     message.error(`操作失败: ${err.message || "未知错误"}`);
+  }
+};
+
+// 获取当前用户的好友列表
+const fetchFriendList = async () => {
+  try {
+    const res = await getFriendList();
+    if (res.data.code === 0) {
+      friendList.value = res.data.data || [];
+    }
+  } catch (error) {
+    console.error("获取好友列表失败:", error);
   }
 };
 
@@ -512,8 +561,13 @@ const goToGameDetail = (gameId: number) => {
 
 // 组件挂载时初始化数据并添加事件监听
 onMounted(async () => {
-  // 并行加载用户数据、游戏库和签到状态
-  await Promise.all([fetchData(), fetchUserGames(), checkSignInStatus()]);
+  // 并行加载用户数据、游戏库、好友列表和签到状态
+  await Promise.all([
+    fetchData(),
+    fetchUserGames(),
+    fetchFriendList(),
+    checkSignInStatus(),
+  ]);
   // 添加游戏移除事件监听
   document.addEventListener(
     "removeGame",

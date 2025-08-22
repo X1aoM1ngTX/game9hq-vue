@@ -1,96 +1,145 @@
 <template>
-  <div class="global-footer">
+  <footer class="footer">
     <div class="footer-content">
       <div class="footer-section">
-        <h3>关于 游情9局</h3>
-        <p>游情9局是一个专业的游戏分享平台，致力于为玩家提供优质的游戏体验。</p>
+        <div class="footer-logo">
+          <img
+            alt="Game9"
+            class="footer-logo-icon"
+            src="../assets/GAME9/game9-green.png"
+          />
+          <span class="footer-logo-text">Game9</span>
+        </div>
+        <p class="footer-description">为游戏玩家打造的智能平台</p>
       </div>
-      <div class="footer-section">
-        <h3>联系我们</h3>
-        <p>邮箱：support@game9.com</p>
-        <p>电话：400-123-4567</p>
-      </div>
-      <div class="footer-section">
-        <h3>快速链接</h3>
-        <router-link to="/">首页</router-link>
-        <router-link to="/shop">商城</router-link>
-        <router-link to="/user/profile">个人中心</router-link>
-        <router-link to="/about">关于我们</router-link>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4 class="footer-heading">产品</h4>
+          <router-link to="/shop" class="footer-link">游戏库</router-link>
+          <a href="#" class="footer-link">社区</a>
+          <a href="#" class="footer-link">支持</a>
+        </div>
+        <div class="footer-column">
+          <h4 class="footer-heading">公司</h4>
+          <router-link to="/about" class="footer-link">关于我们</router-link>
+          <a href="#" class="footer-link">联系我们</a>
+          <a href="#" class="footer-link">隐私政策</a>
+        </div>
+        <div class="footer-column">
+          <h4 class="footer-heading">社区</h4>
+          <a href="#" class="footer-link">论坛</a>
+          <a href="#" class="footer-link">博客</a>
+          <a href="#" class="footer-link">开发者</a>
+        </div>
       </div>
     </div>
+
     <div class="footer-bottom">
-      <p>© 2024 Game9. All rights reserved.</p>
+      <p>&copy; 2024 Game9. All rights reserved.</p>
     </div>
-  </div>
+  </footer>
 </template>
 
 <script lang="ts" setup></script>
 
 <style scoped>
-.global-footer {
-  background-color: #000000;
-  color: #ffffff;
-  padding: 40px 0 20px;
+/* 页脚样式 */
+.footer {
+  background: #f8f9fa;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 60px 20px 20px;
 }
 
 .footer-content {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  padding: 0 20px;
+  grid-template-columns: 1fr 2fr;
+  gap: 60px;
+  margin-bottom: 40px;
 }
 
 .footer-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  text-align: left;
 }
 
-.footer-section h3 {
-  color: #ffffff;
-  font-size: 18px;
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 16px;
 }
 
-.footer-section p {
-  color: #ffffff;
-  margin: 0;
-  line-height: 1.5;
+.footer-logo-icon {
+  width: 32px;
+  height: 32px;
 }
 
-.footer-section a {
-  color: #ffffff;
-  text-decoration: none;
+.footer-logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.footer-description {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.footer-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.footer-column h4 {
+  color: #000000;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.footer-link {
   display: block;
+  color: rgba(0, 0, 0, 0.7);
+  text-decoration: none;
+  font-size: 14px;
   margin-bottom: 8px;
-  transition: color 0.3s;
+  transition: color 0.3s ease;
 }
 
-.footer-section a:hover {
-  color: #ffffff;
-  font-weight: bold;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+.footer-link:hover {
+  color: #00d4ff;
 }
 
 .footer-bottom {
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid #1f1f1f;
   text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .footer-bottom p {
-  color: #ffffff;
-  margin: 0;
-  font-size: 14px;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 12px;
 }
 
-@media (max-width: 768px) {
+/* 响应式设计 */
+@media screen and (max-width: 1024px) {
   .footer-content {
     grid-template-columns: 1fr;
-    gap: 24px;
+    text-align: center;
+  }
+
+  .footer-links {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .footer-links {
+    grid-template-columns: 1fr;
   }
 }
 </style>

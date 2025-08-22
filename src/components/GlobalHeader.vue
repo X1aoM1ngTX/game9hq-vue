@@ -1,23 +1,34 @@
 <template>
   <div v-if="!isAuthPage" class="GlobalHeader">
-    <a-row :wrap="false">
-      <a-col class="logo-col" flex="200px">
-        <div class="title-bar">
-          <img alt="logo" class="logo" src="../assets/GAME9/game9-black.png" />
-          <div class="title">Game9</div>
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="nav-logo">
+          <img
+            alt="Game9"
+            class="logo-icon"
+            src="../assets/GAME9/game9-green.png"
+          />
+          <span class="logo-text">Game9</span>
         </div>
-      </a-col>
-      <a-col class="menu-col" flex="auto">
-        <a-menu
-          v-model:selectedKeys="current"
-          :items="menuItems"
-          mode="horizontal"
-          style="height: 55px; display: flex; color: #000000"
-          @click="doMenuClick"
-        />
-      </a-col>
-      <a-col class="user-area-col" flex="200px">
-        <div class="user-area">
+        <div class="nav-center">
+          <div class="nav-links">
+            <router-link to="/" class="nav-link">首页</router-link>
+            <router-link to="/shop" class="nav-link">商城</router-link>
+            <router-link to="/notice" class="nav-link">公告</router-link>
+            <router-link to="/news" class="nav-link">资讯</router-link>
+            <router-link
+              v-if="
+                loginUserStore.hasLogin &&
+                loginUserStore.loginUser?.userIsAdmin === 1
+              "
+              to="/admin"
+              class="nav-link"
+            >
+              管理
+            </router-link>
+          </div>
+        </div>
+        <div class="nav-actions">
           <template v-if="loginUserStore.hasLogin">
             <a-dropdown>
               <a class="user-link">
@@ -59,6 +70,19 @@
                     </template>
                     我的愿望单
                   </a-menu-item>
+                  <a-menu-divider
+                    v-if="loginUserStore.loginUser?.userIsAdmin === 1"
+                  />
+                  <a-menu-item
+                    v-if="loginUserStore.loginUser?.userIsAdmin === 1"
+                    key="admin"
+                    @click="toAdmin"
+                  >
+                    <template #icon>
+                      <SettingOutlined />
+                    </template>
+                    管理中心
+                  </a-menu-item>
                   <a-menu-item key="logout" @click="handleLogout">
                     <template #icon>
                       <LogoutOutlined />
@@ -70,33 +94,27 @@
             </a-dropdown>
           </template>
           <template v-else>
-            <a-button
-              style="margin-right: 10px"
-              type="primary"
-              @click="toLogin"
-            >
+            <a-button type="text" class="nav-login" @click="toLogin">
               登录
             </a-button>
-            <a-button @click="toRegister">注册</a-button>
+            <a-button type="primary" class="nav-cta" @click="toRegister">
+              注册
+            </a-button>
           </template>
         </div>
-      </a-col>
-    </a-row>
+      </div>
+    </nav>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, h, ref, VNodeChild } from "vue";
+import { computed } from "vue";
 import {
-  BellOutlined,
   DownOutlined,
-  FileTextOutlined,
-  HeartOutlined,
-  HomeOutlined,
   LogoutOutlined,
-  SettingOutlined,
-  ShopOutlined,
   UserOutlined,
+  HeartOutlined,
+  SettingOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import { useRoute, useRouter } from "vue-router";
@@ -104,7 +122,6 @@ import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { userLogout } from "@/api/user";
 
 const loginUserStore = useLoginUserStore();
-
 const router = useRouter();
 const route = useRoute();
 
@@ -128,6 +145,10 @@ const toWishlist = () => {
   router.push("/wishlist");
 };
 
+const toAdmin = () => {
+  router.push("/admin");
+};
+
 const handleLogout = async () => {
   try {
     const res = await userLogout();
@@ -144,73 +165,6 @@ const handleLogout = async () => {
   }
 };
 
-const doMenuClick = ({ key }: { key: string }) => {
-  router.push({
-    path: key,
-  });
-};
-
-const current = ref<string[]>([route.path]);
-router.afterEach((to) => {
-  current.value = [to.path];
-});
-
-interface MenuItem {
-  key: string;
-  icon?: () => VNodeChild;
-  label: string;
-  children?: MenuItem[];
-}
-
-const menuItems = computed<MenuItem[]>(() => {
-  const items: MenuItem[] = [
-    {
-      key: "/",
-      icon: () => h(HomeOutlined),
-      label: "首页",
-    },
-    {
-      key: "/shop",
-      icon: () => h(ShopOutlined),
-      label: "商城",
-    },
-    {
-      key: "/notice",
-      icon: () => h(BellOutlined),
-      label: "公告",
-    },
-    {
-      key: "/news",
-      icon: () => h(FileTextOutlined),
-      label: "资讯",
-    },
-  ];
-
-  if (loginUserStore.loginUser?.userIsAdmin === 1) {
-    items.push({
-      key: "/admin",
-      icon: () => h(SettingOutlined),
-      label: "管理",
-      children: [
-        {
-          key: "/admin/userManage",
-          label: "用户管理",
-        },
-        {
-          key: "/admin/gameManage",
-          label: "游戏管理",
-        },
-        {
-          key: "/admin/noticeManage",
-          label: "公告管理",
-        },
-      ],
-    });
-  }
-
-  return items;
-});
-
 const isAuthPage = computed(() => {
   return route.meta.layout === "blank";
 });
@@ -218,55 +172,90 @@ const isAuthPage = computed(() => {
 
 <style scoped>
 .GlobalHeader {
-  height: 60px;
   width: 100%;
-  background: white;
 }
 
-.title-bar {
-  width: 200px;
-  display: flex;
-  text-align: center;
-  align-items: center;
-  height: 100%;
+/* 导航栏样式 */
+.navbar {
+  position: relative;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding: 0 20px;
 }
 
-.logo-col {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.menu-col {
-  height: 60px;
-  display: flex;
-  align-items: flex-end;
-}
-
-.user-area-col {
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  height: 64px;
+  position: relative;
 }
 
-.title {
+.nav-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 600;
   color: #000000;
-  font-size: 24px;
-  font-weight: bolder;
-  margin-left: 10px;
 }
 
-.logo {
-  width: 60px;
-  padding: 10px;
+.nav-links {
+  display: flex;
+  gap: 32px;
 }
 
-.user-area {
+.nav-link {
+  color: rgba(0, 0, 0, 0.7);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.router-link-active {
+  color: #000000;
+}
+
+.nav-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding-right: 24px;
-  height: 100%;
+  gap: 12px;
+}
+
+.nav-login {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 14px;
+}
+
+.nav-cta {
+  background: linear-gradient(135deg, #00d4ff, #0099ff);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .user-link {
@@ -303,5 +292,20 @@ const isAuthPage = computed(() => {
 
 :deep(.ant-dropdown-menu-item .anticon) {
   font-size: 16px;
+}
+
+/* 响应式设计 */
+@media screen and (max-width: 768px) {
+  .nav-links {
+    display: none;
+  }
+
+  .nav-container {
+    padding: 0 16px;
+  }
+
+  .nav-center {
+    display: none;
+  }
 }
 </style>

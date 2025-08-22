@@ -26,3 +26,51 @@ img[v-lazy][src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAA
   height: 30px !important;
   object-fit: contain;
 }
+
+/* 统一去除按钮黑边 */
+.ant-btn {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ant-btn:focus,
+.ant-btn:active,
+.ant-btn:hover {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ant-btn-primary:focus,
+.ant-btn-primary:active,
+.ant-btn-primary:hover {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ant-btn-danger:focus,
+.ant-btn-danger:active,
+.ant-btn-danger:hover {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ant-btn-link:focus,
+.ant-btn-link:active,
+.ant-btn-link:hover {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ant-btn-text:focus,
+.ant-btn-text:active,
+.ant-btn-text:hover {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.ant-btn-default:focus,
+.ant-btn-default:active,
+.ant-btn-default:hover {
+  outline: none !important;
+  box-shadow: none !important;
+}

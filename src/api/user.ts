@@ -197,11 +197,12 @@ export const checkTodaySignIn = () => {
 /**
  * 获取用户签到历史
  * @param year 年份，默认为当前年份
+ * @param userId 用户ID（可选，不传则获取当前用户）
  * @returns 某年签到的历史
  */
-export const getSignInHistory = (year?: number) => {
+export const getSignInHistory = (year?: number, userId?: number) => {
   return myAxios.get("/api/user/sign/history", {
-    params: { year },
+    params: { year, userId },
   });
 };
 
