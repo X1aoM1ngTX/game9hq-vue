@@ -7,139 +7,145 @@
           <span class="highlight">密码</span>
         </div>
       </div>
-      <a-form
-        :model="formState"
-        class="reset-password-form"
-        name="reset-password"
-        @finish="handleSubmit"
-      >
-        <a-form-item
-          :rules="[
-            { required: true, message: '请输入邮箱!' },
-            { type: 'email', message: '请输入有效的邮箱地址!' },
-          ]"
-          name="email"
+      <div class="form-container">
+        <a-form
+          :model="formState"
+          class="reset-password-form"
+          name="reset-password"
+          @finish="handleSubmit"
         >
-          <a-input
-            v-model:value="formState.email"
-            placeholder="邮箱"
-            size="large"
-          >
-            <template #prefix>
-              <MailOutlined class="form-icon" />
-            </template>
-          </a-input>
-        </a-form-item>
-
-        <a-form-item
-          :rules="[{ required: true, message: '请输入验证码!' }]"
-          name="verifyCode"
-        >
-          <div style="display: flex; gap: 8px">
-            <div style="display: flex; gap: 4px; flex: 1">
+          <a-form-item name="email">
+            <div class="input-wrapper">
+              <div class="input-prefix">
+                <MailOutlined />
+              </div>
               <a-input
-                v-for="(char, index) in 6"
-                :key="index"
-                :value="formState.verifyCode[index] || ''"
-                @input="handleVerifyCodeInput($event, index)"
-                @keydown="handleVerifyCodeKeydown($event, index)"
-                @paste="handleVerifyCodePaste"
-                placeholder=""
+                v-model:value="formState.email"
+                placeholder="请输入邮箱"
                 size="large"
-                style="width: 48px; text-align: center"
-                maxlength="1"
-                ref="verifyCodeInputs"
-                inputmode="numeric"
-                pattern="[0-9]*"
+                class="custom-input"
               />
             </div>
+            <div v-if="emailError" class="validation-message error">
+              <close-circle-outlined /> {{ emailError }}
+            </div>
+          </a-form-item>
+
+          <a-form-item name="verifyCode">
+            <div class="verify-code-container">
+              <div class="verify-code-inputs">
+                <a-input
+                  v-for="(char, index) in 6"
+                  :key="index"
+                  :value="formState.verifyCode[index] || ''"
+                  @input="handleVerifyCodeInput($event, index)"
+                  @keydown="handleVerifyCodeKeydown($event, index)"
+                  @paste="handleVerifyCodePaste"
+                  placeholder=""
+                  size="large"
+                  class="verify-code-input"
+                  maxlength="1"
+                  :ref="(el) => (verifyCodeInputs[index] = el)"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                />
+              </div>
+              <a-button
+                :disabled="loading || codeSent"
+                size="large"
+                type="primary"
+                class="verify-code-button"
+                @click="handleSendCode"
+              >
+                {{ codeSent ? `重新获取(${countdown}s)` : "获取验证码" }}
+              </a-button>
+            </div>
+            <div v-if="verifyCodeError" class="validation-message error">
+              <close-circle-outlined /> {{ verifyCodeError }}
+            </div>
+          </a-form-item>
+
+          <a-form-item name="newPassword">
+            <div class="input-wrapper">
+              <div class="input-prefix">
+                <LockOutlined />
+              </div>
+              <a-input-password
+                v-model:value="formState.newPassword"
+                placeholder="请输入新密码"
+                size="large"
+                class="custom-input"
+              />
+            </div>
+            <div v-if="newPasswordError" class="validation-message error">
+              <close-circle-outlined /> {{ newPasswordError }}
+            </div>
+          </a-form-item>
+
+          <div
+            v-if="formState.newPassword"
+            class="password-strength"
+            :class="getPasswordStrengthClass()"
+          >
+            <div class="strength-bar">
+              <div
+                class="strength-fill"
+                :style="{ width: passwordStrength * 33.33 + '%' }"
+              ></div>
+            </div>
+            <div class="strength-text">{{ passwordStrengthText }}</div>
+          </div>
+
+          <a-form-item name="confirmPassword">
+            <div class="input-wrapper">
+              <div class="input-prefix">
+                <LockOutlined />
+              </div>
+              <a-input-password
+                v-model:value="formState.confirmPassword"
+                placeholder="请确认新密码"
+                size="large"
+                class="custom-input"
+              />
+            </div>
+            <div v-if="confirmPasswordError" class="validation-message error">
+              <close-circle-outlined /> {{ confirmPasswordError }}
+            </div>
+          </a-form-item>
+
+          <div class="form-actions">
             <a-button
-              :disabled="loading || codeSent"
+              :loading="loading"
+              class="submit-button"
+              html-type="submit"
               size="large"
               type="primary"
-              @click="handleSendCode"
             >
-              {{ codeSent ? `重新获取(${countdown}s)` : "获取验证码" }}
+              重置密码
             </a-button>
           </div>
-        </a-form-item>
 
-        <a-form-item
-          :rules="[
-            { required: true, message: '请输入新密码!' },
-            { min: 8, message: '密码长度不能小于8位!' },
-          ]"
-          name="newPassword"
-        >
-          <a-input-password
-            v-model:value="formState.newPassword"
-            placeholder="新密码"
-            size="large"
-          >
-            <template #prefix>
-              <LockOutlined class="form-icon" />
-            </template>
-          </a-input-password>
-        </a-form-item>
-
-        <div
-          v-if="formState.newPassword"
-          class="password-strength"
-          :style="{ color: passwordStrengthColor }"
-        >
-          {{ passwordStrengthText }}
-        </div>
-
-        <a-form-item
-          :rules="[
-            { required: true, message: '请确认新密码!' },
-            { validator: validateConfirmPassword },
-          ]"
-          name="confirmPassword"
-        >
-          <a-input-password
-            v-model:value="formState.confirmPassword"
-            placeholder="确认新密码"
-            size="large"
-          >
-            <template #prefix>
-              <LockOutlined class="form-icon" />
-            </template>
-          </a-input-password>
-        </a-form-item>
-
-        <div class="form-actions">
-          <a-button
-            :loading="loading"
-            class="submit-button"
-            html-type="submit"
-            size="large"
-            type="primary"
-          >
-            重置密码
-          </a-button>
-        </div>
-
-        <div class="form-links">
-          <span>想起密码了？</span>
-          <router-link class="login-link" to="/user/login">
-            立即登录
-          </router-link>
-        </div>
-      </a-form>
+          <div class="form-links">
+            <span>想起密码了？</span>
+            <router-link class="login-link" to="/user/login">
+              立即登录
+            </router-link>
+          </div>
+        </a-form>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref, nextTick } from "vue";
+import { computed, reactive, ref, nextTick, watch } from "vue";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { resetPassword, sendVerifyCode, verifyCode } from "@/api/user";
 import {
   LockOutlined,
   MailOutlined,
-  SafetyOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons-vue";
 
 const router = useRouter();
@@ -147,7 +153,13 @@ const loading = ref(false);
 const codeSent = ref(false);
 const countdown = ref(60);
 let timer: ReturnType<typeof setInterval> | null = null;
-const verifyCodeInputs = ref<any[]>([]);
+const verifyCodeInputs = ref<HTMLInputElement[]>([]);
+
+// 自定义验证状态
+const emailError = ref("");
+const verifyCodeError = ref("");
+const newPasswordError = ref("");
+const confirmPasswordError = ref("");
 
 const formState = reactive({
   email: "",
@@ -156,15 +168,99 @@ const formState = reactive({
   confirmPassword: "",
 });
 
-const validateConfirmPassword = async (_rule: any, value: string) => {
-  if (value !== formState.newPassword) {
-    throw new Error("两次输入的密码不一致");
+// 自定义验证函数
+const validateEmail = () => {
+  if (!formState.email) {
+    emailError.value = "请输入邮箱";
+    return false;
   }
+  if (formState.email.trim().length === 0) {
+    emailError.value = "邮箱不能为空";
+    return false;
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formState.email)) {
+    emailError.value = "请输入有效的邮箱地址";
+    return false;
+  }
+  emailError.value = "";
+  return true;
+};
+
+const validateVerifyCode = () => {
+  if (!formState.verifyCode) {
+    verifyCodeError.value = "请输入验证码";
+    return false;
+  }
+  if (formState.verifyCode.trim().length === 0) {
+    verifyCodeError.value = "验证码不能为空";
+    return false;
+  }
+  if (formState.verifyCode.length !== 6) {
+    verifyCodeError.value = "验证码长度必须为6位";
+    return false;
+  }
+  if (!/^\d{6}$/.test(formState.verifyCode)) {
+    verifyCodeError.value = "验证码只能包含数字";
+    return false;
+  }
+  verifyCodeError.value = "";
+  return true;
+};
+
+const validateNewPassword = () => {
+  if (!formState.newPassword) {
+    newPasswordError.value = "请输入新密码";
+    return false;
+  }
+  if (formState.newPassword.trim().length === 0) {
+    newPasswordError.value = "新密码不能为空";
+    return false;
+  }
+  if (formState.newPassword.length < 8) {
+    newPasswordError.value = "密码长度不能小于8位";
+    return false;
+  }
+  newPasswordError.value = "";
+  return true;
+};
+
+const validateConfirmPassword = () => {
+  if (!formState.confirmPassword) {
+    confirmPasswordError.value = "请确认新密码";
+    return false;
+  }
+  if (formState.confirmPassword.trim().length === 0) {
+    confirmPasswordError.value = "确认密码不能为空";
+    return false;
+  }
+  if (formState.confirmPassword !== formState.newPassword) {
+    confirmPasswordError.value = "两次输入的密码不一致";
+    return false;
+  }
+  confirmPasswordError.value = "";
+  return true;
+};
+
+// 验证所有字段
+const validateAll = () => {
+  const isEmailValid = validateEmail();
+  const isVerifyCodeValid = validateVerifyCode();
+  const isNewPasswordValid = validateNewPassword();
+  const isConfirmPasswordValid = validateConfirmPassword();
+
+  return (
+    isEmailValid &&
+    isVerifyCodeValid &&
+    isNewPasswordValid &&
+    isConfirmPasswordValid
+  );
 };
 
 // 验证码输入处理
-const handleVerifyCodeInput = (event: any, index: number) => {
-  const value = event.target.value;
+const handleVerifyCodeInput = (event: Event, index: number) => {
+  const target = event.target as HTMLInputElement;
+  const value = target.value;
   // 如果输入的是多个字符，只取最后一个有效字符
   const finalValue = value.length > 1 ? value[value.length - 1] : value;
   // 验证输入是否为有效字符（0-9）
@@ -185,11 +281,13 @@ const handleVerifyCodeInput = (event: any, index: number) => {
     formState.verifyCode = currentCode.join("");
   }
   // 清除输入框的值，防止显示多个字符
-  event.target.value = finalValue;
+  target.value = finalValue;
+  // 验证码变化时触发验证
+  validateVerifyCode();
 };
 
 // 验证码键盘事件处理
-const handleVerifyCodeKeydown = (event: any, index: number) => {
+const handleVerifyCodeKeydown = (event: KeyboardEvent, index: number) => {
   const key = event.key;
 
   // 处理删除键
@@ -214,10 +312,10 @@ const handleVerifyCodeKeydown = (event: any, index: number) => {
 };
 
 // 验证码粘贴处理
-const handleVerifyCodePaste = (event: any) => {
+const handleVerifyCodePaste = (event: ClipboardEvent) => {
   event.preventDefault();
   const pastedData = event.clipboardData
-    .getData("text")
+    ?.getData("text")
     .replace(/[^0-9]/g, "")
     .slice(0, 6);
 
@@ -229,12 +327,20 @@ const handleVerifyCodePaste = (event: any) => {
     nextTick(() => {
       verifyCodeInputs.value[lastIndex]?.focus();
     });
+    // 粘贴后触发验证
+    validateVerifyCode();
   }
 };
 
 // 发送验证码
 const handleSendCode = async () => {
   if (codeSent.value) return;
+
+  // 先验证邮箱
+  if (!validateEmail()) {
+    return;
+  }
+
   try {
     loading.value = true;
     const res = await sendVerifyCode({
@@ -247,8 +353,13 @@ const handleSendCode = async () => {
     } else {
       message.error(res.data.description || "发送失败，请稍后重试");
     }
-  } catch (error: any) {
-    message.error(error.description || "发送失败，请稍后重试");
+  } catch (error) {
+    const axiosError = error as {
+      response?: { data?: { description?: string } };
+    };
+    message.error(
+      axiosError?.response?.data?.description || "发送失败，请稍后重试"
+    );
   } finally {
     loading.value = false;
   }
@@ -269,6 +380,11 @@ const startCountdown = () => {
 
 // 提交表单
 const handleSubmit = async () => {
+  // 先进行自定义验证
+  if (!validateAll()) {
+    return;
+  }
+
   try {
     loading.value = true;
     const verifyRes = await verifyCode({
@@ -291,8 +407,13 @@ const handleSubmit = async () => {
     } else {
       message.error(resetRes.data.description || "重置失败");
     }
-  } catch (error: any) {
-    message.error("操作失败，请稍后重试");
+  } catch (error) {
+    const axiosError = error as {
+      response?: { data?: { description?: string } };
+    };
+    message.error(
+      axiosError?.response?.data?.description || "操作失败，请稍后重试"
+    );
   } finally {
     loading.value = false;
   }
@@ -325,130 +446,107 @@ const passwordStrengthText = computed(() => {
       return "";
   }
 });
-const passwordStrengthColor = computed(() => {
+// 获取密码强度类名
+const getPasswordStrengthClass = () => {
   switch (passwordStrength.value) {
     case 1:
-      return "#ff4d4f";
+      return "weak";
     case 2:
-      return "#faad14";
+      return "medium";
     case 3:
-      return "#52c41a";
+      return "strong";
     default:
-      return "#d9d9d9";
+      return "";
   }
-});
+};
+
+// 监听邮箱变化，实时验证
+watch(
+  () => formState.email,
+  () => {
+    validateEmail();
+  }
+);
+
+// 监听新密码变化，实时验证
+watch(
+  () => formState.newPassword,
+  () => {
+    validateNewPassword();
+    // 新密码变化时重新验证确认密码
+    if (formState.confirmPassword) {
+      validateConfirmPassword();
+    }
+  }
+);
+
+// 监听确认密码变化，实时验证
+watch(
+  () => formState.confirmPassword,
+  () => {
+    validateConfirmPassword();
+  }
+);
 </script>
 
 <style scoped>
 .reset-password-page {
-  height: 100vh;
-  width: 500px;
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: #f8fafc;
+  position: relative;
+  overflow: hidden;
+  padding: 20px 0;
 }
 
 .reset-password-container {
   width: 100%;
-  height: 100%;
-  padding: 40px;
+  max-width: 420px;
+  margin: 0 16px;
   background: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  position: relative;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-}
-
-.reset-password-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(to right, #4facfe, #00f2fe);
+  border: 1px solid #e2e8f0;
 }
 
 .reset-password-header {
+  background: linear-gradient(135deg, #46cde5 0%, #7c3aed 100%);
+  padding: 24px 20px;
   text-align: center;
-  margin-bottom: 48px;
-  padding-top: 48px;
+  color: white;
 }
 
 .title-text {
-  font-size: 28px;
-  color: #262626;
-  position: relative;
-  display: inline-block;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .primary {
-  color: #262626;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
-  font-size: 28px;
-  font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
 }
 
 .highlight {
-  color: #4facfe;
-  font-weight: 600;
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.form-container {
+  padding: 24px 20px;
 }
 
 .reset-password-form {
-  max-width: 100%;
-  padding: 0 20px;
-}
-
-.form-icon {
-  color: #8c8c8c;
-}
-
-:deep(.ant-input-affix-wrapper) {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  background: #ffffff;
-  transition: all 0.2s;
-}
-
-:deep(.ant-input-affix-wrapper:hover) {
-  border-color: #4facfe;
-}
-
-:deep(.ant-input-affix-wrapper-focused),
-:deep(.ant-input-affix-wrapper:focus) {
-  border-color: #4facfe;
-  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
-}
-
-:deep(.ant-input) {
-  background: transparent !important;
-  color: #262626 !important;
-  font-size: 14px;
-}
-
-:deep(.ant-input-password) {
-  background: transparent !important;
-}
-
-:deep(.ant-input-affix-wrapper .ant-input) {
-  background: transparent !important;
-}
-
-:deep(.ant-input-password-icon) {
-  color: #8c8c8c;
+  width: 100%;
 }
 
 :deep(.ant-form-item) {
   margin-bottom: 20px;
-}
-
-:deep(.ant-form-item-explain-error) {
-  color: #ff4d4f;
-  margin-top: 4px;
-  font-size: 13px;
 }
 
 .form-actions {
@@ -457,60 +555,27 @@ const passwordStrengthColor = computed(() => {
 
 .submit-button {
   width: 100%;
-  height: 44px;
+  height: 42px;
   font-size: 15px;
+  font-weight: 600;
   border-radius: 8px;
-  background: linear-gradient(to right, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #46cde5 0%, #7c3aed 100%);
   border: none;
-  font-weight: 500;
-  transition: all 0.2s;
   color: white;
-  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.25);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .submit-button:hover {
-  background: linear-gradient(to right, #4facfe, #00f2fe);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(79, 172, 254, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(70, 205, 229, 0.3);
 }
 
 .submit-button:active {
-  background: linear-gradient(to right, #3a9efd, #00e0fa);
   transform: translateY(0);
-  box-shadow: 0 4px 8px rgba(79, 172, 254, 0.2);
-}
-
-/* 验证码按钮样式 */
-:deep(.ant-btn:not(.submit-button)) {
-  height: 44px;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  color: #595959;
-  font-size: 14px;
-  border-radius: 8px;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-:deep(.ant-btn:not(.submit-button):hover) {
-  color: #4facfe;
-  border-color: #4facfe;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.1);
-}
-
-:deep(.ant-btn:not(.submit-button):active) {
-  color: #3a9efd;
-  border-color: #3a9efd;
-  box-shadow: 0 2px 4px rgba(79, 172, 254, 0.1);
-}
-
-:deep(.ant-btn:not(.submit-button)[disabled]) {
-  color: rgba(0, 0, 0, 0.25);
-  border-color: #e0e0e0;
-  background: #f5f5f5;
-  text-shadow: none;
-  box-shadow: none;
 }
 
 .form-links {
@@ -527,33 +592,7 @@ const passwordStrengthColor = computed(() => {
 }
 
 .login-link:hover {
-  color: #4facfe;
-}
-
-/* 表单项文字颜色 */
-:deep(.ant-form-item-label > label) {
-  color: #262626 !important;
-  font-size: 14px;
-}
-
-:deep(.ant-form-item-explain) {
-  color: #8c8c8c;
-  font-size: 13px;
-}
-
-:deep(.ant-form-item-required) {
-  color: #262626 !important;
-}
-
-/* 输入框文字颜色 */
-:deep(.ant-input),
-:deep(.ant-input-password input) {
-  color: #262626 !important;
-}
-
-:deep(.ant-input::placeholder),
-:deep(.ant-input-password input::placeholder) {
-  color: #bfbfbf !important;
+  color: #7c3aed;
 }
 
 /* 底部文字 */
@@ -562,26 +601,286 @@ const passwordStrengthColor = computed(() => {
   font-size: 14px;
 }
 
-/* 密码强度提示 */
-.password-strength {
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 1.4;
-  min-height: 18px;
+/* 输入框样式 */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  overflow: hidden;
 }
 
-@media (max-width: 576px) {
+.input-wrapper:hover {
+  border-color: #d1d5db;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.input-wrapper:focus-within {
+  border-color: #46cde5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(70, 205, 229, 0.1);
+}
+
+.input-prefix {
+  padding: 0 12px;
+  color: #6b7280;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #111827;
+}
+
+.custom-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* 验证码容器样式 */
+.verify-code-container {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.verify-code-inputs {
+  display: flex;
+  gap: 8px;
+  flex: none;
+}
+
+.verify-code-input {
+  width: 42px !important;
+  text-align: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.verify-code-input:hover {
+  border-color: #d1d5db;
+  background: #ffffff;
+}
+
+.verify-code-input:focus {
+  border-color: #46cde5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(70, 205, 229, 0.1);
+}
+
+.verify-code-button {
+  height: 44px;
+  min-width: 100px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  color: #595959;
+  font-size: 13px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.verify-code-button:hover {
+  color: #46cde5;
+  border-color: #46cde5;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(70, 205, 229, 0.1);
+}
+
+.verify-code-button:active {
+  color: #46cde5;
+  border-color: #46cde5;
+  box-shadow: 0 2px 4px rgba(70, 205, 229, 0.1);
+}
+
+.verify-code-button[disabled] {
+  color: rgba(0, 0, 0, 0.25);
+  border-color: #e0e0e0;
+  background: #f5f5f5;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+/* 验证消息样式 */
+.validation-message {
+  margin-top: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.validation-message.error {
+  color: #ef4444;
+}
+
+/* 密码强度提示 */
+.password-strength {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.password-strength.weak .strength-fill {
+  background: #ef4444;
+}
+
+.password-strength.medium .strength-fill {
+  background: #f59e0b;
+}
+
+.password-strength.strong .strength-fill {
+  background: #10b981;
+}
+
+.strength-text {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.password-strength.weak .strength-text {
+  color: #ef4444;
+}
+
+.password-strength.medium .strength-text {
+  color: #f59e0b;
+}
+
+.password-strength.strong .strength-text {
+  color: #10b981;
+}
+
+/* 移动端适配 */
+@media (max-width: 640px) {
+  .reset-password-page {
+    padding: 16px 0;
+  }
+
   .reset-password-container {
-    padding: 24px 16px;
+    margin: 0 12px;
+    border-radius: 12px;
   }
 
   .reset-password-header {
-    margin-bottom: 32px;
-    padding-top: 32px;
+    padding: 20px 16px;
+  }
+
+  .form-container {
+    padding: 20px 16px;
   }
 
   .title-text {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .submit-button {
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .input-wrapper {
+    border-radius: 6px;
+  }
+
+  .custom-input {
+    padding: 10px 0;
+    font-size: 13px;
+  }
+
+  .input-prefix {
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  .verify-code-container {
+    gap: 8px;
+  }
+
+  .verify-code-inputs {
+    gap: 6px;
+  }
+
+  .verify-code-input {
+    width: 38px !important;
+  }
+
+  .verify-code-button {
+    min-width: 90px;
+    font-size: 12px;
+  }
+}
+
+/* 小屏幕适配 */
+@media (max-width: 480px) {
+  .reset-password-container {
+    margin: 0 8px;
+  }
+
+  .reset-password-header {
+    padding: 16px 12px;
+  }
+
+  .form-container {
+    padding: 16px 12px;
+  }
+
+  .title-text {
+    font-size: 20px;
+  }
+
+  .form-links {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .verify-code-container {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .verify-code-inputs {
+    justify-content: center;
+  }
+
+  .verify-code-input {
+    width: 35px !important;
+  }
+
+  .verify-code-button {
+    min-width: auto;
+    width: 100%;
   }
 }
 </style>

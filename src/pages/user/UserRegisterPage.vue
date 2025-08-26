@@ -2,198 +2,212 @@
   <div class="register-page">
     <div class="register-container">
       <div class="register-header">
-        <div class="title-text">
-          <span class="primary">加入 </span>
-          <span class="highlight">Game9</span>
+        <div class="logo-container">
+          <div class="title-text">
+            <span class="primary">加入 </span>
+            <span class="highlight">Game9</span>
+          </div>
         </div>
       </div>
-      <a-form
-        :model="formState"
-        class="register-form"
-        name="register"
-        @finish="handleSubmit"
-        @finishFailed="onFinishFailed"
-      >
-        <a-form-item
-          :rules="[{ required: true, message: '请输入用户名!' }]"
-          name="userName"
+      <div class="form-container">
+        <a-form
+          :model="formState"
+          class="register-form"
+          name="register"
+          @finish="handleSubmit"
+          @finishFailed="onFinishFailed"
         >
-          <a-input
-            v-model:value="formState.userName"
-            placeholder="用户名"
-            size="large"
-            @blur="checkUserNameUnique"
-            @input="debouncedCheckUserName"
-          >
-            <template #prefix>
-              <UserOutlined class="form-icon" />
-            </template>
-          </a-input>
-          <div
-            v-if="userNameChecking"
-            style="color: #8c8c8c; margin-bottom: 8px; font-size: 12px"
-          >
-            检查用户名可用性...
-          </div>
-          <div
-            v-else-if="!userNameUnique && formState.userName.length >= 3"
-            style="color: #ff4d4f; margin-bottom: 8px"
-          >
-            用户名已被占用
-          </div>
-          <div
-            v-else-if="userNameUnique && formState.userName.length >= 3"
-            style="color: #52c41a; margin-bottom: 8px"
-          >
-            用户名可用
-          </div>
-        </a-form-item>
+          <div class="form-section">
+            <div class="section-title">基本信息</div>
+            <a-form-item name="userName">
+              <div class="input-wrapper">
+                <div class="input-prefix">
+                  <UserOutlined />
+                </div>
+                <a-input
+                  v-model:value="formState.userName"
+                  placeholder="请输入用户名"
+                  size="large"
+                  @blur="checkUserNameUnique"
+                  @input="debouncedCheckUserName"
+                  class="custom-input"
+                />
+              </div>
+              <div class="validation-message">
+                <div v-if="userNameChecking" class="checking">
+                  <loading-outlined /> 检查用户名可用性...
+                </div>
+                <div v-else-if="userNameError" class="error">
+                  <close-circle-outlined /> {{ userNameError }}
+                </div>
+                <div
+                  v-else-if="userNameUnique && formState.userName.length >= 3"
+                  class="success"
+                >
+                  <check-circle-outlined /> 用户名可用
+                </div>
+              </div>
+            </a-form-item>
 
-        <a-form-item
-          :rules="[
-            { required: true, message: '请输入邮箱!' },
-            { type: 'email', message: '请输入有效的邮箱地址!' },
-          ]"
-          name="userEmail"
-        >
-          <a-input
-            v-model:value="formState.userEmail"
-            placeholder="邮箱"
-            size="large"
-            @blur="checkUserEmailUnique"
-            @input="debouncedCheckEmail"
-          >
-            <template #prefix>
-              <MailOutlined class="form-icon" />
-            </template>
-          </a-input>
-          <div
-            v-if="userEmailChecking"
-            style="color: #8c8c8c; margin-bottom: 8px; font-size: 12px"
-          >
-            检查邮箱可用性...
+            <a-form-item name="userEmail">
+              <div class="input-wrapper">
+                <div class="input-prefix">
+                  <MailOutlined />
+                </div>
+                <a-input
+                  v-model:value="formState.userEmail"
+                  placeholder="请输入邮箱地址"
+                  size="large"
+                  @blur="checkUserEmailUnique"
+                  @input="debouncedCheckEmail"
+                  class="custom-input"
+                />
+              </div>
+              <div class="validation-message">
+                <div v-if="userEmailChecking" class="checking">
+                  <loading-outlined /> 检查邮箱可用性...
+                </div>
+                <div v-else-if="userEmailError" class="error">
+                  <close-circle-outlined /> {{ userEmailError }}
+                </div>
+                <div
+                  v-else-if="
+                    userEmailUnique &&
+                    isValidEmail(formState.userEmail) &&
+                    !hasEmailFormatError
+                  "
+                  class="success"
+                >
+                  <check-circle-outlined /> 邮箱可用
+                </div>
+              </div>
+            </a-form-item>
           </div>
-          <div
-            v-else-if="!userEmailUnique && formState.userEmail.includes('@')"
-            style="color: #ff4d4f; margin-bottom: 8px"
-          >
-            邮箱已被注册
-          </div>
-          <div
-            v-else-if="userEmailUnique && formState.userEmail.includes('@')"
-            style="color: #52c41a; margin-bottom: 8px"
-          >
-            邮箱可用
-          </div>
-        </a-form-item>
 
-        <a-form-item
-          :rules="[{ required: true, message: '请输入验证码!' }]"
-          name="verifyCode"
-        >
-          <div style="display: flex; gap: 8px">
-            <div style="display: flex; gap: 4px; flex: 1">
-              <a-input
-                v-for="(char, index) in 6"
-                :key="index"
-                :value="formState.verifyCode[index] || ''"
-                @input="handleVerifyCodeInput($event, index)"
-                @keydown="handleVerifyCodeKeydown($event, index)"
-                @paste="handleVerifyCodePaste"
-                placeholder=""
-                size="large"
-                style="width: 48px; text-align: center"
-                maxlength="1"
-                ref="verifyCodeInputs"
-                inputmode="numeric"
-                pattern="[0-9]*"
-              />
-            </div>
+          <div class="form-section">
+            <div class="section-title">验证码</div>
+
+            <a-form-item name="verifyCode">
+              <div class="verify-code-container">
+                <div class="verify-code-inputs">
+                  <a-input
+                    v-for="(char, index) in 6"
+                    :key="index"
+                    :value="formState.verifyCode[index] || ''"
+                    @input="handleVerifyCodeInput($event, index)"
+                    @keydown="handleVerifyCodeKeydown($event, index)"
+                    @paste="handleVerifyCodePaste"
+                    placeholder=""
+                    size="large"
+                    class="verify-code-input"
+                    maxlength="1"
+                    ref="verifyCodeInputs"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                  />
+                </div>
+                <a-button
+                  :disabled="loading || codeSent"
+                  size="large"
+                  type="primary"
+                  @click="handleSendCode"
+                  class="verify-code-button"
+                >
+                  {{ codeSent ? `重新获取(${countdown}s)` : "获取验证码" }}
+                </a-button>
+              </div>
+              <div v-if="verifyCodeError" class="validation-message error">
+                <close-circle-outlined /> {{ verifyCodeError }}
+              </div>
+            </a-form-item>
+          </div>
+
+          <div class="form-section">
+            <div class="section-title">设置密码</div>
+
+            <a-form-item name="userPassword">
+              <div class="input-wrapper">
+                <div class="input-prefix">
+                  <LockOutlined />
+                </div>
+                <a-input-password
+                  v-model:value="formState.userPassword"
+                  placeholder="请输入密码"
+                  size="large"
+                  class="custom-input"
+                />
+              </div>
+              <div
+                v-if="formState.userPassword"
+                class="password-strength"
+                :class="getPasswordStrengthClass()"
+              >
+                <div class="strength-bar">
+                  <div
+                    class="strength-fill"
+                    :style="{ width: passwordStrength * 33.33 + '%' }"
+                  ></div>
+                </div>
+                <div class="strength-text">{{ passwordStrengthText }}</div>
+              </div>
+              <div v-if="passwordError" class="validation-message error">
+                <close-circle-outlined /> {{ passwordError }}
+              </div>
+            </a-form-item>
+
+            <a-form-item name="userCheckPassword">
+              <div class="input-wrapper">
+                <div class="input-prefix">
+                  <LockOutlined />
+                </div>
+                <a-input-password
+                  v-model:value="formState.userCheckPassword"
+                  placeholder="请确认密码"
+                  size="large"
+                  class="custom-input"
+                />
+              </div>
+              <div v-if="confirmPasswordError" class="validation-message error">
+                <close-circle-outlined /> {{ confirmPasswordError }}
+              </div>
+            </a-form-item>
+          </div>
+
+          <div class="form-actions">
             <a-button
-              :disabled="loading || codeSent"
+              :loading="loading"
+              class="register-button"
+              html-type="submit"
               size="large"
               type="primary"
-              @click="handleSendCode"
             >
-              {{ codeSent ? `重新获取(${countdown}s)` : "获取验证码" }}
+              <user-outlined />
+              创建账户
             </a-button>
           </div>
-        </a-form-item>
 
-        <a-form-item
-          :rules="[
-            { required: true, message: '请输入密码!' },
-            { min: 8, message: '密码长度不能小于8位!' },
-          ]"
-          name="userPassword"
-        >
-          <a-input-password
-            v-model:value="formState.userPassword"
-            placeholder="密码"
-            size="large"
-          >
-            <template #prefix>
-              <LockOutlined class="form-icon" />
-            </template>
-          </a-input-password>
-        </a-form-item>
-
-        <div
-          v-if="formState.userPassword"
-          class="password-strength"
-          :style="{ color: passwordStrengthColor }"
-        >
-          {{ passwordStrengthText }}
-        </div>
-
-        <a-form-item
-          :rules="[
-            { required: true, message: '请确认密码!' },
-            { validator: validatePassword },
-          ]"
-          name="userCheckPassword"
-        >
-          <a-input-password
-            v-model:value="formState.userCheckPassword"
-            placeholder="确认密码"
-            size="large"
-          >
-            <template #prefix>
-              <LockOutlined class="form-icon" />
-            </template>
-          </a-input-password>
-        </a-form-item>
-
-        <div class="form-actions">
-          <a-button
-            :loading="loading"
-            class="register-button"
-            html-type="submit"
-            size="large"
-            type="primary"
-          >
-            注册
-          </a-button>
-        </div>
-
-        <div class="form-links">
-          <span>已有账号？</span>
-          <router-link class="login-link" to="/user/login">
-            立即登录
-          </router-link>
-        </div>
-      </a-form>
+          <div class="form-links">
+            <span>已有账号？</span>
+            <router-link class="login-link" to="/user/login">
+              立即登录
+            </router-link>
+          </div>
+        </a-form>
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref, nextTick } from "vue";
+import { computed, reactive, ref, nextTick, watch } from "vue";
 import {
   LockOutlined,
   MailOutlined,
   SafetyOutlined,
   UserOutlined,
+  LoadingOutlined,
+  CloseCircleOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons-vue";
 import {
   checkUsernameAvailable,
@@ -231,6 +245,14 @@ const userEmailUnique = ref(true);
 const userNameChecking = ref(false);
 const userEmailChecking = ref(false);
 const verifyCodeInputs = ref<any[]>([]);
+const hasEmailFormatError = ref(false);
+
+// 自定义验证状态
+const userNameError = ref("");
+const userEmailError = ref("");
+const verifyCodeError = ref("");
+const passwordError = ref("");
+const confirmPasswordError = ref("");
 
 // 验证码输入处理
 const handleVerifyCodeInput = (event: any, index: number) => {
@@ -256,6 +278,9 @@ const handleVerifyCodeInput = (event: any, index: number) => {
   }
   // 清除输入框的值，防止显示多个字符
   event.target.value = finalValue;
+
+  // 实时验证验证码
+  validateVerifyCode();
 };
 
 // 验证码键盘事件处理
@@ -317,6 +342,25 @@ const passwordStrength = computed(() => {
   if (score === 5) return 3; // 强
   return 0;
 });
+
+// 监听密码变化，实时验证
+watch(
+  () => formState.userPassword,
+  () => {
+    validatePassword();
+    if (formState.userCheckPassword) {
+      validateConfirmPassword();
+    }
+  }
+);
+
+// 监听确认密码变化，实时验证
+watch(
+  () => formState.userCheckPassword,
+  () => {
+    validateConfirmPassword();
+  }
+);
 const passwordStrengthText = computed(() => {
   switch (passwordStrength.value) {
     case 1:
@@ -342,8 +386,117 @@ const passwordStrengthColor = computed(() => {
   }
 });
 
-// 验证密码
-const validatePassword = async (_rule: any, value: string) => {
+// 获取密码强度类名
+const getPasswordStrengthClass = () => {
+  switch (passwordStrength.value) {
+    case 1:
+      return "weak";
+    case 2:
+      return "medium";
+    case 3:
+      return "strong";
+    default:
+      return "";
+  }
+};
+
+// 自定义验证函数
+const validateUserName = () => {
+  if (!formState.userName) {
+    userNameError.value = "请输入用户名";
+    return false;
+  }
+  if (formState.userName.length < 3) {
+    userNameError.value = "用户名长度不能小于3位";
+    return false;
+  }
+  if (!userNameUnique.value) {
+    userNameError.value = "用户名已被占用";
+    return false;
+  }
+  userNameError.value = "";
+  return true;
+};
+
+const validateUserEmail = () => {
+  if (!formState.userEmail) {
+    userEmailError.value = "请输入邮箱";
+    return false;
+  }
+  if (!isValidEmail(formState.userEmail)) {
+    userEmailError.value = "请输入有效的邮箱地址";
+    return false;
+  }
+  if (!userEmailUnique.value) {
+    userEmailError.value = "邮箱已被注册";
+    return false;
+  }
+  userEmailError.value = "";
+  return true;
+};
+
+const validateVerifyCode = () => {
+  if (!formState.verifyCode) {
+    verifyCodeError.value = "请输入验证码";
+    return false;
+  }
+  if (formState.verifyCode.length !== 6) {
+    verifyCodeError.value = "验证码长度必须为6位";
+    return false;
+  }
+  if (!/^\d{6}$/.test(formState.verifyCode)) {
+    verifyCodeError.value = "验证码必须为数字";
+    return false;
+  }
+  verifyCodeError.value = "";
+  return true;
+};
+
+const validatePassword = () => {
+  if (!formState.userPassword) {
+    passwordError.value = "请输入密码";
+    return false;
+  }
+  if (formState.userPassword.length < 8) {
+    passwordError.value = "密码长度不能小于8位";
+    return false;
+  }
+  passwordError.value = "";
+  return true;
+};
+
+const validateConfirmPassword = () => {
+  if (!formState.userCheckPassword) {
+    confirmPasswordError.value = "请确认密码";
+    return false;
+  }
+  if (formState.userCheckPassword !== formState.userPassword) {
+    confirmPasswordError.value = "两次输入的密码不一致";
+    return false;
+  }
+  confirmPasswordError.value = "";
+  return true;
+};
+
+// 验证所有字段
+const validateAll = () => {
+  const isUserNameValid = validateUserName();
+  const isUserEmailValid = validateUserEmail();
+  const isVerifyCodeValid = validateVerifyCode();
+  const isPasswordValid = validatePassword();
+  const isConfirmPasswordValid = validateConfirmPassword();
+
+  return (
+    isUserNameValid &&
+    isUserEmailValid &&
+    isVerifyCodeValid &&
+    isPasswordValid &&
+    isConfirmPasswordValid
+  );
+};
+
+// 原有的验证密码函数（用于Ant Design验证）
+const validatePasswordRule = async (_rule: any, value: string) => {
   if (value && value !== formState.userPassword) {
     throw new Error("两次输入的密码不一致!");
   }
@@ -392,6 +545,11 @@ const startCountdown = () => {
 
 // 提交表单
 const handleSubmit = async () => {
+  // 先进行自定义验证
+  if (!validateAll()) {
+    return;
+  }
+
   try {
     loading.value = true;
     const verifyRes = await verifyCode({
@@ -400,7 +558,7 @@ const handleSubmit = async () => {
     });
 
     if (verifyRes.data.code !== 0) {
-      message.error("验证码错误");
+      verifyCodeError.value = "验证码错误";
       return;
     }
 
@@ -436,6 +594,7 @@ const debounce = (fn: (...args: any[]) => void, delay: number) => {
 const checkUserNameUnique = async () => {
   if (!formState.userName || formState.userName.length < 3) {
     userNameUnique.value = true;
+    validateUserName(); // 验证用户名
     return;
   }
   userNameChecking.value = true;
@@ -446,15 +605,26 @@ const checkUserNameUnique = async () => {
     userNameUnique.value = true;
   } finally {
     userNameChecking.value = false;
+    validateUserName(); // 检查完成后验证用户名
   }
+};
+
+// 检查邮箱格式
+const isValidEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 };
 
 // 检查邮箱是否唯一
 const checkUserEmailUnique = async () => {
-  if (!formState.userEmail || !formState.userEmail.includes("@")) {
+  if (!formState.userEmail || !isValidEmail(formState.userEmail)) {
     userEmailUnique.value = true;
+    hasEmailFormatError.value = !isValidEmail(formState.userEmail);
+    validateUserEmail(); // 验证邮箱
     return;
   }
+
+  hasEmailFormatError.value = false;
   userEmailChecking.value = true;
   try {
     const res = await checkEmailAvailable(formState.userEmail);
@@ -463,6 +633,7 @@ const checkUserEmailUnique = async () => {
     userEmailUnique.value = true;
   } finally {
     userEmailChecking.value = false;
+    validateUserEmail(); // 检查完成后验证邮箱
   }
 };
 
@@ -473,247 +644,423 @@ const debouncedCheckEmail = debounce(checkUserEmailUnique, 800);
 
 <style scoped>
 .register-page {
-  height: 100vh;
-  width: 500px;
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  background: #f8fafc;
+  position: relative;
+  overflow: hidden;
+  padding: 20px 0;
 }
 
 .register-container {
   width: 100%;
-  height: 100%;
-  padding: 40px;
+  max-width: 420px;
+  margin: 0 16px;
   background: #ffffff;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  position: relative;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-}
-
-.register-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(to right, #4facfe, #00f2fe);
+  border: 1px solid #e2e8f0;
 }
 
 .register-header {
+  background: linear-gradient(135deg, #46cde5 0%, #7c3aed 100%);
+  padding: 24px 20px;
   text-align: center;
-  margin-bottom: 48px;
-  padding-top: 48px;
+  color: white;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
 
 .title-text {
-  font-size: 28px;
-  color: #262626;
-  position: relative;
-  display: inline-block;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .primary {
-  color: #262626;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
-  font-size: 28px;
-  font-family: "MiSans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
 }
 
 .highlight {
-  color: #4facfe;
-  font-weight: 600;
+  color: white;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.form-container {
+  padding: 12px 20px;
 }
 
 .register-form {
-  max-width: 100%;
-  padding: 0 20px;
+  width: 100%;
 }
 
-.form-icon {
-  color: #8c8c8c;
+.form-section {
+  margin-bottom: 12px;
 }
 
-:deep(.ant-input-affix-wrapper) {
-  padding: 8px 12px;
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+  position: relative;
+  padding-left: 12px;
+}
+
+.section-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border-radius: 2px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.input-wrapper:hover {
+  border-color: #d1d5db;
   background: #ffffff;
-  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-:deep(.ant-input-affix-wrapper:hover) {
-  border-color: #4facfe;
+.input-wrapper:focus-within {
+  border-color: #4f46e5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
-:deep(.ant-input-affix-wrapper-focused),
-:deep(.ant-input-affix-wrapper:focus) {
-  border-color: #4facfe;
-  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
-}
-
-:deep(.ant-input) {
-  background: transparent !important;
-  color: #262626 !important;
+.input-prefix {
+  padding: 0 12px;
+  color: #6b7280;
   font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-:deep(.ant-input-password) {
-  background: transparent !important;
+.custom-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #111827;
 }
 
-:deep(.ant-input-affix-wrapper .ant-input) {
-  background: transparent !important;
+.custom-input:focus {
+  outline: none;
+  box-shadow: none;
 }
 
-:deep(.ant-input-password-icon) {
-  color: #8c8c8c;
+.validation-message {
+  margin-top: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-:deep(.ant-form-item) {
-  margin-bottom: 20px;
+.checking {
+  color: #64748b;
 }
 
-:deep(.ant-form-item-explain-error) {
-  color: #ff4d4f;
-  margin-top: 4px;
+.error {
+  color: #ef4444;
+}
+
+.success {
+  color: #10b981;
+}
+
+.verify-code-container {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.verify-code-inputs {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+
+.verify-code-input {
+  width: 40px !important;
+  height: 40px !important;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+}
+
+.verify-code-input:hover {
+  border-color: #d1d5db;
+  background: #ffffff;
+}
+
+.verify-code-input:focus {
+  border-color: #4f46e5;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.verify-code-button {
+  height: 40px;
+  padding: 0 16px;
+  font-weight: 500;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  border: none;
+  color: white;
+  transition: all 0.2s ease;
   font-size: 13px;
 }
 
+.verify-code-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.verify-code-button:active {
+  transform: translateY(0);
+}
+
+.verify-code-button:disabled {
+  background: #f3f4f6;
+  color: #6b7280;
+  transform: none;
+  box-shadow: none;
+}
+
+.password-strength {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.password-strength.weak .strength-fill {
+  background: #ef4444;
+}
+
+.password-strength.medium .strength-fill {
+  background: #f59e0b;
+}
+
+.password-strength.strong .strength-fill {
+  background: #10b981;
+}
+
+.strength-text {
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.password-strength.weak .strength-text {
+  color: #ef4444;
+}
+
+.password-strength.medium .strength-text {
+  color: #f59e0b;
+}
+
+.password-strength.strong .strength-text {
+  color: #10b981;
+}
+
 .form-actions {
-  margin-top: 24px;
+  margin-top: 12px;
 }
 
 .register-button {
   width: 100%;
-  height: 44px;
+  height: 42px;
   font-size: 15px;
+  font-weight: 600;
   border-radius: 8px;
-  background: linear-gradient(to right, #4facfe, #00f2fe);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
   border: none;
-  font-weight: 500;
-  transition: all 0.2s;
   color: white;
-  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.25);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .register-button:hover {
-  background: linear-gradient(to right, #4facfe, #00f2fe);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(79, 172, 254, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
 .register-button:active {
-  background: linear-gradient(to right, #3a9efd, #00e0fa);
   transform: translateY(0);
-  box-shadow: 0 4px 8px rgba(79, 172, 254, 0.2);
-}
-
-/* 验证码按钮样式 */
-:deep(.ant-btn:not(.register-button)) {
-  height: 44px;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  color: #595959;
-  font-size: 14px;
-  border-radius: 8px;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-:deep(.ant-btn:not(.register-button):hover) {
-  color: #4facfe;
-  border-color: #4facfe;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.1);
-}
-
-:deep(.ant-btn:not(.register-button):active) {
-  color: #3a9efd;
-  border-color: #3a9efd;
-  box-shadow: 0 2px 4px rgba(79, 172, 254, 0.1);
-}
-
-:deep(.ant-btn:not(.register-button)[disabled]) {
-  color: rgba(0, 0, 0, 0.25);
-  border-color: #e0e0e0;
-  background: #f5f5f5;
-  text-shadow: none;
-  box-shadow: none;
 }
 
 .form-links {
-  margin-top: 20px;
+  margin-top: 16px;
   text-align: center;
+  font-size: 13px;
+  color: #6b7280;
 }
 
 .login-link {
-  color: #595959;
-  font-size: 14px;
-  transition: all 0.2s;
+  color: #4f46e5;
+  font-weight: 500;
   text-decoration: none;
-  margin-left: 8px;
+  margin-left: 4px;
+  transition: color 0.2s ease;
 }
 
 .login-link:hover {
-  color: #4facfe;
+  color: #7c3aed;
 }
 
-/* 表单项文字颜色 */
-:deep(.ant-form-item-label > label) {
-  color: #262626 !important;
-  font-size: 14px;
-}
+/* 移动端适配 */
+@media (max-width: 640px) {
+  .register-page {
+    padding: 16px 0;
+  }
 
-:deep(.ant-form-item-explain) {
-  color: #8c8c8c;
-  font-size: 13px;
-}
-
-:deep(.ant-form-item-required) {
-  color: #262626 !important;
-}
-
-/* 输入框文字颜色 */
-:deep(.ant-input),
-:deep(.ant-input-password input) {
-  color: #262626 !important;
-}
-
-:deep(.ant-input::placeholder),
-:deep(.ant-input-password input::placeholder) {
-  color: #bfbfbf !important;
-}
-
-/* 底部文字 */
-.form-links span {
-  color: #8c8c8c;
-  font-size: 14px;
-}
-
-/* 密码强度提示 */
-.password-strength {
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 1.4;
-  min-height: 18px;
-}
-
-@media (max-width: 576px) {
   .register-container {
-    padding: 24px 16px;
+    margin: 0 12px;
+    border-radius: 12px;
   }
 
   .register-header {
-    margin-bottom: 32px;
-    padding-top: 32px;
+    padding: 20px 16px;
+  }
+
+  .form-container {
+    padding: 20px 16px;
   }
 
   .title-text {
-    font-size: 24px;
+    font-size: 22px;
+  }
+
+  .form-section {
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+
+  .verify-code-input {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 14px;
+  }
+
+  .verify-code-button {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 12px;
+  }
+
+  .register-button {
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .input-wrapper {
+    border-radius: 6px;
+  }
+
+  .custom-input {
+    padding: 10px 0;
+    font-size: 13px;
+  }
+
+  .input-prefix {
+    padding: 0 10px;
+    font-size: 13px;
+  }
+}
+
+/* 小屏幕适配 */
+@media (max-width: 480px) {
+  .register-container {
+    margin: 0 8px;
+  }
+
+  .register-header {
+    padding: 16px 12px;
+  }
+
+  .form-container {
+    padding: 16px 12px;
+  }
+
+  .title-text {
+    font-size: 20px;
+  }
+
+  .verify-code-input {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px;
+  }
+
+  .verify-code-button {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
   }
 }
 </style>

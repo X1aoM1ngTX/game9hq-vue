@@ -26,18 +26,49 @@ myAxios.interceptors.response.use(
     const { data } = response;
     // 未登录
     if (data.code === 40100) {
-      // 不是获取用户信息接口，且不是登录、注册、重置密码页面，则跳转到登录页面
+      // 定义不需要登录的公开页面
+      const publicPages = ["/", "/shop", "/notice", "/about", "/news"];
+      const isPublicPage = publicPages.some(
+        (page) =>
+          window.location.pathname === page ||
+          window.location.pathname.startsWith(page + "/")
+      );
+
+      // 如果是公开页面或获取用户信息接口，不跳转登录
       if (
-        !response.request.responseURL.includes("user/current") &&
-        !window.location.pathname.includes("/user/login") &&
-        !window.location.pathname.includes("/user/register") &&
-        !window.location.pathname.includes("/user/reset-password")
+        response.request.responseURL.includes("user/current") ||
+        window.location.pathname.includes("/user/login") ||
+        window.location.pathname.includes("/user/register") ||
+        window.location.pathname.includes("/user/reset-password") ||
+        isPublicPage
       ) {
-        window.location.href = `/user/login?redirect=${window.location.href}`;
+        // 静默处理，不跳转
+        return response;
       }
+
+      // 只有在需要登录的页面才跳转
+      window.location.href = `/user/login?redirect=${window.location.href}`;
     }
     // 常见错误码本地化提示
     if (data.code && data.code !== 0) {
+      // 40100未登录错误在公开页面不显示
+      if (data.code === 40100) {
+        const publicPages = ["/", "/shop", "/notice", "/about", "/news"];
+        const isPublicPage = publicPages.some(
+          (page) =>
+            window.location.pathname === page ||
+            window.location.pathname.startsWith(page + "/")
+        );
+
+        if (
+          isPublicPage ||
+          response.request.responseURL.includes("user/current")
+        ) {
+          // 在公开页面或获取用户信息时，静默处理未登录错误
+          return response;
+        }
+      }
+
       let msg = data.description || data.message || "操作失败";
       if (msg.includes("锁定") || msg.includes("请10分钟后再试")) {
         msg = "账号已锁定，请10分钟后再试";

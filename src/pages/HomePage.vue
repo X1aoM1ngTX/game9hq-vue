@@ -678,40 +678,174 @@ const scrollToFeatures = () => {
 
   .hero-actions {
     justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .hero-button {
+    width: 100%;
+    justify-content: center;
   }
 
   .section-title {
-    font-size: 36px;
+    font-size: 32px;
+  }
+
+  .section-subtitle {
+    font-size: 18px;
   }
 
   .cta-title {
-    font-size: 36px;
+    font-size: 32px;
+  }
+
+  .cta-subtitle {
+    font-size: 18px;
   }
 
   .features {
-    padding: 80px 20px;
+    padding: 60px 16px;
   }
 
   .cta {
-    padding: 80px 20px;
+    padding: 60px 16px;
+  }
+
+  .feature-card {
+    padding: 24px;
+  }
+
+  .feature-icon {
+    font-size: 40px;
+  }
+
+  .feature-title {
+    font-size: 20px;
+  }
+
+  .orb-1 {
+    width: 300px;
+    height: 300px;
+  }
+
+  .orb-2 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .orb-3 {
+    width: 150px;
+    height: 150px;
   }
 }
 
 @media screen and (max-width: 480px) {
   .hero-content {
     padding: 0 16px;
+    gap: 40px;
   }
 
   .hero-title {
     font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+    line-height: 1.5;
   }
 
   .code-window {
     max-width: 100%;
+    height: 300px;
+  }
+
+  .window-content {
+    padding: 16px;
+    font-size: 12px;
   }
 
   .features-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .feature-card {
+    padding: 20px;
+  }
+
+  .feature-icon {
+    font-size: 36px;
+  }
+
+  .feature-title {
+    font-size: 18px;
+  }
+
+  .feature-description {
+    font-size: 14px;
+  }
+
+  .tech-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+  }
+
+  .section-title {
+    font-size: 28px;
+  }
+
+  .section-subtitle {
+    font-size: 16px;
+  }
+
+  .cta-title {
+    font-size: 28px;
+  }
+
+  .cta-subtitle {
+    font-size: 16px;
+  }
+
+  .cta-button {
+    width: 100%;
+    padding: 14px 24px;
+  }
+
+  .features {
+    padding: 40px 12px;
+  }
+
+  .cta {
+    padding: 40px 12px;
+  }
+}
+
+/* 移动端触摸优化 */
+@media (hover: none) and (pointer: coarse) {
+  .hero-button,
+  .cta-button,
+  .feature-card {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .feature-card:hover {
+    transform: none;
+  }
+
+  .feature-card:active {
+    transform: scale(0.98);
+  }
+
+  .hero-button:hover {
+    transform: none;
+  }
+
+  .hero-button:active {
+    transform: scale(0.98);
   }
 }
 

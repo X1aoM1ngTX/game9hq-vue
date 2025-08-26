@@ -278,6 +278,18 @@ const searchKeyword = ref("");
 
 // 切换标签页
 const switchTab = (tab: string) => {
+  // 检查是否需要登录
+  if (
+    (tab === "drafts" || tab === "published") &&
+    !userStore.loginUser?.userId
+  ) {
+    message.warning("请先登录后再查看我的内容");
+    router.push(
+      "/user/login?redirect=" + encodeURIComponent(window.location.href)
+    );
+    return;
+  }
+
   activeTab.value = tab;
   if (tab === "community") {
     fetchPublishedNews();
@@ -520,6 +532,15 @@ const onSearch = (value: string) => {
 
 // 跳转到创建新资讯页
 const createNewNews = () => {
+  // 检查是否需要登录
+  if (!userStore.loginUser?.userId) {
+    message.warning("请先登录后再发布资讯");
+    router.push(
+      "/user/login?redirect=" + encodeURIComponent(window.location.href)
+    );
+    return;
+  }
+
   router.push("/news/edit");
 };
 
@@ -623,6 +644,21 @@ onMounted(() => {
 
 .search-input {
   width: 250px;
+}
+
+:deep(.ant-input-search) {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+:deep(.ant-input) {
+  border-radius: 6px 0 0 6px;
+  height: 32px;
+}
+
+:deep(.ant-input-search-button) {
+  border-radius: 0 6px 6px 0;
+  height: 32px !important;
 }
 
 .news-card {

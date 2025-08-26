@@ -26,6 +26,10 @@ myAxios.interceptors.response.use(
   (error) => {
     if (error.response) {
       switch (error.response.status) {
+        case 401:
+          // 401未授权是正常情况（用户未登录），不显示错误
+          console.debug("Unauthorized access:", error.response.data?.message);
+          break;
         case 404:
           message.error("请求的接口不存在");
           break;

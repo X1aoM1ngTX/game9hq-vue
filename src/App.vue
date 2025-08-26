@@ -108,6 +108,16 @@ import {
 // message 和 Modal 已在 main.ts 中全局注册
 import { heartbeat } from "@/api/user";
 
+// 静默心跳函数，不显示错误信息
+const silentHeartbeat = async () => {
+  try {
+    await heartbeat();
+  } catch (error) {
+    // 心跳失败是正常情况（如用户未登录），静默处理
+    console.debug("Heartbeat failed:", error);
+  }
+};
+
 const route = useRoute();
 const layout = computed(() => {
   return route.meta.layout === "blank" ? BlankLayout : BasicLayout;
@@ -122,11 +132,11 @@ onMounted(() => {
   loginUserStore.getLoginUser();
   document.addEventListener("contextmenu", handleContextMenu);
   document.addEventListener("click", handleClickOutside);
-  // 立即心跳一次
-  heartbeat();
-  // 启动心跳定时器
+  // 立即心跳一次（静默模式）
+  silentHeartbeat();
+  // 启动心跳定时器（静默模式）
   heartbeatTimer = window.setInterval(() => {
-    heartbeat();
+    silentHeartbeat();
   }, 30000);
 });
 

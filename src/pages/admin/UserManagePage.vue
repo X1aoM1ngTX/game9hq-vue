@@ -18,6 +18,7 @@
         </a-button>
       </a-space>
       <a-input-search
+        style="border-radius: 0 8px 8px 0"
         v-model:value="searchValue"
         enter-button="搜索🔍"
         placeholder="输入用户名搜索🔍"
@@ -80,9 +81,7 @@
         <a-form-item
           label="手机号码"
           name="userPhone"
-          :rules="[
-            { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的11位手机号!' },
-          ]"
+          :rules="[{ validator: validateAdminPhone }]"
         >
           <a-input v-model:value="editFormState.userPhone" maxlength="11" />
         </a-form-item>
@@ -138,6 +137,7 @@ import { message, Modal } from "ant-design-vue";
 import {
   adminUpdateUser,
   batchImportUsers,
+  checkPhoneAvailable,
   deleteUser,
   searchUsers,
 } from "@/api/user";
@@ -176,7 +176,8 @@ const doDelete = (userId: string) => {
       const res = await deleteUser(userId);
       if (res.data.code === 0) {
         message.success("删除成功");
-        await fetchData(searchValue.value);
+        // 本地删除数据，避免重新请求整个列表
+        removeLocalUserData(userId);
       } else {
         message.error("删除失败");
       }
@@ -283,13 +284,46 @@ const handleEditUser = async () => {
     if (res.data.code === 0) {
       message.success("更新成功");
       modalVisible.value = false;
-      await fetchData(searchValue.value);
+      // 本地更新数据，避免重新请求整个列表
+      updateLocalUserData(updateData);
     } else {
-      message.error(res.data.message || "更新失败");
+      // 对于参数校验错误（如手机号格式），不显示错误信息
+      // 因为前端表单校验已经处理了这些错误
+      if (res.data.code !== 40000) {
+        message.error(res.data.message || "更新失败");
+      }
     }
   } catch (error: unknown) {
     const err = error as { message?: string };
+    // 只显示非表单校验错误的网络错误
     message.error(`操作失败: ${err.message || "未知错误"}`);
+  }
+};
+
+// 本地更新用户数据，避免重新请求整个列表
+const updateLocalUserData = (updateData: any) => {
+  const index = data.value.findIndex(
+    (user) => user.userId === updateData.userId
+  );
+  if (index !== -1) {
+    // 创建新对象，保持响应性
+    data.value[index] = {
+      ...data.value[index],
+      userName: updateData.userName,
+      userNickname: updateData.userNickname,
+      userEmail: updateData.userEmail,
+      userPhone: updateData.userPhone,
+      userIsAdmin: updateData.userIsAdmin,
+    };
+  }
+};
+
+// 本地删除用户数据，避免重新请求整个列表
+const removeLocalUserData = (userId: string | number) => {
+  const index = data.value.findIndex((user) => user.userId === userId);
+  if (index !== -1) {
+    // 使用 splice 保持响应性
+    data.value.splice(index, 1);
   }
 };
 
@@ -334,6 +368,34 @@ const importModalVisible = ref(false);
 const importLoading = ref(false);
 const previewData = ref<any[]>([]);
 const importErrors = ref<string[]>([]);
+
+// 管理员页面的手机号校验函数
+const validateAdminPhone = async (_rule: any, value: string) => {
+  if (!value) {
+    return Promise.resolve(); // 手机号不是必填项
+  }
+
+  // 基本格式校验
+  if (!/^1[3-9]\d{9}$/.test(value)) {
+    return Promise.reject("请输入有效的11位手机号!");
+  }
+
+  // 如果手机号没有变化，直接通过
+  if (value === editFormState.userPhone) {
+    return Promise.resolve();
+  }
+
+  try {
+    const res = await checkPhoneAvailable(value);
+    if (res.data.code === 0 && res.data.data === false) {
+      return Promise.reject("该手机号已被其他用户使用");
+    }
+    return Promise.resolve();
+  } catch (error) {
+    console.error("手机号校验失败:", error);
+    return Promise.reject("手机号校验失败，请稍后重试");
+  }
+};
 
 // 预览表格的列定义
 const previewColumns = [
@@ -480,7 +542,19 @@ fetchData();
   display: inline-block;
 }
 
+:deep(.ant-input-search) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:deep(.ant-input) {
+  border-radius: 8px;
+  height: 40px;
+}
+
 :deep(.ant-input-search-button) {
+  border-radius: 0 8px 8px 0 !important;
+  height: 40px !important;
   box-shadow: none !important;
   border-bottom: none !important;
 }

@@ -282,34 +282,6 @@ const saveDraft = async () => {
         message.success("保存草稿成功");
         router.push("/news");
       }
-    } else if (
-      response.data &&
-      response.data.message &&
-      (response.data.message.includes("资讯已发布") ||
-        response.data.message.includes("已经发布"))
-    ) {
-      // 当错误信息包含"资讯已发布"时，尝试转为草稿
-      if (newsIdToSave) {
-        try {
-          // 尝试设置为草稿状态
-          const draftResponse = await draftNews(newsIdToSave);
-          if (draftResponse.data?.code === 0) {
-            message.success("已将发布的资讯转为草稿状态");
-            router.push("/news");
-          } else {
-            // 如果无法转为草稿（可能后端有限制），则告知用户
-            message.info("内容已更新，但该资讯已发布无法设为草稿");
-            router.push("/news");
-          }
-        } catch (draftError) {
-          console.error("设置草稿状态失败:", draftError);
-          message.info("内容已更新，但无法设为草稿状态");
-          router.push("/news");
-        }
-      } else {
-        message.success("内容已更新");
-        router.push("/news");
-      }
     } else {
       message.error(response.data?.message || "保存失败");
     }
@@ -336,11 +308,35 @@ const publish = async () => {
         ...newsForm,
       });
 
+      console.log("创建资讯响应:", createResponse);
+
       if (
         createResponse.data?.code === 0 &&
-        createResponse.data?.data?.newsId
+        createResponse.data?.data !== undefined
       ) {
-        newsIdToPublish = createResponse.data.data.newsId;
+        // 从响应中获取资讯ID，后端返回的是 BaseResponse<Long> 格式
+        newsIdToPublish = createResponse.data.data;
+        console.log("获取到资讯ID:", newsIdToPublish);
+
+        if (!newsIdToPublish || newsIdToPublish <= 0) {
+          throw new Error("获取的资讯ID无效");
+        }
+
+        // 创建成功后立即发布
+        const publishResponse = await publishNews(newsIdToPublish);
+        console.log("发布资讯响应:", publishResponse);
+
+        if (publishResponse.data?.code === 0) {
+          message.success("发布成功");
+        } else if (
+          publishResponse.data?.message &&
+          (publishResponse.data.message.includes("资讯已发布") ||
+            publishResponse.data.message.includes("已经发布"))
+        ) {
+          message.success("发布成功");
+        } else {
+          throw new Error(publishResponse.data?.message || "发布失败");
+        }
       } else {
         throw new Error(createResponse.data?.message || "创建资讯失败");
       }
@@ -351,45 +347,31 @@ const publish = async () => {
         ...newsForm,
       });
 
-      // 处理已发布资讯特殊情况
-      if (
-        updateResponse.data?.code === 0 ||
-        (updateResponse.data?.message &&
-          (updateResponse.data.message.includes("资讯已发布") ||
-            updateResponse.data.message.includes("已经发布")))
-      ) {
-        // 更新成功或资讯已发布
-        console.log("资讯更新成功");
+      console.log("更新资讯响应:", updateResponse);
 
-        // 如果已经是发布状态，直接提示更新成功并返回
-        if (isPublished.value) {
-          message.success("更新成功");
-          router.push("/news");
-          publishing.value = false;
-          return;
-        }
-      } else {
+      if (updateResponse.data?.code !== 0) {
         throw new Error(updateResponse.data?.message || "更新资讯失败");
       }
-    }
 
-    // 如果不是已发布状态，则需要调用发布API
-    if (!isPublished.value) {
-      // 发布资讯
-      const publishResponse = await publishNews(newsIdToPublish);
+      // 如果不是已发布状态，则需要调用发布API
+      if (!isPublished.value) {
+        // 发布资讯
+        const publishResponse = await publishNews(newsIdToPublish);
+        console.log("发布资讯响应:", publishResponse);
 
-      // 处理已发布情况
-      if (publishResponse.data?.code === 0) {
-        message.success("发布成功");
-      } else if (
-        publishResponse.data?.message &&
-        (publishResponse.data.message.includes("资讯已发布") ||
-          publishResponse.data.message.includes("已经发布"))
-      ) {
-        // 对于已经发布的资讯，这是正常的情况，应该显示更新成功
-        message.success("更新已发布资讯成功");
+        if (publishResponse.data?.code === 0) {
+          message.success("发布成功");
+        } else if (
+          publishResponse.data?.message &&
+          (publishResponse.data.message.includes("资讯已发布") ||
+            publishResponse.data.message.includes("已经发布"))
+        ) {
+          message.success("发布成功");
+        } else {
+          throw new Error(publishResponse.data?.message || "发布失败");
+        }
       } else {
-        throw new Error(publishResponse.data?.message || "发布失败");
+        message.success("更新成功");
       }
     }
 

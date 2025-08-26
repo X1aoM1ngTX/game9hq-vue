@@ -254,12 +254,14 @@
       <a-form :model="addFriendForm" layout="vertical">
         <a-form-item label="用户ID或用户名">
           <a-input
+            style="border-radius: 8px"
             v-model:value="addFriendForm.identifier"
             placeholder="请输入用户ID或用户名"
           />
         </a-form-item>
         <a-form-item label="验证消息">
           <a-textarea
+            style="border-radius: 8px"
             v-model:value="addFriendForm.message"
             :rows="3"
             placeholder="请输入验证消息"
@@ -615,7 +617,7 @@ onMounted(() => {
 
 :deep(.ant-input) {
   height: 40px;
-  border-radius: 8px;
+  border-radius: 8px 0 0 8px;
   border: 1px solid #d9d9d9;
   transition: all 0.2s;
 }
@@ -626,8 +628,8 @@ onMounted(() => {
 }
 
 :deep(.ant-input-search-button) {
-  height: 40px;
-  border-radius: 0 8px 8px 0;
+  height: 40px !important;
+  border-radius: 0 8px 8px 0 !important;
   background: #1890ff;
   border: none;
   transition: all 0.2s;

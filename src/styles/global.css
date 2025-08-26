@@ -1,0 +1,176 @@
+/* 全局样式变量 */
+:root {
+  --primary-color: #4facfe;
+  --primary-color-hover: #3a9efd;
+  --secondary-color: #00f2fe;
+  --text-primary: #262626;
+  --text-secondary: #8c8c8c;
+  --text-placeholder: #bfbfbf;
+  --border-color: #e0e0e0;
+  --error-color: #ff4d4f;
+  --success-color: #52c41a;
+  --warning-color: #faad14;
+  --background-gradient: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  --button-shadow: 0 4px 12px rgba(79, 172, 254, 0.25);
+  --button-shadow-hover: 0 6px 16px rgba(79, 172, 254, 0.35);
+  --button-shadow-active: 0 4px 8px rgba(79, 172, 254, 0.2);
+  --input-focus-shadow: 0 0 0 2px rgba(79, 172, 254, 0.1);
+}
+
+/* 通用输入框样式 */
+.ant-input-affix-wrapper {
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color) !important;
+  background: #ffffff !important;
+  transition: all 0.2s !important;
+}
+
+.ant-input-affix-wrapper:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.ant-input-affix-wrapper-focused,
+.ant-input-affix-wrapper:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: var(--input-focus-shadow) !important;
+}
+
+.ant-input {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  font-size: 14px !important;
+}
+
+.ant-input-password {
+  background: transparent !important;
+}
+
+.ant-input-affix-wrapper .ant-input {
+  background: transparent !important;
+}
+
+.ant-input-password-icon {
+  color: var(--text-secondary) !important;
+}
+
+/* 表单项样式 */
+.ant-form-item {
+  margin-bottom: 12px !important;
+}
+
+.ant-form-item-explain-error {
+  color: var(--error-color) !important;
+  margin-top: 4px !important;
+  font-size: 13px !important;
+}
+
+.ant-form-item-label > label {
+  color: var(--text-primary) !important;
+  font-size: 14px !important;
+}
+
+.ant-form-item-explain {
+  color: var(--text-secondary) !important;
+  font-size: 13px !important;
+}
+
+.ant-form-item-required {
+  color: var(--text-primary) !important;
+}
+
+/* 按钮样式 */
+.ant-btn {
+  height: 44px !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  color: #595959 !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02) !important;
+}
+
+.ant-btn:hover {
+  color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(79, 172, 254, 0.1) !important;
+}
+
+.ant-btn:active {
+  color: var(--primary-color-hover) !important;
+  border-color: var(--primary-color-hover) !important;
+  box-shadow: 0 2px 4px rgba(79, 172, 254, 0.1) !important;
+}
+
+.ant-btn[disabled] {
+  color: rgba(0, 0, 0, 0.25) !important;
+  border-color: var(--border-color) !important;
+  background: #f5f5f5 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* 占位符样式 */
+.ant-input::placeholder,
+.ant-input-password input::placeholder {
+  color: var(--text-placeholder) !important;
+}
+
+/* 渐变按钮样式 */
+.gradient-button {
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color)) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: var(--button-shadow) !important;
+}
+
+.gradient-button:hover {
+  background: linear-gradient(to right, var(--primary-color), var(--secondary-color)) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--button-shadow-hover) !important;
+}
+
+.gradient-button:active {
+  background: linear-gradient(to right, var(--primary-color-hover), #00e0fa) !important;
+  transform: translateY(0) !important;
+  box-shadow: var(--button-shadow-active) !important;
+}
+
+/* 图标样式 */
+.form-icon {
+  color: var(--text-secondary) !important;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .ant-form-item {
+    margin-bottom: 16px !important;
+  }
+  
+  .ant-input-affix-wrapper {
+    padding: 6px 10px !important;
+  }
+  
+  .ant-btn {
+    height: 40px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .ant-form-item {
+    margin-bottom: 12px !important;
+  }
+  
+  .ant-input-affix-wrapper {
+    padding: 4px 8px !important;
+  }
+  
+  .ant-btn {
+    height: 36px !important;
+    font-size: 12px !important;
+  }
+}

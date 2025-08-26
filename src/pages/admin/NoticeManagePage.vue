@@ -7,6 +7,7 @@
         </a-button>
       </a-space>
       <a-input-search
+        style="border-radius: 0 8px 8px 0"
         v-model:value="searchValue"
         enter-button="搜索🔍"
         placeholder="输入公告标题搜索🔍"
@@ -370,7 +371,8 @@ const doDelete = (noticeId: number) => {
       try {
         await deleteNotice(noticeId);
         message.success("删除成功");
-        await fetchData(searchValue.value);
+        // 本地删除数据，避免重新请求整个列表
+        removeLocalNoticeData(noticeId);
       } catch (error) {
         console.error("删除公告失败:", error);
         message.error("删除失败");
@@ -395,7 +397,13 @@ const toggleStatus = async (record: INotice) => {
     message.success(
       record.noticeStatus === NoticeStatus.PUBLISHED ? "下架成功" : "发布成功"
     );
-    await fetchData(searchValue.value);
+    // 本地更新公告状态，避免重新请求整个列表
+    updateLocalNoticeStatus(
+      record.noticeId,
+      record.noticeStatus === NoticeStatus.PUBLISHED
+        ? NoticeStatus.DRAFT
+        : NoticeStatus.PUBLISHED
+    );
   } catch (error) {
     console.error("更新公告状态失败:", error);
     message.error("操作失败");
@@ -499,7 +507,8 @@ const handleModalOk = async () => {
     }
 
     modalVisible.value = false;
-    await fetchData(searchValue.value);
+    // 本地更新数据，避免重新请求整个列表
+    updateLocalNoticeData(formData);
   } catch (error) {
     console.error("操作失败:", error);
     message.error("操作失败");
@@ -553,6 +562,46 @@ const getStatusText = (status: NoticeStatus): string => {
   return statusTexts[status] || "未知";
 };
 
+// 本地更新公告数据，避免重新请求整个列表
+const updateLocalNoticeData = (updateData: any) => {
+  const index = data.value.findIndex(
+    (notice) => notice.noticeId === updateData.noticeId
+  );
+  if (index !== -1) {
+    // 创建新对象，保持响应性
+    data.value[index] = {
+      ...data.value[index],
+      noticeTitle: updateData.noticeTitle,
+      noticeContent: updateData.noticeContent,
+      noticeType: updateData.noticeType,
+      noticeExpireTime: updateData.noticeExpireTime,
+    };
+  }
+};
+
+// 本地更新公告状态，避免重新请求整个列表
+const updateLocalNoticeStatus = (noticeId: number, status: number) => {
+  const index = data.value.findIndex((notice) => notice.noticeId === noticeId);
+  if (index !== -1) {
+    // 创建新对象，保持响应性
+    data.value[index] = {
+      ...data.value[index],
+      noticeStatus: status,
+      noticePublishTime:
+        status === NoticeStatus.PUBLISHED ? new Date().toISOString() : null,
+    };
+  }
+};
+
+// 本地删除公告数据，避免重新请求整个列表
+const removeLocalNoticeData = (noticeId: number) => {
+  const index = data.value.findIndex((notice) => notice.noticeId === noticeId);
+  if (index !== -1) {
+    // 使用 splice 保持响应性
+    data.value.splice(index, 1);
+  }
+};
+
 // 获取用户名的方法
 const getUserName = (userId: number): string => {
   if (!userId) return "未知用户";
@@ -584,6 +633,21 @@ const getUserName = (userId: number): string => {
   padding: 24px;
   max-height: 70vh;
   overflow-y: auto;
+}
+
+:deep(.ant-input-search) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:deep(.ant-input) {
+  border-radius: 8px;
+  height: 40px !important;
+}
+
+:deep(.ant-input-search-button) {
+  border-radius: 0 8px 8px 0 !important;
+  height: 40px !important;
 }
 
 :deep(.ant-input-search-button) {

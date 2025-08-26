@@ -1,6 +1,7 @@
 <template>
   <div class="profile-container">
-    <a-row :gutter="[16, 16]">
+    <!-- 桌面端布局 -->
+    <a-row v-if="!isMobile" :gutter="[16, 16]">
       <!-- 左侧内容区域 -->
       <a-col :lg="17" :md="16" :sm="24" :xs="24">
         <div class="left-content">
@@ -160,6 +161,154 @@
         </div>
       </a-col>
     </a-row>
+
+    <!-- 移动端布局：个人信息-签到-游戏库 -->
+    <div v-else class="mobile-layout">
+      <!-- 个人信息 -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="avatar-section">
+            <a-upload
+              v-if="isCurrentUser"
+              :before-upload="beforeUpload"
+              :customRequest="customUpload"
+              :show-upload-list="false"
+              name="file"
+            >
+              <div class="avatar-wrapper">
+                <a-avatar :size="64" :src="user.userAvatar">
+                  {{ user.userName?.charAt(0) }}
+                </a-avatar>
+                <div class="avatar-mask">
+                  <camera-outlined />
+                  <span>更换头像</span>
+                </div>
+              </div>
+            </a-upload>
+            <div v-else class="avatar-wrapper">
+              <a-avatar :size="64" :src="user.userAvatar">
+                {{ user.userName?.charAt(0) }}
+              </a-avatar>
+            </div>
+            <div class="online-status"></div>
+          </div>
+          <div class="user-info">
+            <h2>
+              {{ user.userNickname || user.userName }}
+              <a-tag v-if="user.userIsAdmin === 1" color="blue">管理员</a-tag>
+              <a-tag v-else color="green">用户</a-tag>
+            </h2>
+            <span class="user-id">ID：{{ user.userId }}</span>
+          </div>
+          <div class="profile-actions">
+            <a-button
+              v-if="isCurrentUser"
+              class="profile-action-btn"
+              size="small"
+              type="primary"
+              @click="handleEdit"
+            >
+              编辑资料
+            </a-button>
+            <a-button
+              v-else-if="!isAlreadyFriend"
+              :loading="addingFriend"
+              class="profile-action-btn"
+              size="small"
+              type="primary"
+              @click="handleAddFriend"
+            >
+              添加好友
+            </a-button>
+            <a-button v-else class="profile-action-btn" size="small" disabled>
+              已是好友
+            </a-button>
+          </div>
+        </div>
+
+        <div class="profile-content">
+          <div class="info-section">
+            <h3>简介</h3>
+            <div class="profile-text">
+              <p v-if="user.userProfile">{{ user.userProfile }}</p>
+              <p v-else class="empty-text">这个人很懒，什么都没写</p>
+            </div>
+          </div>
+
+          <div class="info-section">
+            <h3>基本信息</h3>
+            <div class="info-grid">
+              <div class="info-item">
+                <span class="label">邮箱：</span>
+                <span>{{ user.userEmail || "未设置" }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">手机：</span>
+                <span>{{ user.userPhone || "未设置" }}</span>
+              </div>
+              <div class="info-item">
+                <span class="label">注册时间：</span>
+                <span>{{ formatDate(user.userCreatedTime) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 签到区域 -->
+      <div class="profile-section sign-section">
+        <h3>签到记录</h3>
+        <div v-if="isCurrentUser" class="mobile-sign-card">
+          <img
+            :class="{ signed: isTodaySigned }"
+            :src="
+              isTodaySigned
+                ? require('@/assets/GAME9/game9-green.png')
+                : require('@/assets/GAME9/game9-black.png')
+            "
+            class="sign-card-img"
+            style="width: 60px; height: 60px"
+          />
+          <a-button
+            :disabled="isTodaySigned"
+            :loading="signInLoading"
+            class="sign-btn"
+            @click="handleSignIn"
+          >
+            {{ isTodaySigned ? "今日已签到" : "立即签到" }}
+          </a-button>
+        </div>
+        <sign-in-calendar
+          ref="calendarRef"
+          :user-id="user.userId ? Number(user.userId) : undefined"
+        />
+      </div>
+
+      <!-- 游戏库 -->
+      <div class="profile-library">
+        <h3>{{ isCurrentUser ? "我的游戏库" : "游戏库" }}</h3>
+        <div v-if="userGames.length > 0" class="games-list">
+          <div
+            v-for="game in userGames"
+            :key="game.gameId"
+            :data-game-id="game.gameId"
+            class="game-item"
+            style="cursor: pointer"
+            @click="goToGameDetail(game.gameId)"
+          >
+            <img
+              v-lazy="game.gameCover"
+              :alt="game.gameName"
+              class="game-cover"
+            />
+            <div class="game-info">
+              <h4>{{ game.gameName }}</h4>
+            </div>
+          </div>
+        </div>
+        <p v-else class="empty-text">暂无游戏</p>
+      </div>
+    </div>
     <!-- 修改资料的对话框 -->
     <a-modal
       v-model:visible="modalVisible"
@@ -198,7 +347,7 @@
         <a-form-item
           :rules="[
             { required: true, message: '请输入手机号!' },
-            { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的11位手机号!' },
+            { validator: validatePhone },
           ]"
           label="手机号"
           name="userPhone"
@@ -238,6 +387,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, reactive, ref } from "vue";
 import {
+  checkPhoneAvailable,
   checkTodaySignIn,
   getCurrentUser,
   getUserById,
@@ -289,6 +439,24 @@ type EventListener = (event: Event) => void;
 
 const route = useRoute();
 const router = useRouter();
+
+// 移动端检测
+const isMobile = ref(false);
+
+// 检测是否为移动端
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768;
+};
+
+// 监听窗口大小变化
+onMounted(() => {
+  checkMobile();
+  window.addEventListener("resize", checkMobile);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", checkMobile);
+});
 const user = ref<UserInfo>({
   userId: "",
   userName: "",
@@ -337,6 +505,34 @@ const isAlreadyFriend = computed(() => {
   );
 });
 
+// 手机号校验函数
+const validatePhone = async (_rule: any, value: string) => {
+  if (!value) {
+    return Promise.reject("请输入手机号!");
+  }
+
+  // 基本格式校验
+  if (!/^1[3-9]\d{9}$/.test(value)) {
+    return Promise.reject("请输入有效的11位手机号!");
+  }
+
+  // 如果手机号没有变化，直接通过
+  if (value === user.value.userPhone) {
+    return Promise.resolve();
+  }
+
+  try {
+    const res = await checkPhoneAvailable(value);
+    if (res.data.code === 0 && res.data.data === false) {
+      return Promise.reject("该手机号已被其他用户使用");
+    }
+    return Promise.resolve();
+  } catch (error) {
+    console.error("手机号校验失败:", error);
+    return Promise.reject("手机号校验失败，请稍后重试");
+  }
+};
+
 const formatDate = (date: string) => {
   return dayjs(date).format("YYYY-MM-DD");
 };
@@ -351,10 +547,16 @@ const fetchData = async () => {
     );
 
     let res;
-    if (isCurrentUser.value) {
-      res = await getCurrentUser();
-    } else {
-      res = await getUserById(route.params.userId as string);
+    try {
+      if (isCurrentUser.value) {
+        res = await getCurrentUser();
+      } else {
+        res = await getUserById(route.params.userId as string);
+      }
+    } catch (error) {
+      console.error("获取用户信息失败:", error);
+      message.error("获取用户信息失败，请重试");
+      return;
     }
     if (res.data.code === 0) {
       user.value = res.data.data;
@@ -480,10 +682,15 @@ const handleModalOk = async () => {
       modalVisible.value = false;
       await fetchData();
     } else {
-      message.error(res.data.description || "更新失败");
+      // 对于参数校验错误（如手机号格式），不显示错误信息
+      // 因为前端表单校验已经处理了这些错误
+      if (res.data.code !== 40000) {
+        message.error(res.data.description || "更新失败");
+      }
     }
   } catch (error: unknown) {
     const err = error as { message?: string };
+    // 只显示非表单校验错误的网络错误
     message.error(`操作失败: ${err.message || "未知错误"}`);
   }
 };
@@ -520,9 +727,14 @@ const customUpload = async (options: any) => {
       message.success("头像上传成功");
       await fetchData(); // 刷新用户数据
       // 更新全局用户状态
-      const userRes = await getCurrentUser();
-      if (userRes.data.code === 0) {
-        loginUserStore.loginUser = userRes.data.data;
+      try {
+        const userRes = await getCurrentUser();
+        if (userRes.data.code === 0) {
+          loginUserStore.loginUser = userRes.data.data;
+        }
+      } catch (error) {
+        console.error("更新用户状态失败:", error);
+        // 不显示错误，因为头像上传已经成功
       }
       onSuccess(res, file);
     } else {
@@ -745,6 +957,24 @@ async function handleFriendModalOk() {
   font-size: 12px;
 }
 
+/* 移动端布局样式 */
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mobile-sign-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
 /* 移动端适配 */
 @media (max-width: 768px) {
   .profile-container {
@@ -785,6 +1015,26 @@ async function handleFriendModalOk() {
   .sign-card {
     min-width: 0;
     width: 100%;
+  }
+
+  /* 移动端游戏库布局优化 */
+  .games-list {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+
+  .game-item {
+    width: 100%;
+    max-width: 120px;
+  }
+
+  .game-cover {
+    height: 60px;
+  }
+
+  .game-info h4 {
+    font-size: 14px;
+    margin: 6px 0 2px;
   }
 }
 

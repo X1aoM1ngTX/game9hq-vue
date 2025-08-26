@@ -30,6 +30,7 @@
               :class="['notice-card', `notice-type-${item.noticeType}`]"
               :title="item.noticeTitle"
               hoverable
+              @click="showNoticeDetail(item)"
             >
               <template #extra>
                 <a-tag
@@ -70,6 +71,45 @@
         </div>
       </a-spin>
     </div>
+
+    <!-- 公告详情模态框 -->
+    <a-modal
+      v-model:open="detailVisible"
+      :title="selectedNotice?.noticeTitle"
+      :footer="null"
+      width="800px"
+      :mask-closable="true"
+      :closable="true"
+      class="notice-detail-modal"
+      @cancel="closeDetail"
+    >
+      <div class="notice-detail-content">
+        <div class="notice-detail-header">
+          <a-tag
+            :color="getNoticeTypeColor(selectedNotice?.noticeType)"
+            class="notice-detail-tag"
+          >
+            {{ getNoticeTypeText(selectedNotice?.noticeType) }}
+          </a-tag>
+          <div class="notice-detail-meta">
+            <span class="notice-detail-time">
+              <clock-circle-outlined />
+              {{ formatDate(selectedNotice?.noticePublishTime) }}
+            </span>
+            <span
+              v-if="selectedNotice?.noticeCreatorId"
+              class="notice-detail-creator"
+            >
+              <user-outlined />
+              {{ getUserName(selectedNotice?.noticeCreatorId) }}
+            </span>
+          </div>
+        </div>
+        <div class="notice-detail-body">
+          {{ selectedNotice?.noticeContent }}
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -90,6 +130,22 @@ const error = ref("");
 
 // 添加用户信息状态
 const userMap = ref<Record<string, any>>({});
+
+// 公告详情相关状态
+const detailVisible = ref(false);
+const selectedNotice = ref<INotice | null>(null);
+
+// 显示公告详情
+const showNoticeDetail = (notice: INotice) => {
+  selectedNotice.value = notice;
+  detailVisible.value = true;
+};
+
+// 关闭公告详情
+const closeDetail = () => {
+  detailVisible.value = false;
+  selectedNotice.value = null;
+};
 
 // 获取用户信息
 const fetchUserInfo = async (userId: number) => {
@@ -497,5 +553,127 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* 公告详情模态框样式 */
+.notice-detail-modal {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.notice-detail-modal :deep(.ant-modal-content) {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+}
+
+.notice-detail-modal :deep(.ant-modal-header) {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: transparent;
+  padding: 24px 32px 16px;
+}
+
+.notice-detail-modal :deep(.ant-modal-body) {
+  padding: 0 32px 32px;
+}
+
+.notice-detail-modal :deep(.ant-modal-title) {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.notice-detail-content {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notice-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.notice-detail-tag {
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notice-detail-meta {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.notice-detail-time,
+.notice-detail-creator {
+  color: #666;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notice-detail-body {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #333;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.notice-detail-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notice-detail-body::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.notice-detail-body::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.notice-detail-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 卡片点击动画效果 */
+.notice-card {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notice-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.notice-card:active {
+  transform: translateY(-4px) scale(1.01);
 }
 </style>

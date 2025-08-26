@@ -244,6 +244,15 @@ export const checkEmailAvailable = (email: string) => {
 };
 
 /**
+ * 检查手机号是否可用（注册时使用）
+ */
+export const checkPhoneAvailable = (phone: string) => {
+  return myAxios.get("/api/user/checkPhoneAvailable", {
+    params: { phone },
+  });
+};
+
+/**
  * 用户心跳，刷新在线状态
  */
 export function heartbeat() {

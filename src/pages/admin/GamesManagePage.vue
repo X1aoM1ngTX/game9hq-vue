@@ -48,10 +48,19 @@
           />
         </template>
         <template v-else-if="column.key === 'gameDiscountedPrices'">
-          <template v-if="record.gameOnSale !== 0">
-            <a-tag :color="record.gameOnSale === 0 ? 'default' : 'green'">
+          <template
+            v-if="
+              record.gameOnSale !== 0 &&
+              record.gameDiscount > 0.001 &&
+              record.gameDiscountedPrices !== null
+            "
+          >
+            <a-tag :color="'green'">
               {{ record.gameDiscountedPrices + "￥" }}
             </a-tag>
+          </template>
+          <template v-else>
+            <span style="color: #999">-</span>
           </template>
         </template>
         <template v-else-if="column.key === 'gameOnSale'">
@@ -60,17 +69,17 @@
               {{ "免费" }}
             </a-tag>
           </template>
+          <template
+            v-else-if="record.gameOnSale !== 0 && record.gameDiscount > 0.001"
+          >
+            <a-tag :color="'green'">
+              {{ "-" + (record.gameDiscount * 100).toFixed(1) + "%" }}
+            </a-tag>
+          </template>
           <template v-else>
-            <template v-if="record.gameOnSale !== 0">
-              <a-tag :color="'green'">
-                {{ "-" + (record.gameDiscount * 100).toFixed(1) + "%" }}
-              </a-tag>
-            </template>
-            <template v-if="record.gameOnSale == 0">
-              <a-tag :color="'default'">
-                {{ "无折扣" }}
-              </a-tag>
-            </template>
+            <a-tag :color="'default'">
+              {{ "无折扣" }}
+            </a-tag>
           </template>
         </template>
         <template v-else-if="column.key === 'action'">
@@ -366,7 +375,8 @@ const doDelete = (gameId: string) => {
       if (res.data.code === 0) {
         // 判断删除是否成功
         message.success("删除成功");
-        await fetchData(searchValue.value); // 刷新数据
+        // 本地删除数据，避免重新请求整个列表
+        removeLocalGameData(gameId);
       } else {
         message.error("删除失败");
       }
@@ -517,13 +527,70 @@ const toggleStatus = async (record: GameStatusRecord) => {
     // 判断操作是否成功
     if (res.data.code === 0) {
       message.success(`${newStatus === 1 ? "下架" : "上架"}成功`);
-      record.gameIsRemoved = Boolean(newStatus); // 使用 Boolean 转换,更新本地状态
-      await fetchData(searchValue.value); // 刷新数据
+      // 本地更新游戏状态，避免重新请求整个列表
+      updateLocalGameStatus(record.gameId, newStatus);
     } else {
       message.error(`操作失败：${res.data.message || "未知错误"}`);
     }
   } catch (error) {
     message.error("请求失败，请重试");
+  }
+};
+
+// 本地更新游戏数据，避免重新请求整个列表
+const updateLocalGameData = (updateData: any) => {
+  const index = data.value.findIndex(
+    (game) => game.gameId === updateData.gameId
+  );
+  if (index !== -1) {
+    // 计算折扣价格
+    let discountedPrice = null;
+    if (updateData.gameOnSale && updateData.gameDiscount > 0.001) {
+      discountedPrice = Number(
+        (updateData.gamePrice * (1 - updateData.gameDiscount)).toFixed(2)
+      );
+    }
+
+    // 创建新对象，保持响应性
+    data.value[index] = {
+      ...data.value[index],
+      gameName: updateData.gameName,
+      gamePrice: updateData.gamePrice,
+      gameDescription: updateData.gameDescription,
+      gameStock: updateData.gameStock,
+      gamePub: updateData.gamePub,
+      gameReleaseDate: updateData.gameReleaseDate,
+      gameDev: updateData.gameDev,
+      gameAppId: updateData.gameAppId,
+      gameIsRemoved: updateData.gameIsRemoved,
+      gameOnSale: updateData.gameOnSale,
+      gameSaleStartTime: updateData.gameSaleStartTime,
+      gameSaleEndTime: updateData.gameSaleEndTime,
+      gameDiscount: updateData.gameDiscount,
+      gameDiscountedPrices: discountedPrice,
+      gameCover: updateData.gameCover,
+    };
+  }
+};
+
+// 本地更新游戏状态，避免重新请求整个列表
+const updateLocalGameStatus = (gameId: string | number, status: number) => {
+  const index = data.value.findIndex((game) => game.gameId === gameId);
+  if (index !== -1) {
+    // 创建新对象，保持响应性
+    data.value[index] = {
+      ...data.value[index],
+      gameIsRemoved: Boolean(status),
+    };
+  }
+};
+
+// 本地删除游戏数据，避免重新请求整个列表
+const removeLocalGameData = (gameId: string | number) => {
+  const index = data.value.findIndex((game) => game.gameId === gameId);
+  if (index !== -1) {
+    // 使用 splice 保持响应性
+    data.value.splice(index, 1);
   }
 };
 
@@ -742,7 +809,8 @@ const handleEditGame = async () => {
     if (res.data.code === 0) {
       message.success("更新成功");
       modalVisible.value = false;
-      await fetchData(searchValue.value);
+      // 本地更新数据，避免重新请求整个列表
+      updateLocalGameData(updateData);
     } else {
       message.error(res.data.message || "更新失败");
     }
@@ -1039,6 +1107,21 @@ fetchData();
 .ant-upload-select-picture-card .ant-upload-text {
   margin-top: 8px;
   color: #666;
+}
+
+:deep(.ant-input-search) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+:deep(.ant-input) {
+  border-radius: 8px;
+  height: 40px;
+}
+
+:deep(.ant-input-search-button) {
+  border-radius: 0 8px 8px 0 !important;
+  height: 40px !important;
 }
 
 .ant-upload-text {

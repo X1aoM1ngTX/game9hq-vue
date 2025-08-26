@@ -7,6 +7,7 @@ import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import "@/access";
 import "@/assets/global.css";
+import "@/styles/global.css";
 import VueLazyload from "vue-lazyload";
 
 const app = createApp(App);

@@ -74,3 +74,160 @@ img[v-lazy][src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAA
   outline: none !important;
   box-shadow: none !important;
 }
+
+/* 移动端全局优化 */
+@media (max-width: 768px) {
+  /* 减少页面间距 */
+  body {
+    font-size: 14px;
+  }
+  
+  /* 优化移动端滚动 */
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+  }
+  
+  /* 移动端卡片间距优化 */
+  .ant-card {
+    margin-bottom: 12px;
+  }
+  
+  /* 移动端表格优化 */
+  .ant-table {
+    font-size: 12px;
+  }
+  
+  /* 移动端表单优化 */
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+  
+  /* 移动端模态框优化 */
+  .ant-modal {
+    margin: 16px;
+    max-width: calc(100vw - 32px);
+  }
+  
+  .ant-modal-body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 13px;
+  }
+  
+  /* 超小屏幕优化 */
+  .ant-card-body {
+    padding: 12px;
+  }
+  
+  .ant-modal-footer {
+    padding: 12px 16px;
+  }
+  
+  /* 移动端列表优化 */
+  .ant-list-item {
+    padding: 12px 16px;
+  }
+  
+  /* 移动端标签页优化 */
+  .ant-tabs-tab {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* 移动端触摸优化 */
+@media (hover: none) and (pointer: coarse) {
+  /* 移除所有触摸高亮 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* 可选中文本 */
+  input, textarea, [contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  
+  /* 按钮触摸反馈 */
+  .ant-btn,
+  .ant-card,
+  .ant-list-item,
+  .ant-modal-mask,
+  .ant-modal-wrap,
+  .mobile-menu-item,
+  .mobile-nav-link,
+  .mobile-menu-btn,
+  .hamburger {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 禁用悬停效果 */
+  .ant-btn:hover,
+  .mobile-menu-item:hover,
+  .mobile-nav-link:hover {
+    transform: none;
+  }
+  
+  .ant-btn:active,
+  .mobile-menu-item:active,
+  .mobile-nav-link:active {
+    transform: scale(0.98);
+  }
+  
+  /* 优化移动端点击区域 */
+  .ant-btn,
+  .mobile-menu-item,
+  .mobile-nav-link {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .ant-btn-sm {
+    min-height: 32px;
+    min-width: 32px;
+  }
+  
+  /* 移动端菜单按钮优化 */
+  .mobile-menu-btn {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .hamburger {
+    cursor: pointer;
+  }
+  
+  .hamburger span {
+    transition: all 0.3s ease;
+  }
+}
+
+/* 横屏优化 */
+@media (max-width: 768px) and (orientation: landscape) {
+  /* 横屏时减少垂直间距 */
+  .hero,
+  .features,
+  .cta {
+    padding: 40px 16px;
+  }
+  
+  /* 横屏时调整标题大小 */
+  .hero-title {
+    font-size: 32px;
+  }
+  
+  .section-title {
+    font-size: 28px;
+  }
+}

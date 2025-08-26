@@ -241,11 +241,13 @@ const handleAfterLeave = (el: Element) => {
   font-size: 16px;
   height: 48px;
   padding-left: 16px;
+  border-radius: 8px 0 0 8px !important;
 }
 
 :deep(.ant-input-search-button) {
-  height: 48px;
+  height: 48px !important;
   font-size: 16px;
+  border-radius: 0 8px 8px 0 !important;
   box-shadow: none !important;
   border: none !important;
   background: #1890ff;
@@ -429,12 +431,6 @@ const handleAfterLeave = (el: Element) => {
   }
 }
 
-@media (max-width: 600px) {
-  .game-cards {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   #shopPage {
     padding: 24px 16px;
@@ -442,10 +438,31 @@ const handleAfterLeave = (el: Element) => {
 
   :deep(.ant-input) {
     height: 42px;
+    font-size: 14px;
   }
 
   :deep(.ant-input-search-button) {
     height: 42px;
+    font-size: 14px;
+  }
+
+  .game-cards {
+    gap: 20px;
+  }
+
+  .header-actions {
+    margin-bottom: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .game-cards {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  #shopPage {
+    padding: 16px 12px;
   }
 }
 
@@ -466,6 +483,55 @@ const handleAfterLeave = (el: Element) => {
 
   .current-price {
     font-size: 16px;
+  }
+
+  .original-price {
+    font-size: 12px;
+  }
+
+  .discount-tag {
+    font-size: 11px;
+    padding: 2px 4px;
+  }
+
+  .game-card {
+    border-radius: 8px;
+  }
+
+  #shopPage {
+    padding: 12px 8px;
+  }
+
+  :deep(.ant-input) {
+    height: 40px;
+    font-size: 13px;
+  }
+
+  :deep(.ant-input-search-button) {
+    height: 40px;
+    font-size: 13px;
+  }
+}
+
+/* 移动端触摸优化 */
+@media (hover: none) and (pointer: coarse) {
+  .game-card {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .game-card:hover {
+    transform: none;
+  }
+
+  .game-card:active {
+    transform: scale(0.98);
+  }
+
+  .game-cover img {
+    transition: none;
   }
 }
 </style>
