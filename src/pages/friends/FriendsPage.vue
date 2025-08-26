@@ -468,9 +468,15 @@ const openFriendProfile = (friend: ExtendedFriendVO) => {
 };
 
 const sendMessage = (friend: ExtendedFriendVO) => {
-  message.info(
-    `向 ${friend.userNickname || friend.userName} 发送消息功能开发中...`
-  );
+  // 导航到聊天页面，并传递好友信息
+  router.push({
+    path: "/chat",
+    query: {
+      friendId: friend.friendId.toString(),
+      friendName: friend.userNickname || friend.userName,
+      friendAvatar: friend.userAvatar || "",
+    },
+  });
 };
 
 const viewProfile = (friend: ExtendedFriendVO) => {

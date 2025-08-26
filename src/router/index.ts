@@ -126,6 +126,15 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/friends/FriendsPage.vue"),
   },
   {
+    path: "/chat",
+    name: "ChatPage",
+    component: () => import("@/pages/chat/ChatPage.vue"),
+    meta: {
+      title: "聊天",
+      hideFooter: true,
+    },
+  },
+  {
     path: "/wishlist",
     name: "WishlistPage",
     component: () => import("@/pages/WishlistPage.vue"),

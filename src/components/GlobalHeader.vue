@@ -68,6 +68,12 @@
                     </template>
                     我的好友
                   </a-menu-item>
+                  <a-menu-item key="chat" @click="toChat">
+                    <template #icon>
+                      <MessageOutlined />
+                    </template>
+                    消息
+                  </a-menu-item>
                   <a-menu-item key="wishlist" @click="toWishlist">
                     <template #icon>
                       <HeartOutlined />
@@ -210,6 +216,13 @@
                 </div>
                 <div
                   class="mobile-menu-item"
+                  @click="handleMobileMenuClick(toChat)"
+                >
+                  <MessageOutlined />
+                  <span>消息</span>
+                </div>
+                <div
+                  class="mobile-menu-item"
                   @click="handleMobileMenuClick(toWishlist)"
                 >
                   <HeartOutlined />
@@ -330,6 +343,10 @@ const toUserProfile = () => {
 
 const toFirends = () => {
   router.push("/friends");
+};
+
+const toChat = () => {
+  router.push("/chat");
 };
 
 const toWishlist = () => {

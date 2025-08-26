@@ -4,13 +4,18 @@
     <div class="main-content">
       <router-view />
     </div>
-    <GlobalFooter class="footer" />
+    <GlobalFooter v-if="!hideFooter" class="footer" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import { computed } from "vue";
+import { useRoute } from "vue-router";
 import GlobalHeader from "@/components/GlobalHeader.vue";
 import GlobalFooter from "@/components/GlobalFooter.vue";
+
+const route = useRoute();
+const hideFooter = computed(() => route.meta.hideFooter as boolean);
 </script>
 
 <style scoped>
@@ -31,9 +36,11 @@ import GlobalFooter from "@/components/GlobalFooter.vue";
 .main-content {
   flex: 1;
   background: #f5f5f5;
+  min-height: calc(100vh - 64px); /* 减去header高度 */
 }
 
 .footer {
   margin-top: auto;
+  flex-shrink: 0;
 }
 </style>

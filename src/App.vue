@@ -89,7 +89,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import BasicLayout from "@/layouts/BasicLayout.vue";
 import BlankLayout from "@/layouts/BlankLayout.vue";
@@ -127,17 +127,56 @@ const loginUserStore = useLoginUserStore();
 
 let heartbeatTimer: number | null = null;
 
-// 页面加载时获取用户信息
-onMounted(() => {
-  loginUserStore.getLoginUser();
-  document.addEventListener("contextmenu", handleContextMenu);
-  document.addEventListener("click", handleClickOutside);
-  // 立即心跳一次（静默模式）
+// 开始心跳定时器（只在登录时启动）
+const startHeartbeat = () => {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+  }
+  // 立即心跳一次
   silentHeartbeat();
-  // 启动心跳定时器（静默模式）
+  // 启动心跳定时器
   heartbeatTimer = window.setInterval(() => {
     silentHeartbeat();
   }, 30000);
+};
+
+// 停止心跳定时器
+const stopHeartbeat = () => {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+};
+
+// 监听登录状态变化，动态控制心跳
+const watchLoginStatus = () => {
+  // 使用计算属性监听登录状态
+  const isLogin = computed(() => loginUserStore.hasLogin);
+
+  // 监听登录状态变化
+  watch(
+    isLogin,
+    (newVal) => {
+      if (newVal) {
+        // 用户登录了，启动心跳
+        startHeartbeat();
+      } else {
+        // 用户未登录，停止心跳
+        stopHeartbeat();
+      }
+    },
+    { immediate: true }
+  );
+};
+
+// 页面加载时获取用户信息
+onMounted(async () => {
+  await loginUserStore.getLoginUser();
+  document.addEventListener("contextmenu", handleContextMenu);
+  document.addEventListener("click", handleClickOutside);
+
+  // 监听登录状态变化
+  watchLoginStatus();
 });
 
 const isDarkMode = ref(false);
@@ -292,7 +331,7 @@ onUnmounted(() => {
   document.removeEventListener("contextmenu", handleContextMenu);
   document.removeEventListener("click", handleClickOutside);
   // 清理心跳定时器
-  if (heartbeatTimer) clearInterval(heartbeatTimer);
+  stopHeartbeat();
 });
 </script>
 
