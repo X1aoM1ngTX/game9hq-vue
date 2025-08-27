@@ -6,9 +6,6 @@
         <div class="chat-header">
           <h3>消息</h3>
           <div class="chat-header-actions">
-            <div :class="['connection-status', { connected: isConnected }]">
-              {{ isConnected ? "在线" : "离线" }}
-            </div>
             <a-badge :count="unreadCount" :dot="unreadCount > 0">
               <a-button type="text" shape="circle">
                 <template #icon><BellOutlined /></template>
@@ -90,7 +87,7 @@
                 ]"
               >
                 <div class="message-avatar">
-                  <a-avatar :src="message.senderAvatar" :size="32">
+                  <a-avatar :src="getUserAvatar(message.senderId)" :size="32">
                     <template #icon><UserOutlined /></template>
                   </a-avatar>
                 </div>
@@ -154,11 +151,7 @@ import { UserOutlined, BellOutlined } from "@ant-design/icons-vue";
 const route = useRoute();
 const userStore = useLoginUserStore();
 const chatStore = useChatStore();
-const {
-  sendMessage: sendWebSocketMessage,
-  sendReadReceipt,
-  isConnected,
-} = useWebSocket();
+const { sendMessage: sendWebSocketMessage, sendReadReceipt } = useWebSocket();
 
 // 响应式数据
 const messageInput = ref("");
@@ -170,6 +163,42 @@ const currentSessionId = computed(() => chatStore.currentSessionId);
 const currentSession = computed(() => chatStore.currentSession);
 const currentMessages = computed(() => chatStore.currentMessages);
 const unreadCount = computed(() => chatStore.unreadCount);
+
+// 用户头像缓存 - 避免重复请求
+const userAvatarCache = computed(() => {
+  const cache = new Map<number, string>();
+
+  // 添加当前用户头像
+  if (userStore.loginUser?.userId && userStore.loginUser?.userAvatar) {
+    cache.set(userStore.loginUser.userId, userStore.loginUser.userAvatar);
+  }
+
+  // 添加当前会话好友头像
+  if (currentSession.value?.friendId && currentSession.value?.friendAvatar) {
+    cache.set(currentSession.value.friendId, currentSession.value.friendAvatar);
+  }
+
+  // 添加所有会话中的用户头像
+  sessions.value.forEach((session) => {
+    if (session.friendId && session.friendAvatar) {
+      cache.set(session.friendId, session.friendAvatar);
+    }
+  });
+
+  return cache;
+});
+
+// 获取用户头像的函数
+const getUserAvatar = (userId: number) => {
+  // 首先从缓存中获取
+  const cachedAvatar = userAvatarCache.value.get(userId);
+  if (cachedAvatar) {
+    return cachedAvatar;
+  }
+
+  // 如果缓存中没有，返回空字符串，使用默认头像
+  return "";
+};
 
 // 方法
 const formatTime = (time?: string) => {
@@ -215,6 +244,10 @@ const selectSession = async (session: any) => {
         currentMessages.value[currentMessages.value.length - 1];
       sendReadReceipt(lastMessage);
     }
+
+    // 强制滚动到底部显示最新消息
+    await nextTick();
+    scrollToBottom(true);
   } catch (error) {
     console.error("加载聊天记录失败:", error);
     // 如果是临时会话（时间戳格式的ID），没有聊天记录是正常的
@@ -258,7 +291,7 @@ const sendMessage = async () => {
     };
     chatStore.addMessage(localMessage);
     await nextTick();
-    scrollToBottom();
+    scrollToBottom(true);
   } else {
     // WebSocket发送失败，尝试通过HTTP API发送
     try {
@@ -278,7 +311,7 @@ const sendMessage = async () => {
         };
         chatStore.addMessage(localMessage);
         await nextTick();
-        scrollToBottom();
+        scrollToBottom(true);
       } else {
         message.error(response.data?.message || "消息发送失败");
       }
@@ -289,14 +322,21 @@ const sendMessage = async () => {
   }
 };
 
-const scrollToBottom = () => {
+const scrollToBottom = (force = false) => {
   if (messageContainer.value) {
     const container = messageContainer.value;
+
+    // 如果是强制滚动（比如切换会话或加载消息），直接滚动到底部
+    if (force) {
+      container.scrollTop = container.scrollHeight;
+      return;
+    }
+
     const isScrolledToBottom =
       container.scrollHeight - container.scrollTop <=
       container.clientHeight + 50;
 
-    // 只有当用户已经在底部或者刚刚发送消息时才滚动到底部
+    // 当用户已经在底部或者刚刚发送消息时才滚动到底部
     if (isScrolledToBottom) {
       container.scrollTop = container.scrollHeight;
     }
@@ -308,7 +348,7 @@ watch(
   currentMessages,
   () => {
     nextTick(() => {
-      scrollToBottom();
+      scrollToBottom(true);
     });
   },
   { deep: true }
@@ -407,7 +447,6 @@ onMounted(() => {
 
 /* 响应式调整 */
 @media (max-height: 768px) {
-
   .chat-input-fixed {
     padding: 12px;
   }
@@ -662,7 +701,7 @@ onMounted(() => {
   /* 自定义滚动条样式 */
   scrollbar-width: thin;
   scrollbar-color: #d9d9d9 #f0f0f0;
-  
+
   /* 确保消息不被输入框遮挡 */
   padding-bottom: 20px;
 }
@@ -721,7 +760,6 @@ onMounted(() => {
 .message-item.self .message-time {
   text-align: right;
 }
-
 
 .chat-empty {
   flex: 1;

@@ -14,15 +14,16 @@ export function useWebSocket() {
 
   // 连接WebSocket
   const connect = () => {
-    if (!userStore.hasLogin || !userStore.loginUser?.userToken) {
+    if (!userStore.hasLogin || !userStore.loginUser?.userId) {
       console.error("用户未登录，无法连接WebSocket");
+      console.log("用户登录状态:", userStore.hasLogin);
+      console.log("用户信息:", userStore.loginUser);
       return;
     }
 
-    console.log("正在连接WebSocket...");
-
-    const socket = new SockJS(
-      `http://localhost:8080/ws?token=${userStore.loginUser.userToken}`
+    // 使用原生WebSocket端点避免SockJS CORS问题
+    const socket = new WebSocket(
+      `ws://localhost:8080/api/ws-native?userId=${userStore.loginUser.userId}`
     );
     stompClient.value = Stomp.over(socket);
 
@@ -36,7 +37,6 @@ export function useWebSocket() {
       () => {
         isConnected.value = true;
         chatStore.setConnected(true);
-        console.log("WebSocket连接成功");
 
         // 订阅个人消息队列
         subscribeToMessages();
@@ -51,7 +51,6 @@ export function useWebSocket() {
 
         // 3秒后重连
         setTimeout(() => {
-          console.log("尝试重新连接WebSocket...");
           connect();
         }, 3000);
       }
@@ -101,7 +100,6 @@ export function useWebSocket() {
       `/user/${userStore.loginUser.userId}/queue/read`,
       (message: any) => {
         const chatMessage: ChatMessageVO = JSON.parse(message.body);
-        console.log("消息已读:", chatMessage);
       }
     );
   };
@@ -126,7 +124,8 @@ export function useWebSocket() {
       return false;
     }
 
-    stompClient.value.send("/app/chat.send", {}, JSON.stringify(message));
+    const messagePayload = JSON.stringify(message);
+    stompClient.value.send("/app/chat.send", {}, messagePayload);
 
     return true;
   };
@@ -150,13 +149,12 @@ export function useWebSocket() {
       stompClient.value = null;
       isConnected.value = false;
       chatStore.setConnected(false);
-      console.log("WebSocket连接已断开");
     }
   };
 
   // 组件挂载时连接
   onMounted(() => {
-    if (userStore.hasLogin && userStore.loginUser?.userToken) {
+    if (userStore.hasLogin && userStore.loginUser?.userId) {
       connect();
     }
   });
