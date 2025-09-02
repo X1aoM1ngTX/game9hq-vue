@@ -218,6 +218,7 @@ import {
 } from "@/api/user";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
+import { EncryptionUtil } from "@/utils/encryption";
 
 interface FormState {
   userName: string;
@@ -225,6 +226,16 @@ interface FormState {
   userPassword: string;
   userCheckPassword: string;
   verifyCode: string;
+}
+
+// 注册请求参数接口（增加加密标识）
+interface RegisterParams {
+  userName: string;
+  userEmail: string;
+  userPassword: string;
+  userCheckPassword: string;
+  verifyCode: string;
+  encrypted: boolean; // 标识密码是否已加密
 }
 
 const formState = reactive<FormState>({
@@ -562,7 +573,19 @@ const handleSubmit = async () => {
       return;
     }
 
-    const res = await userRegister(formState);
+    // 对密码进行加密
+    const encryptedPassword = EncryptionUtil.encrypt(formState.userPassword);
+    const encryptedCheckPassword = EncryptionUtil.encrypt(formState.userCheckPassword);
+    const registerParams: RegisterParams = {
+      userName: formState.userName,
+      userEmail: formState.userEmail,
+      userPassword: encryptedPassword,
+      userCheckPassword: encryptedCheckPassword,
+      verifyCode: formState.verifyCode,
+      encrypted: true
+    };
+    
+    const res = await userRegister(registerParams);
     if (res.data.code === 0) {
       message.success("注册成功");
       router.push("/user/login");

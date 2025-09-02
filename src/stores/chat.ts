@@ -56,25 +56,60 @@ export const useChatStore = defineStore("chat", () => {
         ? message.receiverId
         : message.senderId;
 
-    const friendMessages = messages.value.get(friendId) || [];
+    // 获取或创建好友的消息列表
+    let friendMessages = messages.value.get(friendId);
+    if (!friendMessages) {
+      friendMessages = [];
+      messages.value.set(friendId, friendMessages);
+    }
+    // 添加新消息到列表末尾
     friendMessages.push(message);
-    messages.value.set(friendId, friendMessages);
+    // 强制触发响应式更新
+    messages.value.set(friendId, [...friendMessages]);
 
-    // 更新会话的最后消息
-    const session = sessions.value.find((s) => s.friendId === friendId);
-    if (session) {
+    // 更新或创建会话
+    let session = sessions.value.find((s) => s.friendId === friendId);
+    if (!session) {
+      // 如果会话不存在，创建新会话
+      session = {
+        sessionId: Date.now(), // 临时ID
+        friendId: friendId,
+        friendNickname: message.senderNickname || `用户${friendId}`,
+        friendAvatar: message.senderAvatar || "",
+        lastMessage: message.content,
+        lastMessageTime: message.createTime,
+        unreadCount: 0,
+        isOnline: false,
+      };
+      sessions.value.unshift(session); // 添加到列表顶部
+    } else {
+      // 更新现有会话
       session.lastMessage = message.content;
       session.lastMessageTime = message.createTime;
-
-      // 如果不是当前会话，增加未读数
-      if (
-        session.sessionId !== currentSessionId.value &&
-        message.senderId !== userStore.loginUser?.userId
-      ) {
-        session.unreadCount += 1;
-        unreadCount.value += 1;
+      // 将会话移到顶部
+      const sessionIndex = sessions.value.findIndex(
+        (s) => s.sessionId === session!.sessionId
+      );
+      if (sessionIndex > 0) {
+        sessions.value.splice(sessionIndex, 1);
+        sessions.value.unshift(session);
       }
     }
+
+    // 如果不是当前会话，增加未读数
+    if (
+      session.sessionId !== currentSessionId.value &&
+      message.senderId !== userStore.loginUser?.userId
+    ) {
+      session.unreadCount += 1;
+      unreadCount.value += 1;
+    }
+    console.log(
+      `消息已添加到store: 发送者=${message.senderId}, 接收者=${message.receiverId}, 内容=${message.content}`
+    );
+    console.log(
+      `当前会话ID: ${currentSessionId.value}, 消息会话ID: ${session.sessionId}`
+    );
   };
 
   const setCurrentSession = (sessionId: number | null) => {

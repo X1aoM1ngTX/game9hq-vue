@@ -2,8 +2,8 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { useChatStore } from "@/stores/chat";
 import { ChatMessageVO } from "@/api/chat";
-import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 export function useWebSocket() {
   const userStore = useLoginUserStore();
@@ -21,9 +21,9 @@ export function useWebSocket() {
       return;
     }
 
-    // 使用原生WebSocket端点避免SockJS CORS问题
-    const socket = new WebSocket(
-      `ws://localhost:8080/api/ws-native?userId=${userStore.loginUser.userId}`
+    // 使用SockJS连接WebSocket
+    const socket = new SockJS(
+      `http://localhost:8080/api/ws?userId=${userStore.loginUser.userId}`
     );
     stompClient.value = Stomp.over(socket);
 
@@ -35,14 +35,17 @@ export function useWebSocket() {
     stompClient.value.connect(
       {},
       () => {
+        console.log("WebSocket连接成功!");
         isConnected.value = true;
         chatStore.setConnected(true);
 
         // 订阅个人消息队列
+        console.log("开始订阅WebSocket消息队列...");
         subscribeToMessages();
         subscribeToConfirm();
         subscribeToRead();
         subscribeToOffline();
+        console.log("所有WebSocket订阅完成!");
       },
       (error: any) => {
         console.error("WebSocket连接失败:", error);
@@ -64,8 +67,27 @@ export function useWebSocket() {
     stompClient.value.subscribe(
       `/user/${userStore.loginUser.userId}/queue/messages`,
       (message: any) => {
-        const chatMessage: ChatMessageVO = JSON.parse(message.body);
-        chatStore.addMessage(chatMessage);
+        console.log("收到WebSocket消息:", message.body);
+        try {
+          const chatMessage: ChatMessageVO = JSON.parse(message.body);
+          console.log("解析后的消息:", chatMessage);
+          console.log("当前用户ID:", userStore.loginUser?.userId);
+          console.log("消息发送者ID:", chatMessage.senderId);
+          console.log("消息接收者ID:", chatMessage.receiverId);
+          // 确保消息格式正确
+          if (!chatMessage.messageId) {
+            console.warn("消息缺少messageId，使用时间戳作为临时ID");
+            chatMessage.messageId = Date.now();
+          }
+          if (!chatMessage.createTime) {
+            console.warn("消息缺少createTime，使用当前时间");
+            chatMessage.createTime = new Date().toISOString();
+          }
+          chatStore.addMessage(chatMessage);
+          console.log("消息已添加到store");
+        } catch (error) {
+          console.error("解析WebSocket消息失败:", error);
+        }
       }
     );
   };
@@ -111,8 +133,15 @@ export function useWebSocket() {
     stompClient.value.subscribe(
       `/user/${userStore.loginUser.userId}/queue/offline`,
       (message: any) => {
-        const chatMessage: ChatMessageVO = JSON.parse(message.body);
-        chatStore.addMessage(chatMessage);
+        console.log("收到离线消息:", message.body);
+        try {
+          const chatMessage: ChatMessageVO = JSON.parse(message.body);
+          console.log("解析后的离线消息:", chatMessage);
+          chatStore.addMessage(chatMessage);
+          console.log("离线消息已添加到store");
+        } catch (error) {
+          console.error("解析离线消息失败:", error);
+        }
       }
     );
   };

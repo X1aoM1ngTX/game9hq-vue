@@ -142,6 +142,7 @@ import { computed, reactive, ref, nextTick, watch } from "vue";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { resetPassword, sendVerifyCode, verifyCode } from "@/api/user";
+import { EncryptionUtil } from "@/utils/encryption";
 import {
   LockOutlined,
   MailOutlined,
@@ -167,6 +168,14 @@ const formState = reactive({
   newPassword: "",
   confirmPassword: "",
 });
+
+// 重置密码请求参数接口（增加加密标识）
+interface ResetPasswordParams {
+  email: string;
+  verifyCode: string;
+  newPassword: string;
+  encrypted: boolean; // 标识密码是否已加密
+}
 
 // 自定义验证函数
 const validateEmail = () => {
@@ -396,11 +405,16 @@ const handleSubmit = async () => {
       return;
     }
 
-    const resetRes = await resetPassword({
+    // 对新密码进行加密
+    const encryptedNewPassword = EncryptionUtil.encrypt(formState.newPassword);
+    const resetParams: ResetPasswordParams = {
       email: formState.email,
       verifyCode: formState.verifyCode,
-      newPassword: formState.newPassword,
-    });
+      newPassword: encryptedNewPassword,
+      encrypted: true
+    };
+    
+    const resetRes = await resetPassword(resetParams);
     if (resetRes.data.code === 0) {
       message.success("密码重置成功");
       router.push("/user/login");

@@ -151,7 +151,12 @@ import { UserOutlined, BellOutlined } from "@ant-design/icons-vue";
 const route = useRoute();
 const userStore = useLoginUserStore();
 const chatStore = useChatStore();
-const { sendMessage: sendWebSocketMessage, sendReadReceipt } = useWebSocket();
+const {
+  sendMessage: sendWebSocketMessage,
+  sendReadReceipt,
+  connect,
+  isConnected,
+} = useWebSocket();
 
 // 响应式数据
 const messageInput = ref("");
@@ -346,13 +351,32 @@ const scrollToBottom = (force = false) => {
 // 监听消息变化，滚动到底部
 watch(
   currentMessages,
-  () => {
+  (newMessages, oldMessages) => {
+    console.log("消息列表发生变化:", {
+      newCount: newMessages.length,
+      oldCount: oldMessages?.length || 0,
+      currentSessionId: currentSessionId.value
+    });
     nextTick(() => {
       scrollToBottom(true);
     });
   },
   { deep: true }
 );
+
+// 监听当前会话变化
+watch(currentSessionId, (newSessionId, oldSessionId) => {
+  console.log("当前会话发生变化:", {
+    newSessionId,
+    oldSessionId,
+  });
+
+  if (newSessionId !== oldSessionId) {
+    nextTick(() => {
+      scrollToBottom(true);
+    });
+  }
+});
 
 // 初始化数据
 const initData = async () => {
@@ -408,6 +432,13 @@ const initData = async () => {
 
 // 生命周期
 onMounted(() => {
+  console.log("聊天页面已加载");
+  // 确保WebSocket已连接
+  if (!isConnected.value && userStore.hasLogin) {
+    console.log("手动触发WebSocket连接...");
+    connect();
+  }
+  // 初始化聊天数据
   initData();
 });
 </script>

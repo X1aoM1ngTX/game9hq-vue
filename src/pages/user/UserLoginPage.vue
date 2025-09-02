@@ -109,10 +109,18 @@ import { useLoginUserStore } from "@/stores/useLoginUserStore";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { debounce } from "lodash-es";
+import { EncryptionUtil } from "@/utils/encryption";
 
 interface FormState {
   userName: string;
   userPassword: string;
+}
+
+// 登录请求参数接口（增加加密标识）
+interface LoginParams {
+  userName: string;
+  userPassword: string;
+  encrypted: boolean; // 标识密码是否已加密
 }
 
 const formState = reactive<FormState>({
@@ -180,7 +188,14 @@ const handleSubmit = debounce(
 
     try {
       loading.value = true;
-      const res = await userLogin(values);
+      // 对密码进行加密
+      const encryptedPassword = EncryptionUtil.encrypt(formState.userPassword);
+      const loginParams: LoginParams = {
+        userName: formState.userName,
+        userPassword: encryptedPassword,
+        encrypted: true
+      };
+      const res = await userLogin(loginParams);
       if (res.data.code === 0) {
         saveCredentials();
         await loginUserStore.getLoginUser();

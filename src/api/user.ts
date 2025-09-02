@@ -13,6 +13,7 @@ interface RegisterParams {
 interface LoginParams {
   userName: string;
   userPassword: string;
+  encrypted?: boolean; // 标识密码是否已加密
 }
 
 // 用户信息修改参数接口
