@@ -36,11 +36,11 @@ export class EncryptionUtil {
       const key = CryptoJS.enc.Utf8.parse(this.SECRET_KEY);
       const decrypted = CryptoJS.AES.decrypt(encryptedData, key, {
         mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.Pkcs7
+        padding: CryptoJS.pad.Pkcs7,
       });
       return decrypted.toString(CryptoJS.enc.Utf8);
     } catch (error) {
-      console.error('解密失败:', error);
+      console.error("解密失败:", error);
       return encryptedData; // 解密失败时返回加密数据
     }
   }
@@ -54,7 +54,7 @@ export class EncryptionUtil {
     try {
       return CryptoJS.SHA256(data).toString();
     } catch (error) {
-      console.error('哈希计算失败:', error);
+      console.error("哈希计算失败:", error);
       return data; // 哈希计算失败时返回原始数据
     }
   }

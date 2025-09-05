@@ -411,9 +411,9 @@ const handleSubmit = async () => {
       email: formState.email,
       verifyCode: formState.verifyCode,
       newPassword: encryptedNewPassword,
-      encrypted: true
+      encrypted: true,
     };
-    
+
     const resetRes = await resetPassword(resetParams);
     if (resetRes.data.code === 0) {
       message.success("密码重置成功");

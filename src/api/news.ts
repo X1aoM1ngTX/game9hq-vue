@@ -7,6 +7,8 @@ interface NewsCreateRequest {
   newsContent: string;
   newsSummary: string;
   newsCoverImage: string;
+  newsGameTag?: number;
+  newsCustomTags?: string;
 }
 
 interface NewsUpdateRequest {
@@ -15,6 +17,8 @@ interface NewsUpdateRequest {
   newsContent: string;
   newsSummary: string;
   newsCoverImage: string;
+  newsGameTag?: number;
+  newsCustomTags?: string;
 }
 
 // API 路径前缀
@@ -34,6 +38,9 @@ export interface NewsItem {
   newsCreateTime: string;
   newsUpdateTime: string;
   newsIsDelete: number;
+  newsGameTag?: number;
+  newsGameTagName?: string;
+  newsCustomTags?: string;
 }
 
 // 带作者信息的资讯列表项接口
@@ -249,6 +256,272 @@ export const listPublishedNews = async (): Promise<
   );
 
   // 等待所有作者信息获取完成
+  const newsWithAuthors = await Promise.all(newsWithAuthorsPromises);
+
+  return {
+    records: newsWithAuthors,
+    total: data.data.total,
+    size: data.data.size,
+    current: data.data.current,
+  };
+};
+
+// 根据自定义标签获取资讯列表
+export const getNewsByCustomTag = async (
+  customTag: string,
+  pageNum = 1,
+  pageSize = 10
+): Promise<PageResponse<NewsItemWithAuthor>> => {
+  const { data } = await myAxios.get<NewsApiResponse<PageResponse<NewsItem>>>(
+    `${API_PREFIX}/list/byCustomTag`,
+    {
+      params: {
+        customTag,
+        pageNum,
+        pageSize,
+      },
+    }
+  );
+
+  const userStore = useLoginUserStore();
+  const authorCache = new Map();
+
+  // 处理每条资讯的作者信息（复用上面的逻辑）
+  const newsWithAuthorsPromises = data.data.records.map(
+    async (news: NewsItem) => {
+      const newsWithAuthor: NewsItemWithAuthor = {
+        ...news,
+        authorName: "",
+        authorAvatar: "",
+      };
+
+      if (news.newsAuthorId === userStore.loginUser?.userId) {
+        newsWithAuthor.authorName = userStore.loginUser.userNickname;
+        newsWithAuthor.authorAvatar = userStore.loginUser.userAvatar;
+        return newsWithAuthor;
+      }
+
+      if (authorCache.has(news.newsAuthorId)) {
+        const cachedAuthor = authorCache.get(news.newsAuthorId);
+        newsWithAuthor.authorName = cachedAuthor.name;
+        newsWithAuthor.authorAvatar = cachedAuthor.avatar;
+        return newsWithAuthor;
+      }
+
+      try {
+        const userResponse = await getUserById(news.newsAuthorId);
+        if (
+          userResponse.data &&
+          userResponse.data.code === 0 &&
+          userResponse.data.data
+        ) {
+          const userData = userResponse.data.data;
+          const authorName =
+            userData.userNickname || userData.userName || "匿名用户";
+          const authorAvatar = userData.userAvatar || "";
+
+          authorCache.set(news.newsAuthorId, {
+            name: authorName,
+            avatar: authorAvatar,
+          });
+
+          newsWithAuthor.authorName = authorName;
+          newsWithAuthor.authorAvatar = authorAvatar;
+        } else {
+          newsWithAuthor.authorName = "匿名用户";
+        }
+      } catch (error) {
+        console.error(`获取作者(ID:${news.newsAuthorId})信息失败:`, error);
+        newsWithAuthor.authorName = "匿名用户";
+      }
+
+      return newsWithAuthor;
+    }
+  );
+
+  const newsWithAuthors = await Promise.all(newsWithAuthorsPromises);
+
+  return {
+    records: newsWithAuthors,
+    total: data.data.total,
+    size: data.data.size,
+    current: data.data.current,
+  };
+};
+
+// 获取热门自定义标签
+export const getHotCustomTags = async (limit = 20): Promise<string[]> => {
+  const { data } = await myAxios.get<ApiResponse<string[]>>(
+    `${API_PREFIX}/tags/hot`,
+    {
+      params: {
+        limit,
+      },
+    }
+  );
+
+  if (data.code === 0 && data.data) {
+    return data.data;
+  }
+  return [];
+};
+
+// 根据游戏标签ID获取资讯列表
+export const getNewsByGameTag = async (
+  gameTagId: number,
+  pageNum = 1,
+  pageSize = 10
+): Promise<PageResponse<NewsItemWithAuthor>> => {
+  const { data } = await myAxios.get<NewsApiResponse<PageResponse<NewsItem>>>(
+    `${API_PREFIX}/list/byGameTag`,
+    {
+      params: {
+        gameTagId,
+        pageNum,
+        pageSize,
+      },
+    }
+  );
+
+  const userStore = useLoginUserStore();
+  const authorCache = new Map();
+
+  // 处理每条资讯的作者信息（复用上面的逻辑）
+  const newsWithAuthorsPromises = data.data.records.map(
+    async (news: NewsItem) => {
+      const newsWithAuthor: NewsItemWithAuthor = {
+        ...news,
+        authorName: "",
+        authorAvatar: "",
+      };
+
+      if (news.newsAuthorId === userStore.loginUser?.userId) {
+        newsWithAuthor.authorName = userStore.loginUser.userNickname;
+        newsWithAuthor.authorAvatar = userStore.loginUser.userAvatar;
+        return newsWithAuthor;
+      }
+
+      if (authorCache.has(news.newsAuthorId)) {
+        const cachedAuthor = authorCache.get(news.newsAuthorId);
+        newsWithAuthor.authorName = cachedAuthor.name;
+        newsWithAuthor.authorAvatar = cachedAuthor.avatar;
+        return newsWithAuthor;
+      }
+
+      try {
+        const userResponse = await getUserById(news.newsAuthorId);
+        if (
+          userResponse.data &&
+          userResponse.data.code === 0 &&
+          userResponse.data.data
+        ) {
+          const userData = userResponse.data.data;
+          const authorName =
+            userData.userNickname || userData.userName || "匿名用户";
+          const authorAvatar = userData.userAvatar || "";
+
+          authorCache.set(news.newsAuthorId, {
+            name: authorName,
+            avatar: authorAvatar,
+          });
+
+          newsWithAuthor.authorName = authorName;
+          newsWithAuthor.authorAvatar = authorAvatar;
+        } else {
+          newsWithAuthor.authorName = "匿名用户";
+        }
+      } catch (error) {
+        console.error(`获取作者(ID:${news.newsAuthorId})信息失败:`, error);
+        newsWithAuthor.authorName = "匿名用户";
+      }
+
+      return newsWithAuthor;
+    }
+  );
+
+  const newsWithAuthors = await Promise.all(newsWithAuthorsPromises);
+
+  return {
+    records: newsWithAuthors,
+    total: data.data.total,
+    size: data.data.size,
+    current: data.data.current,
+  };
+};
+
+// 根据游戏标签名称获取资讯列表
+export const getNewsByGameTagName = async (
+  gameTagName: string,
+  pageNum = 1,
+  pageSize = 10
+): Promise<PageResponse<NewsItemWithAuthor>> => {
+  const { data } = await myAxios.get<NewsApiResponse<PageResponse<NewsItem>>>(
+    `${API_PREFIX}/list/byGameTagName`,
+    {
+      params: {
+        gameTagName,
+        pageNum,
+        pageSize,
+      },
+    }
+  );
+
+  const userStore = useLoginUserStore();
+  const authorCache = new Map();
+
+  // 处理每条资讯的作者信息（复用上面的逻辑）
+  const newsWithAuthorsPromises = data.data.records.map(
+    async (news: NewsItem) => {
+      const newsWithAuthor: NewsItemWithAuthor = {
+        ...news,
+        authorName: "",
+        authorAvatar: "",
+      };
+
+      if (news.newsAuthorId === userStore.loginUser?.userId) {
+        newsWithAuthor.authorName = userStore.loginUser.userNickname;
+        newsWithAuthor.authorAvatar = userStore.loginUser.userAvatar;
+        return newsWithAuthor;
+      }
+
+      if (authorCache.has(news.newsAuthorId)) {
+        const cachedAuthor = authorCache.get(news.newsAuthorId);
+        newsWithAuthor.authorName = cachedAuthor.name;
+        newsWithAuthor.authorAvatar = cachedAuthor.avatar;
+        return newsWithAuthor;
+      }
+
+      try {
+        const userResponse = await getUserById(news.newsAuthorId);
+        if (
+          userResponse.data &&
+          userResponse.data.code === 0 &&
+          userResponse.data.data
+        ) {
+          const userData = userResponse.data.data;
+          const authorName =
+            userData.userNickname || userData.userName || "匿名用户";
+          const authorAvatar = userData.userAvatar || "";
+
+          authorCache.set(news.newsAuthorId, {
+            name: authorName,
+            avatar: authorAvatar,
+          });
+
+          newsWithAuthor.authorName = authorName;
+          newsWithAuthor.authorAvatar = authorAvatar;
+        } else {
+          newsWithAuthor.authorName = "匿名用户";
+        }
+      } catch (error) {
+        console.error(`获取作者(ID:${news.newsAuthorId})信息失败:`, error);
+        newsWithAuthor.authorName = "匿名用户";
+      }
+
+      return newsWithAuthor;
+    }
+  );
+
   const newsWithAuthors = await Promise.all(newsWithAuthorsPromises);
 
   return {

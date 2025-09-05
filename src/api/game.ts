@@ -137,3 +137,15 @@ export const userBuyGame = (gameId: string | number) => {
 export const getGameOnlineCount = (gameId: string | number) => {
   return myAxios.get<number>(`/api/game/${gameId}/online-count`);
 };
+
+/**
+ * 获取所有游戏列表（用于标签选择）
+ */
+export const getAllGames = async () => {
+  const response = await myAxios.post("/api/game/list/page", {
+    current: 1,
+    pageSize: 1000, // 获取足够多的游戏
+    gameIsRemoved: 0, // 只获取未下架的游戏
+  });
+  return response.data?.data?.records || [];
+};

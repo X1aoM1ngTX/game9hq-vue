@@ -355,7 +355,7 @@ watch(
     console.log("消息列表发生变化:", {
       newCount: newMessages.length,
       oldCount: oldMessages?.length || 0,
-      currentSessionId: currentSessionId.value
+      currentSessionId: currentSessionId.value,
     });
     nextTick(() => {
       scrollToBottom(true);

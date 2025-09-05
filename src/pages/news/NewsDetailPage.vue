@@ -40,6 +40,28 @@
                 <eye-outlined />
                 <span>浏览 {{ newsData.newsViews }}</span>
               </div>
+              <!-- 游戏标签 -->
+              <div v-if="newsData.newsGameTagName" class="meta-item">
+                <a-tag
+                  :color="getGameTagColor(newsData.newsGameTagName)"
+                  class="game-tag-detail"
+                  @click="clickGameTag(newsData.newsGameTagName)"
+                >
+                  #{{ newsData.newsGameTagName }}
+                </a-tag>
+              </div>
+              <!-- 自定义标签 -->
+              <div v-if="parsedCustomTags.length > 0" class="meta-item">
+                <a-tag
+                  v-for="tag in parsedCustomTags"
+                  :key="tag"
+                  color="blue"
+                  class="custom-tag-detail"
+                  @click="clickCustomTag(tag)"
+                >
+                  {{ tag }}
+                </a-tag>
+              </div>
             </div>
           </div>
 
@@ -114,6 +136,7 @@ const userStore = useLoginUserStore();
 
 const newsData = ref<NewsItemWithAuthor | null>(null);
 const loading = ref(false);
+const parsedCustomTags = ref<string[]>([]);
 
 // 判断是否是作者
 const isAuthor = computed(() => {
@@ -273,6 +296,18 @@ const fetchNewsDetail = async (newsId: number): Promise<void> => {
       // 赋值给响应式数据
       newsData.value = newsDataFromApi;
       console.log("详情页资讯数据:", newsData.value);
+
+      // 处理自定义标签
+      if (newsDataFromApi.newsCustomTags) {
+        try {
+          const tagsArray = JSON.parse(newsDataFromApi.newsCustomTags);
+          if (Array.isArray(tagsArray)) {
+            parsedCustomTags.value = tagsArray;
+          }
+        } catch (e) {
+          console.error("解析自定义标签失败:", e);
+        }
+      }
     }
   } catch (error) {
     console.error("获取资讯详情失败:", error);
@@ -302,6 +337,58 @@ const goToUserProfile = (userId: number) => {
   } else {
     router.push(`/user/profile/${userId}`);
   }
+};
+
+// 获取游戏标签颜色
+const getGameTagColor = (gameTagName: string): string => {
+  // 使用高对比度的颜色方案
+  const colors = [
+    "#1890ff",
+    "#52c41a",
+    "#fa8c16",
+    "#eb2f96",
+    "#722ed1",
+    "#fa541c",
+    "#13c2c2",
+    "#a0d911",
+    "#f5222d",
+    "#389e0d",
+    "#096dd9",
+    "#d4380d",
+    "#ad6800",
+    "#531dab",
+    "#08979c",
+    "#0050b3",
+    "#389e0d",
+    "#d48806",
+    "#bc2a2a",
+    "#2f54eb",
+  ];
+  // 使用简单的哈希函数来为游戏名称分配颜色
+  let hash = 0;
+  for (let i = 0; i < gameTagName.length; i++) {
+    hash = gameTagName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+// 点击游戏标签进行搜索
+const clickGameTag = (gameTagName: string) => {
+  // 跳转到资讯列表页面并传递游戏标签参数
+  router.push({
+    path: "/news",
+    query: { gameTag: gameTagName },
+  });
+};
+
+// 点击自定义标签进行搜索
+const clickCustomTag = (customTag: string) => {
+  // 跳转到资讯列表页面并传递自定义标签参数
+  router.push({
+    path: "/news",
+    query: { customTag: customTag },
+  });
 };
 
 onMounted(() => {
@@ -401,6 +488,38 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.game-tag-detail {
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.game-tag-detail:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-tag-detail {
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+  margin-right: 6px;
+}
+
+.custom-tag-detail:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .news-cover-container {

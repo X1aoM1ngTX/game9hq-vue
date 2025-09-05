@@ -575,16 +575,18 @@ const handleSubmit = async () => {
 
     // 对密码进行加密
     const encryptedPassword = EncryptionUtil.encrypt(formState.userPassword);
-    const encryptedCheckPassword = EncryptionUtil.encrypt(formState.userCheckPassword);
+    const encryptedCheckPassword = EncryptionUtil.encrypt(
+      formState.userCheckPassword
+    );
     const registerParams: RegisterParams = {
       userName: formState.userName,
       userEmail: formState.userEmail,
       userPassword: encryptedPassword,
       userCheckPassword: encryptedCheckPassword,
       verifyCode: formState.verifyCode,
-      encrypted: true
+      encrypted: true,
     };
-    
+
     const res = await userRegister(registerParams);
     if (res.data.code === 0) {
       message.success("注册成功");

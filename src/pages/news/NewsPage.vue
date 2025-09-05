@@ -96,6 +96,31 @@
               </div>
               <div class="news-footer">
                 <span><eye-outlined /> {{ item.newsViews }}</span>
+                <!-- 游戏标签 -->
+                <div v-if="item.newsGameTagName" class="game-tag-container">
+                  <a-tag
+                    :color="getGameTagColor(item.newsGameTagName)"
+                    class="game-tag"
+                    @click="clickGameTag(item.newsGameTagName)"
+                  >
+                    #{{ item.newsGameTagName }}
+                  </a-tag>
+                </div>
+                <!-- 自定义标签 -->
+                <div
+                  v-if="getParsedCustomTags(item.newsCustomTags).length > 0"
+                  class="custom-tags-container"
+                >
+                  <a-tag
+                    v-for="tag in getParsedCustomTags(item.newsCustomTags)"
+                    :key="tag"
+                    color="blue"
+                    class="custom-tag"
+                    @click="clickCustomTag(tag)"
+                  >
+                    {{ tag }}
+                  </a-tag>
+                </div>
               </div>
             </div>
           </template>
@@ -243,7 +268,7 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { message, Modal } from "ant-design-vue";
 import {
   DeleteOutlined,
@@ -264,10 +289,13 @@ import {
   type NewsItem,
   type NewsItemWithAuthor,
   publishNews,
+  getNewsByGameTagName,
+  getNewsByCustomTag,
 } from "@/api/news";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useLoginUserStore();
 const newsList = ref<NewsItemWithAuthor[]>([]);
 const draftsList = ref<NewsItem[]>([]);
@@ -275,6 +303,8 @@ const myPublishedList = ref<NewsItem[]>([]);
 const loading = ref(false);
 const activeTab = ref("community");
 const searchKeyword = ref("");
+const currentGameTag = ref(""); // 当前选中的游戏标签
+const currentCustomTag = ref(""); // 当前选中的自定义标签
 
 // 切换标签页
 const switchTab = (tab: string) => {
@@ -292,7 +322,13 @@ const switchTab = (tab: string) => {
 
   activeTab.value = tab;
   if (tab === "community") {
-    fetchPublishedNews();
+    if (currentGameTag.value) {
+      // 如果当前有选中的游戏标签，继续显示该标签的内容
+      fetchNewsByGameTag(currentGameTag.value);
+    } else {
+      // 否则显示正常的社区内容
+      fetchPublishedNews();
+    }
   } else if (tab === "drafts") {
     fetchMyDrafts();
   } else if (tab === "published") {
@@ -460,6 +496,10 @@ const formatDate = (dateStr: string) => {
 const fetchPublishedNews = async () => {
   loading.value = true;
   try {
+    // 清除标签搜索状态
+    currentGameTag.value = "";
+    currentCustomTag.value = "";
+
     const response = await listPublishedNews();
     if (!response || !response.records) {
       console.warn("API 返回的数据结构不正确:", response);
@@ -520,6 +560,12 @@ const getSectionTitle = () => {
     case "published":
       return "我的发布";
     default:
+      if (currentGameTag.value) {
+        return `#${currentGameTag.value} 相关资讯`;
+      }
+      if (currentCustomTag.value) {
+        return `${currentCustomTag.value} 相关资讯`;
+      }
       return "社区内容";
   }
 };
@@ -527,6 +573,9 @@ const getSectionTitle = () => {
 // 搜索资讯
 const onSearch = (value: string) => {
   console.log("搜索关键词:", value);
+  // 清除游戏标签和自定义标签搜索状态
+  currentGameTag.value = "";
+  currentCustomTag.value = "";
   // TODO: 实现搜索逻辑
 };
 
@@ -555,10 +604,134 @@ const goToUserProfile = (userId: string | number) => {
   }
 };
 
+// 获取游戏标签颜色
+const getGameTagColor = (gameTagName: string): string => {
+  // 使用高对比度的颜色方案
+  const colors = [
+    "#1890ff",
+    "#52c41a",
+    "#fa8c16",
+    "#eb2f96",
+    "#722ed1",
+    "#fa541c",
+    "#13c2c2",
+    "#a0d911",
+    "#f5222d",
+    "#389e0d",
+    "#096dd9",
+    "#d4380d",
+    "#ad6800",
+    "#531dab",
+    "#08979c",
+    "#0050b3",
+    "#389e0d",
+    "#d48806",
+    "#bc2a2a",
+    "#2f54eb",
+  ];
+
+  // 使用简单的哈希函数来为游戏名称分配颜色
+  let hash = 0;
+  for (let i = 0; i < gameTagName.length; i++) {
+    hash = gameTagName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const index = Math.abs(hash) % colors.length;
+  return colors[index];
+};
+
+// 点击游戏标签进行搜索
+const clickGameTag = async (gameTagName: string) => {
+  if (activeTab.value !== "community") {
+    // 只有在社区内容标签页才能进行标签搜索
+    activeTab.value = "community";
+  }
+
+  currentGameTag.value = gameTagName;
+  await fetchNewsByGameTag(gameTagName);
+};
+
+// 解析自定义标签
+const getParsedCustomTags = (customTagsJson?: string): string[] => {
+  if (!customTagsJson) return [];
+
+  try {
+    const tagsArray = JSON.parse(customTagsJson);
+    if (Array.isArray(tagsArray)) {
+      return tagsArray;
+    }
+  } catch (e) {
+    console.error("解析自定义标签失败:", e);
+  }
+
+  return [];
+};
+
+// 点击自定义标签进行搜索
+const clickCustomTag = async (customTag: string) => {
+  if (activeTab.value !== "community") {
+    // 只有在社区内容标签页才能进行标签搜索
+    activeTab.value = "community";
+  }
+
+  currentCustomTag.value = customTag;
+  await fetchNewsByCustomTag(customTag);
+};
+
+// 根据游戏标签获取资讯
+const fetchNewsByGameTag = async (gameTagName: string) => {
+  loading.value = true;
+  try {
+    const response = await getNewsByGameTagName(gameTagName);
+    if (response && response.records) {
+      newsList.value = response.records;
+    } else {
+      newsList.value = [];
+    }
+  } catch (error) {
+    console.error("根据游戏标签获取资讯失败:", error);
+    message.error("获取相关资讯失败");
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 根据自定义标签获取资讯
+const fetchNewsByCustomTag = async (customTag: string) => {
+  loading.value = true;
+  try {
+    const response = await getNewsByCustomTag(customTag);
+    if (response && response.records) {
+      newsList.value = response.records;
+    } else {
+      newsList.value = [];
+    }
+  } catch (error) {
+    console.error("根据自定义标签获取资讯失败:", error);
+    message.error("获取相关资讯失败");
+  } finally {
+    loading.value = false;
+  }
+};
+
 // 初始化加载
 onMounted(() => {
-  // 默认加载社区内容
-  fetchPublishedNews();
+  // 检查URL参数中是否有游戏标签
+  const gameTagFromQuery = route.query.gameTag as string;
+  const customTagFromQuery = route.query.customTag as string;
+
+  if (gameTagFromQuery) {
+    currentGameTag.value = gameTagFromQuery;
+    activeTab.value = "community";
+    fetchNewsByGameTag(gameTagFromQuery);
+  } else if (customTagFromQuery) {
+    currentCustomTag.value = customTagFromQuery;
+    activeTab.value = "community";
+    fetchNewsByCustomTag(customTagFromQuery);
+  } else {
+    // 默认加载社区内容
+    fetchPublishedNews();
+  }
 });
 </script>
 
@@ -764,6 +937,51 @@ onMounted(() => {
   padding-top: 12px;
   margin-top: 8px;
   border-top: 1px solid #f5f5f5;
+}
+
+.game-tag-container {
+  display: flex;
+  align-items: center;
+}
+
+.game-tag {
+  cursor: pointer;
+  margin-left: 8px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+  transition: all 0.2s;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.game-tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.custom-tags-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.custom-tag {
+  cursor: pointer;
+  margin-left: 8px;
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.custom-tag:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .news-stats {

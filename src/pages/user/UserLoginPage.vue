@@ -193,7 +193,7 @@ const handleSubmit = debounce(
       const loginParams: LoginParams = {
         userName: formState.userName,
         userPassword: encryptedPassword,
-        encrypted: true
+        encrypted: true,
       };
       const res = await userLogin(loginParams);
       if (res.data.code === 0) {

@@ -73,6 +73,50 @@
           </div>
         </a-form-item>
 
+        <!-- 游戏标签选择 -->
+        <a-form-item label="游戏标签">
+          <a-select
+            v-model:value="newsForm.newsGameTag"
+            :options="gameOptions"
+            :field-names="{ label: 'gameName', value: 'gameId' }"
+            :loading="gamesLoading"
+            placeholder="请选择相关游戏（可选）"
+            allow-clear
+            show-search
+            :filter-option="filterGameOption"
+            style="width: 100%"
+          >
+            <template #suffixIcon>
+              <game-outlined />
+            </template>
+          </a-select>
+          <div class="form-tip">
+            选择相关游戏后，该资讯将在该游戏的标签页中显示
+          </div>
+        </a-form-item>
+
+        <!-- 自定义标签输入 -->
+        <a-form-item label="自定义标签">
+          <a-input
+            v-model:value="customTagsInput"
+            placeholder="输入自定义标签，如：#人工智能 #Java #科技"
+            @change="handleCustomTagsChange"
+          />
+          <div class="custom-tags-preview" v-if="parsedCustomTags.length > 0">
+            <a-tag
+              v-for="tag in parsedCustomTags"
+              :key="tag"
+              color="blue"
+              class="custom-tag"
+            >
+              {{ tag }}
+            </a-tag>
+          </div>
+          <div class="form-tip">
+            支持输入多个标签，用空格分隔，标签以#开头（如：#人工智能）
+          </div>
+        </a-form-item>
+
         <!-- 操作按钮 -->
         <div class="action-buttons">
           <a-button @click="goBack">取消</a-button>
@@ -94,7 +138,7 @@
 import { onMounted, reactive, ref } from "vue";
 import type { UploadChangeParam } from "ant-design-vue";
 import { message } from "ant-design-vue";
-import { PlusOutlined } from "@ant-design/icons-vue";
+import { PlusOutlined, GameOutlined } from "@ant-design/icons-vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   createNews,
@@ -105,6 +149,7 @@ import {
   updateNews,
   uploadImage,
 } from "@/api/news";
+import { getAllGames, type GameDetailVO } from "@/api/game";
 
 const router = useRouter();
 const route = useRoute();
@@ -118,13 +163,37 @@ const newsForm = reactive({
   newsContent: "",
   newsSummary: "",
   newsCoverImage: "",
+  newsGameTag: undefined as number | undefined,
+  newsCustomTags: "",
 });
+
+// 自定义标签相关
+const customTagsInput = ref("");
+const parsedCustomTags = ref<string[]>([]);
 
 // 上传相关
 const fileList = ref([]);
 const saving = ref(false);
 const publishing = ref(false);
 const uploading = ref(false);
+
+// 游戏相关
+const gameOptions = ref<GameDetailVO[]>([]);
+const gamesLoading = ref(false);
+
+// 加载游戏列表
+const loadGames = async () => {
+  try {
+    gamesLoading.value = true;
+    const games = await getAllGames();
+    gameOptions.value = games;
+  } catch (error) {
+    console.error("加载游戏列表失败:", error);
+    message.error("加载游戏列表失败");
+  } finally {
+    gamesLoading.value = false;
+  }
+};
 
 // 加载资讯数据
 const loadNewsData = async (id: number) => {
@@ -140,6 +209,20 @@ const loadNewsData = async (id: number) => {
       newsForm.newsContent = newsData.newsContent;
       newsForm.newsSummary = newsData.newsSummary || "";
       newsForm.newsCoverImage = newsData.newsCoverImage;
+      newsForm.newsGameTag = newsData.newsGameTag || undefined;
+
+      // 处理自定义标签
+      if (newsData.newsCustomTags) {
+        try {
+          const tagsArray = JSON.parse(newsData.newsCustomTags);
+          if (Array.isArray(tagsArray)) {
+            parsedCustomTags.value = tagsArray;
+            customTagsInput.value = tagsArray.join(" ");
+          }
+        } catch (e) {
+          console.error("解析自定义标签失败:", e);
+        }
+      }
 
       // 判断资讯是否已发布（根据状态字段）
       // 通常 0: 草稿, 1: 已发布
@@ -159,6 +242,9 @@ const loadNewsData = async (id: number) => {
 
 // 初始化
 onMounted(() => {
+  // 加载游戏列表
+  loadGames();
+
   // 检查是否有newsId参数，如果有则是编辑模式
   if (route.params.newsId) {
     isEditMode.value = true;
@@ -166,6 +252,37 @@ onMounted(() => {
     loadNewsData(newsId.value);
   }
 });
+
+// 游戏搜索过滤函数
+const filterGameOption = (input: string, option: any) => {
+  return option.gameName.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+};
+
+// 自定义标签处理
+const handleCustomTagsChange = () => {
+  const input = customTagsInput.value.trim();
+  if (!input) {
+    parsedCustomTags.value = [];
+    newsForm.newsCustomTags = "";
+    return;
+  }
+
+  // 使用正则表达式匹配 #标签
+  const tagRegex = /#([a-zA-Z0-9_\u4e00-\u9fa5]+)/g;
+  const matches = [];
+  let match;
+
+  while ((match = tagRegex.exec(input)) !== null) {
+    const tag = "#" + match[1];
+    if (tag.length <= 21) {
+      // 限制标签长度
+      matches.push(tag);
+    }
+  }
+
+  parsedCustomTags.value = [...new Set(matches)]; // 去重
+  newsForm.newsCustomTags = parsedCustomTags.value.join(" ");
+};
 
 // 获取图片预览
 const getBase64 = (file: File): Promise<string> => {
@@ -493,5 +610,18 @@ const goBack = () => {
 
 :deep(.ant-form-item-label) {
   font-weight: 500;
+}
+
+.custom-tags-preview {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.custom-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 </style>
