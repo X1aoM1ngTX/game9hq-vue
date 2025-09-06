@@ -6,7 +6,7 @@
           <img
             alt="Game9"
             class="footer-logo-icon"
-            src="../assets/GAME9/game9-green.png"
+            src="../assets/GAME9/game9-blue.png"
           />
           <span class="footer-logo-text">Game9</span>
         </div>
@@ -146,30 +146,30 @@
   .footer {
     padding: 40px 16px 16px;
   }
-  
+
   .footer-content {
     gap: 40px;
     margin-bottom: 30px;
   }
-  
+
   .footer-section {
     text-align: center;
   }
-  
+
   .footer-logo {
     justify-content: center;
   }
-  
+
   .footer-links {
     grid-template-columns: repeat(3, 1fr);
     gap: 24px;
   }
-  
+
   .footer-column h4 {
     font-size: 15px;
     margin-bottom: 12px;
   }
-  
+
   .footer-link {
     font-size: 13px;
     margin-bottom: 6px;
@@ -182,39 +182,39 @@
   .footer {
     padding: 30px 12px 12px;
   }
-  
+
   .footer-content {
     gap: 30px;
     margin-bottom: 20px;
   }
-  
+
   .footer-logo-icon {
     width: 28px;
     height: 28px;
   }
-  
+
   .footer-logo-text {
     font-size: 18px;
   }
-  
+
   .footer-description {
     font-size: 13px;
     line-height: 1.5;
   }
-  
+
   .footer-column h4 {
     font-size: 14px;
   }
-  
+
   .footer-link {
     font-size: 12px;
     padding: 6px 0;
   }
-  
+
   .footer-bottom {
     padding-top: 16px;
   }
-  
+
   .footer-bottom p {
     font-size: 11px;
   }
@@ -229,12 +229,12 @@
     align-items: center;
     justify-content: center;
   }
-  
+
   /* 禁用悬停效果，使用点击效果 */
   .footer-link:hover {
     transform: none;
   }
-  
+
   .footer-link:active {
     transform: scale(0.98);
     background-color: rgba(0, 212, 255, 0.1);
@@ -248,7 +248,7 @@
     gap: 24px;
     margin-bottom: 20px;
   }
-  
+
   .footer {
     padding: 24px 16px 16px;
   }

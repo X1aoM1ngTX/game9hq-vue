@@ -46,7 +46,7 @@
           <div class="section-title">
             <div class="title-content">
               <a-button
-                v-if="currentGameTag || currentCustomTag"
+                v-if="currentGameTag || currentCustomTag || isSearchMode"
                 size="small"
                 @click="clearTagFilter"
                 class="clear-filter-btn"
@@ -55,13 +55,20 @@
               </a-button>
               <span>{{ getSectionTitle() }}</span>
             </div>
-            <a-input-search
-              v-if="activeTab === 'community'"
-              v-model:value="searchKeyword"
-              class="search-input"
-              placeholder="搜索资讯..."
-              @search="onSearch"
-            />
+            <div class="search-container">
+              <a-input-search
+                size="small"
+                v-if="activeTab === 'community'"
+                v-model:value="searchKeyword"
+                class="search-input"
+                placeholder="搜索资讯内容、标题、作者..."
+                enter-button="搜索"
+                @search="onSearch"
+                @pressEnter="onSearch"
+                allow-clear
+              >
+              </a-input-search>
+            </div>
           </div>
         </template>
         <a-spin :spinning="loading">
@@ -277,7 +284,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onUnmounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { message, Modal } from "ant-design-vue";
 import {
@@ -289,6 +296,7 @@ import {
   LeftOutlined,
   PlusOutlined,
   ReadOutlined,
+  SearchOutlined,
   SendOutlined,
 } from "@ant-design/icons-vue";
 import {
@@ -302,6 +310,7 @@ import {
   publishNews,
   getNewsByGameTagName,
   getNewsByCustomTag,
+  searchNews,
 } from "@/api/news";
 import { useLoginUserStore } from "@/stores/useLoginUserStore";
 
@@ -316,6 +325,7 @@ const activeTab = ref("community");
 const searchKeyword = ref("");
 const currentGameTag = ref(""); // 当前选中的游戏标签
 const currentCustomTag = ref(""); // 当前选中的自定义标签
+const isSearchMode = ref(false); // 是否处于搜索模式
 
 // 切换标签页
 const switchTab = (tab: string) => {
@@ -332,10 +342,18 @@ const switchTab = (tab: string) => {
   }
 
   activeTab.value = tab;
+  // 切换标签时退出搜索模式
+  if (tab !== "community") {
+    isSearchMode.value = false;
+    searchKeyword.value = "";
+  }
   if (tab === "community") {
     if (currentGameTag.value) {
       // 如果当前有选中的游戏标签，继续显示该标签的内容
       fetchNewsByGameTag(currentGameTag.value);
+    } else if (isSearchMode.value && searchKeyword.value) {
+      // 如果处于搜索模式，继续显示搜索结果
+      fetchSearchResults(searchKeyword.value);
     } else {
       // 否则显示正常的社区内容
       fetchPublishedNews();
@@ -355,6 +373,9 @@ const getEmptyDescription = () => {
     case "published":
       return "暂无已发布资讯";
     default:
+      if (isSearchMode.value) {
+        return `没有找到包含"${searchKeyword.value}"的资讯`;
+      }
       return "暂无资讯";
   }
 };
@@ -571,6 +592,9 @@ const getSectionTitle = () => {
     case "published":
       return "我的发布";
     default:
+      if (isSearchMode.value && searchKeyword.value) {
+        return `搜索结果："${searchKeyword.value}"`;
+      }
       if (currentGameTag.value) {
         return `#${currentGameTag.value} 相关资讯`;
       }
@@ -581,13 +605,55 @@ const getSectionTitle = () => {
   }
 };
 
-// 搜索资讯
-const onSearch = (value: string) => {
+// 搜索资讯（点击搜索按钮时触发）
+const onSearch = async (value: string) => {
+  if (!value.trim()) {
+    // 如果搜索关键词为空，返回到资讯主页
+    console.log("搜索关键词为空，返回资讯主页");
+    // 清除所有筛选状态
+    currentGameTag.value = "";
+    currentCustomTag.value = "";
+    isSearchMode.value = false;
+    searchKeyword.value = "";
+    // 切换到社区内容标签页
+    if (activeTab.value !== "community") {
+      activeTab.value = "community";
+    }
+    // 加载正常的资讯列表
+    await fetchPublishedNews();
+    return;
+  }
   console.log("搜索关键词:", value);
   // 清除游戏标签和自定义标签搜索状态
   currentGameTag.value = "";
   currentCustomTag.value = "";
-  // TODO: 实现搜索逻辑
+  // 切换到社区内容标签页
+  if (activeTab.value !== "community") {
+    activeTab.value = "community";
+  }
+  // 设置搜索模式
+  isSearchMode.value = true;
+  // 执行搜索
+  await fetchSearchResults(value);
+};
+
+// 获取搜索结果
+const fetchSearchResults = async (keyword: string) => {
+  loading.value = true;
+  try {
+    const response = await searchNews(keyword);
+    if (response && response.records) {
+      newsList.value = response.records;
+    } else {
+      newsList.value = [];
+    }
+  } catch (error) {
+    console.error("搜索资讯失败:", error);
+    message.error("搜索失败，请稍后重试");
+    newsList.value = [];
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 跳转到创建新资讯页
@@ -658,6 +724,9 @@ const clickGameTag = async (gameTagName: string) => {
     activeTab.value = "community";
   }
 
+  // 退出搜索模式
+  isSearchMode.value = false;
+  searchKeyword.value = "";
   currentGameTag.value = gameTagName;
   await fetchNewsByGameTag(gameTagName);
 };
@@ -685,6 +754,9 @@ const clickCustomTag = async (customTag: string) => {
     activeTab.value = "community";
   }
 
+  // 退出搜索模式
+  isSearchMode.value = false;
+  searchKeyword.value = "";
   currentCustomTag.value = customTag;
   await fetchNewsByCustomTag(customTag);
 };
@@ -725,10 +797,20 @@ const fetchNewsByCustomTag = async (customTag: string) => {
   }
 };
 
+// 快捷键处理
+const handleKeydown = (event: KeyboardEvent) => {
+  // ESC 键清除搜索
+  if (event.key === "Escape" && isSearchMode.value) {
+    clearTagFilter();
+  }
+};
+
 // 清除标签筛选，返回显示全部文章
 const clearTagFilter = async () => {
   currentGameTag.value = "";
   currentCustomTag.value = "";
+  isSearchMode.value = false;
+  searchKeyword.value = "";
   await fetchPublishedNews();
 };
 
@@ -750,6 +832,14 @@ onMounted(() => {
     // 默认加载社区内容
     fetchPublishedNews();
   }
+
+  // 添加快捷键监听
+  document.addEventListener("keydown", handleKeydown);
+});
+
+// 组件卸载时清理事件监听器
+onUnmounted(() => {
+  document.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
@@ -861,22 +951,49 @@ onMounted(() => {
 }
 
 .search-input {
-  width: 250px;
+  width: 300px;
+  margin-top: 2px;
 }
 
-:deep(.ant-input-search) {
-  border-radius: 6px;
-  overflow: hidden;
+:deep(.ant-input-affix-wrapper:focus-within) {
+  position: relative;
+  top: 0 !important;
+}
+
+:deep(.ant-input-affix-wrapper) {
+  height: 40px !important;
+  padding: 0 11px !important;
+  border-radius: 8px 0 0 8px !important;
+}
+
+:deep(.ant-input-affix-wrapper-lg) {
+  height: 40px !important;
+  padding: 0 11px !important;
+  border-radius: 8px 0 0 8px !important;
 }
 
 :deep(.ant-input) {
-  border-radius: 6px 0 0 6px;
-  height: 32px;
+  height: 40px;
+  border-radius: 8px 0 0 8px !important;
+  border: 1px solid #d9d9d9;
+  transition: all 0.2s;
+}
+
+:deep(.ant-input:focus) {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
 }
 
 :deep(.ant-input-search-button) {
-  border-radius: 0 6px 6px 0 !important;
-  height: 32px !important;
+  height: 40px !important;
+  border-radius: 0 8px 8px 0 !important;
+  background: #1890ff;
+  border: none;
+  transition: all 0.2s;
+}
+
+:deep(.ant-input-search-button:hover) {
+  background: #40a9ff;
 }
 
 .news-card {
@@ -1056,6 +1173,34 @@ onMounted(() => {
     width: 100%;
     height: auto;
     margin-top: 12px;
+  }
+
+  .section-title {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .search-container {
+    align-items: stretch;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .search-input:focus-within {
+    width: 100%;
+    transform: none;
+  }
+
+  .search-tip {
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .title-content {
+    justify-content: center;
   }
 }
 </style>

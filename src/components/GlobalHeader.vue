@@ -2,7 +2,7 @@
   <div v-if="!isAuthPage" class="GlobalHeader">
     <nav class="navbar">
       <div class="nav-container">
-        <div class="nav-logo">
+        <div class="nav-logo" @click="toHome">
           <img
             alt="Game9"
             class="logo-icon"
@@ -307,6 +307,10 @@ const handleMobileMenuClick = (callback: () => void) => {
   }, 300);
 };
 
+const toHome = () => {
+  router.push("/");
+};
+
 const toLogin = () => {
   router.push("/user/login");
 };
@@ -399,6 +403,11 @@ router.beforeEach(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .logo-icon {
