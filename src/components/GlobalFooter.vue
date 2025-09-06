@@ -129,7 +129,7 @@
   font-size: 12px;
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 平板设备 */
 @media screen and (max-width: 1024px) {
   .footer-content {
     grid-template-columns: 1fr;
@@ -141,9 +141,116 @@
   }
 }
 
+/* 响应式设计 - 移动设备(768px以下) */
 @media screen and (max-width: 768px) {
+  .footer {
+    padding: 40px 16px 16px;
+  }
+  
+  .footer-content {
+    gap: 40px;
+    margin-bottom: 30px;
+  }
+  
+  .footer-section {
+    text-align: center;
+  }
+  
+  .footer-logo {
+    justify-content: center;
+  }
+  
   .footer-links {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  
+  .footer-column h4 {
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  
+  .footer-link {
+    font-size: 13px;
+    margin-bottom: 6px;
+    padding: 4px 0;
+  }
+}
+
+/* 响应式设计 - 小屏幕手机(480px以下) */
+@media screen and (max-width: 480px) {
+  .footer {
+    padding: 30px 12px 12px;
+  }
+  
+  .footer-content {
+    gap: 30px;
+    margin-bottom: 20px;
+  }
+  
+  .footer-logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .footer-logo-text {
+    font-size: 18px;
+  }
+  
+  .footer-description {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  
+  .footer-column h4 {
+    font-size: 14px;
+  }
+  
+  .footer-link {
+    font-size: 12px;
+    padding: 6px 0;
+  }
+  
+  .footer-bottom {
+    padding-top: 16px;
+  }
+  
+  .footer-bottom p {
+    font-size: 11px;
+  }
+}
+
+/* 移动端触摸优化 */
+@media (hover: none) and (pointer: coarse) {
+  .footer-link {
+    -webkit-tap-highlight-color: rgba(0, 212, 255, 0.2);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* 禁用悬停效果，使用点击效果 */
+  .footer-link:hover {
+    transform: none;
+  }
+  
+  .footer-link:active {
+    transform: scale(0.98);
+    background-color: rgba(0, 212, 255, 0.1);
+    border-radius: 4px;
+  }
+}
+
+/* 横屏优化 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .footer-content {
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .footer {
+    padding: 24px 16px 16px;
   }
 }
 </style>

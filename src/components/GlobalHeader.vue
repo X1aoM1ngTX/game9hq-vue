@@ -18,16 +18,6 @@
             <router-link to="/shop" class="nav-link">商城</router-link>
             <router-link to="/news" class="nav-link">社区</router-link>
             <router-link to="/notice" class="nav-link">公告</router-link>
-            <router-link
-              v-if="
-                loginUserStore.hasLogin &&
-                loginUserStore.loginUser?.userIsAdmin === 1
-              "
-              to="/admin"
-              class="nav-link"
-            >
-              管理
-            </router-link>
           </div>
         </div>
 
@@ -159,18 +149,6 @@
             >
               <BellOutlined />
               <span>公告</span>
-            </router-link>
-            <router-link
-              v-if="
-                loginUserStore.hasLogin &&
-                loginUserStore.loginUser?.userIsAdmin === 1
-              "
-              to="/admin"
-              class="mobile-nav-link"
-              @click="closeMobileMenu"
-            >
-              <SettingOutlined />
-              <span>管理</span>
             </router-link>
           </div>
 
@@ -587,20 +565,25 @@ router.beforeEach(() => {
 
 .mobile-nav-links {
   margin-bottom: 32px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .mobile-nav-link {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  margin-bottom: 8px;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 12px;
   border-radius: 8px;
   text-decoration: none;
   color: #262626;
   font-size: 16px;
   font-weight: 500;
   transition: all 0.2s;
+  min-height: 100px;
 }
 
 .mobile-nav-link:hover {

@@ -434,6 +434,35 @@ onMounted(() => {
   box-shadow: none;
 }
 
+/* 确保密码输入框与普通输入框样式一致 */
+:deep(.ant-input-password) {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+:deep(.ant-input-password .ant-input) {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 12px 0 !important;
+  font-size: 14px !important;
+  color: #111827 !important;
+}
+
+:deep(.ant-input-password .ant-input:focus) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+:deep(.ant-input-password-icon) {
+  color: #6b7280 !important;
+  font-size: 14px !important;
+  margin-left: 4px !important;
+  padding: 0 8px !important;
+}
+
 .validation-message {
   margin-top: 8px;
   font-size: 13px;
@@ -575,6 +604,12 @@ onMounted(() => {
   .input-prefix {
     padding: 0 10px;
     font-size: 13px;
+  }
+  
+  /* 移动端密码输入框样式适配 */
+  :deep(.ant-input-password .ant-input) {
+    padding: 10px 0 !important;
+    font-size: 13px !important;
   }
 }
 

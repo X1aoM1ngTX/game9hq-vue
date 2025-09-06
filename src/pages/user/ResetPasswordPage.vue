@@ -667,12 +667,14 @@ watch(
   display: flex;
   gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .verify-code-inputs {
   display: flex;
   gap: 8px;
-  flex: none;
+  flex: 1;
+  min-width: 260px;
 }
 
 .verify-code-input {
@@ -697,7 +699,7 @@ watch(
 
 .verify-code-button {
   height: 44px;
-  min-width: 100px;
+  min-width: 90px;
   background: #ffffff;
   border: 1px solid #e0e0e0;
   color: #595959;
@@ -706,7 +708,7 @@ watch(
   transition: all 0.2s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   white-space: nowrap;
-  flex-shrink: 0;
+  flex-shrink: 1;
 }
 
 .verify-code-button:hover {
