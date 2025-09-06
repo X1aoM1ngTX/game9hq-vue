@@ -6,7 +6,7 @@
           <img
             alt="Game9"
             class="logo-icon"
-            src="../assets/GAME9/game9-green.png"
+            src="../assets/GAME9/game9-blue.png"
           />
           <span class="logo-text">Game9</span>
         </div>

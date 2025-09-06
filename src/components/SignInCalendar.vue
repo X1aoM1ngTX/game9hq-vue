@@ -170,6 +170,11 @@ defineExpose({
   font-size: 12px;
   border: solid 1px #d1d9e0;
   border-radius: 6px;
+  max-width: 100%;
+  overflow-x: auto; /* 只在需要时显示滚动条 */
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #40c463 #ebedf0;
 }
 
 /* 月份标签样式 */
@@ -231,6 +236,27 @@ defineExpose({
   outline-offset: -1px;
 }
 
+/* 响应式调整 */
+@media (min-width: 1200px) {
+  .container {
+    overflow-x: visible; /* 在大屏幕上不显示滚动条 */
+    grid-template-columns: auto repeat(53, 9px); /* 稍微缩小格子宽度 */
+    grid-template-rows: auto repeat(7, 9px) auto; /* 稍微缩小格子高度 */
+    gap: 2px; /* 减小间距 */
+  }
+
+  .tile {
+    width: 9px;
+    height: 9px;
+  }
+}
+
+@media (max-width: 1199px) {
+  .container {
+    overflow-x: auto; /* 在小屏幕上显示滚动条 */
+  }
+}
+
 /* 签到状态颜色 */
 .tile[data-level="0"] {
   background: #ebedf0;
@@ -256,5 +282,24 @@ defineExpose({
   gap: 5px;
   justify-content: right;
   align-items: center;
+}
+
+/* 自定义滚动条样式 */
+.container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: #ebedf0;
+  border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: #40c463;
+  border-radius: 10px;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background: #2ea650;
 }
 </style>

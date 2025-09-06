@@ -3,13 +3,13 @@
     <!-- 桌面端布局 -->
     <a-row v-if="!isMobile" :gutter="[16, 16]">
       <!-- 左侧内容区域 -->
-      <a-col :lg="17" :md="16" :sm="24" :xs="24">
+      <a-col :lg="18" :md="17" :sm="24" :xs="24">
         <div class="left-content">
           <!-- 签到区域 -->
           <div class="profile-section sign-section">
             <a-row :gutter="[24, 0]">
               <!-- 左侧：统计和日历 -->
-              <a-col :span="isCurrentUser ? 17 : 24" class="sign-calendar-col">
+              <a-col :span="isCurrentUser ? 19 : 24" class="sign-calendar-col">
                 <h3>签到记录</h3>
                 <sign-in-calendar
                   ref="calendarRef"
@@ -17,7 +17,7 @@
                 />
               </a-col>
               <!-- 右侧：签到卡片 -->
-              <a-col v-if="isCurrentUser" :span="7" class="sign-card-col">
+              <a-col v-if="isCurrentUser" :span="5" class="sign-card-col">
                 <div class="sign-card">
                   <img
                     :class="{ signed: isTodaySigned }"
@@ -27,7 +27,7 @@
                         : require('@/assets/GAME9/game9-black.png')
                     "
                     class="sign-card-img"
-                    style="width: 80px; height: 80px"
+                    style="width: 70px; height: 70px"
                   />
                   <a-button
                     :disabled="isTodaySigned"
@@ -68,7 +68,7 @@
           </div>
         </div>
       </a-col>
-      <a-col :lg="7" :md="8" :sm="24" :xs="24">
+      <a-col :lg="6" :md="7" :sm="24" :xs="24">
         <!-- 个人卡片 -->
         <div class="profile-card">
           <div class="profile-header">
@@ -98,11 +98,11 @@
               <div class="online-status"></div>
             </div>
             <div class="user-info">
-              <h2>
+              <h3>
                 {{ user.userNickname || user.userName }}
                 <a-tag v-if="user.userIsAdmin === 1" color="blue">管理员</a-tag>
                 <a-tag v-else color="green">用户</a-tag>
-              </h2>
+              </h3>
               <span class="user-id">ID：{{ user.userId }}</span>
             </div>
             <div class="profile-actions">
@@ -176,7 +176,7 @@
               name="file"
             >
               <div class="avatar-wrapper">
-                <a-avatar :size="64" :src="user.userAvatar">
+                <a-avatar :size="48" :src="user.userAvatar">
                   {{ user.userName?.charAt(0) }}
                 </a-avatar>
                 <div class="avatar-mask">
@@ -186,7 +186,7 @@
               </div>
             </a-upload>
             <div v-else class="avatar-wrapper">
-              <a-avatar :size="64" :src="user.userAvatar">
+              <a-avatar :size="48" :src="user.userAvatar">
                 {{ user.userName?.charAt(0) }}
               </a-avatar>
             </div>
@@ -207,8 +207,9 @@
               size="small"
               type="primary"
               @click="handleEdit"
+              style="padding: 0 8px; height: 24px; font-size: 12px"
             >
-              编辑资料
+              编辑
             </a-button>
             <a-button
               v-else-if="!isAlreadyFriend"
@@ -877,6 +878,26 @@ async function handleFriendModalOk() {
   position: relative;
 }
 
+/* 移动端布局优化 */
+@media (max-width: 768px) {
+  .profile-header {
+    padding: 16px;
+  }
+  .user-info {
+    flex: 1;
+  }
+  .user-info h2 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .user-id {
+    font-size: 12px;
+  }
+  .profile-actions {
+    margin-left: auto;
+  }
+}
+
 .avatar-section {
   position: relative;
 }
@@ -987,13 +1008,15 @@ async function handleFriendModalOk() {
   }
 
   .profile-header {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    align-items: center;
+    padding: 16px;
+    gap: 12px;
   }
 
   .edit-btn {
     position: static;
-    margin-top: 12px;
+    margin-top: 0;
   }
 
   .info-grid {

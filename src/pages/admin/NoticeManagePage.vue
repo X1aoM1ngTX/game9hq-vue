@@ -420,6 +420,8 @@ interface AddFormState {
   noticeContent: string;
   noticeType: NoticeType;
   noticeExpireTime: dayjs.Dayjs | null;
+  noticeGameTag?: number;
+  noticeCustomTags?: string;
 }
 
 const addFormState = reactive<AddFormState>({
@@ -427,6 +429,8 @@ const addFormState = reactive<AddFormState>({
   noticeContent: "",
   noticeType: NoticeType.NORMAL,
   noticeExpireTime: null,
+  noticeGameTag: undefined,
+  noticeCustomTags: undefined,
 });
 
 // 编辑表单状态

@@ -587,6 +587,10 @@ const scrollToFeatures = () => {
   background: linear-gradient(135deg, #f8f9fa, #ffffff);
   text-align: center;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
 }
 
 .cta::before {
@@ -609,6 +613,11 @@ const scrollToFeatures = () => {
   z-index: 2;
   max-width: 600px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 .cta-title {
@@ -627,6 +636,13 @@ const scrollToFeatures = () => {
   margin-bottom: 40px;
 }
 
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
 .cta-button {
   background: linear-gradient(135deg, #00d4ff, #0099ff);
   border: none;
@@ -635,6 +651,9 @@ const scrollToFeatures = () => {
   font-size: 16px;
   font-weight: 600;
   height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cta-button:hover {

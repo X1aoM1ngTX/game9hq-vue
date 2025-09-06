@@ -213,10 +213,14 @@
                   v-if="review.userId === currentUserId"
                   class="review-actions"
                 >
-                  <a-button type="link" @click="editReview(review)"
+                  <a-button
+                    style="width: 40px; height: 36px !important"
+                    type="link"
+                    @click="editReview(review)"
                     >编辑
                   </a-button>
                   <a-button
+                    style="width: 40px; height: 36px !important"
                     danger
                     type="link"
                     @click="deleteReview(review.reviewId)"
