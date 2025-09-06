@@ -44,7 +44,17 @@
       <a-card :bordered="false" class="news-card-container">
         <template #title>
           <div class="section-title">
-            <span>{{ getSectionTitle() }}</span>
+            <div class="title-content">
+              <a-button
+                v-if="currentGameTag || currentCustomTag"
+                size="small"
+                @click="clearTagFilter"
+                class="clear-filter-btn"
+              >
+                <left-outlined />
+              </a-button>
+              <span>{{ getSectionTitle() }}</span>
+            </div>
             <a-input-search
               v-if="activeTab === 'community'"
               v-model:value="searchKeyword"
@@ -276,6 +286,7 @@ import {
   EyeOutlined,
   FileDoneOutlined,
   FileOutlined,
+  LeftOutlined,
   PlusOutlined,
   ReadOutlined,
   SendOutlined,
@@ -714,6 +725,13 @@ const fetchNewsByCustomTag = async (customTag: string) => {
   }
 };
 
+// 清除标签筛选，返回显示全部文章
+const clearTagFilter = async () => {
+  currentGameTag.value = "";
+  currentCustomTag.value = "";
+  await fetchPublishedNews();
+};
+
 // 初始化加载
 onMounted(() => {
   // 检查URL参数中是否有游戏标签
@@ -815,6 +833,33 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.title-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clear-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 0px 8px;
+  height: 32px !important;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  background: #f5f5f5;
+  color: #666;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.clear-filter-btn:hover {
+  background: #e6f7ff;
+  border-color: #40a9ff;
+  color: #1890ff;
+}
+
 .search-input {
   width: 250px;
 }
@@ -830,7 +875,7 @@ onMounted(() => {
 }
 
 :deep(.ant-input-search-button) {
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 6px 6px 0 !important;
   height: 32px !important;
 }
 
